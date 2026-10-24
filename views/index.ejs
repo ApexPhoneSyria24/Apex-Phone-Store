@@ -305,7 +305,7 @@
 </script>
 
 <!-- شاشة تحميل قسم الألعاب -->
-<div id="gamesLoader" class="fixed inset-0 z-[99999] bg-[#050505] hidden flex-col items-center justify-center" style="background-image: linear-gradient(rgba(0,243,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,243,255,0.06) 1px, transparent 1px); background-size: 20px 20px;">
+<div id="gamesLoader" class="fixed inset-0 z-[99999] bg-[#050505] hidden flex-col items-center justify-center transition-opacity duration-700 opacity-100" style="background-image: linear-gradient(rgba(0,243,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,243,255,0.06) 1px, transparent 1px); background-size: 20px 20px;">
   <div class="relative z-10 text-center px-4">
     <div class="w-24 h-24 mx-auto mb-6 relative">
       <div class="absolute inset-0 border-4 border-cyan-400/20 rounded-full"></div>
@@ -375,8 +375,13 @@ function redirectToGames(e) {
   } catch(err) {}
   
   setTimeout(() => {
-    window.location.href = '/games';
-  }, 3000);
+    // بدء التلاشي
+    loader.classList.add('opacity-0');
+    // الانتقال بعد انتهاء التلاشي
+    setTimeout(() => {
+      window.location.href = '/games';
+    }, 700); 
+  }, 2300);
 }
 </script>
 

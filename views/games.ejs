@@ -92,7 +92,7 @@
   @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(100%, 0, 0); } }
 </style>
 </head>
-<body class="font-sans antialiased min-h-screen flex flex-col">
+<body class="font-sans antialiased min-h-screen flex flex-col opacity-0 transition-opacity duration-700" id="mainBody">
 <div class="cyber-grid"></div>
 
 <!-- شريط الأخبار المصغر -->
@@ -208,6 +208,15 @@ document.addEventListener('DOMContentLoaded', function() {
     el.addEventListener('click', playGameClick);
   });
 });
+</script>
+
+
+<script>
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+        document.getElementById('mainBody').classList.remove('opacity-0');
+    }, 50);
+  });
 </script>
 
 </body>

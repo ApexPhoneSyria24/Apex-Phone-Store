@@ -185,5 +185,30 @@
   <p class="text-slate-500 font-bold text-[10px]">© 2026 APEX GAMING ZONE. جميع الحقوق محفوظة.</p>
 </footer>
 
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  function playGameClick() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(1000, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + 0.1);
+    } catch(e) {}
+  }
+  
+  // إضافة صوت النقر لكل الأزرار والروابط
+  document.querySelectorAll('a, button, .package-btn').forEach(el => {
+    el.addEventListener('click', playGameClick);
+  });
+});
+</script>
+
 </body>
 </html>

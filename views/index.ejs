@@ -122,7 +122,7 @@
     </form>
     <a href="/post-ad" class="block bg-gradient-to-r from-amber-500 to-orange-600 text-white text-center py-1.5 rounded-lg font-bold text-[10px] shadow-sm hover:from-amber-400 hover:to-orange-500 transition max-w-xs mx-auto mb-1.5"><i class="fa-solid fa-plus-circle mr-1"></i> بِع جهازك الآن (أضف إعلانك)</a>
     <a href="/verify-account" class="block bg-slate-800 text-white text-center py-1.5 rounded-lg font-bold text-[10px] shadow-sm hover:bg-slate-700 transition max-w-xs mx-auto"><i class="fa-solid fa-id-card mr-1 text-blue-400"></i> وثّق حسابك (احصل على علامة ✔️)</a>
-    <a href="/games" class="block bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-center py-1.5 rounded-lg font-bold text-[10px] shadow-sm hover:from-fuchsia-500 hover:to-purple-500 transition max-w-xs mx-auto mt-1.5"><i class="fa-solid fa-gamepad mr-1"></i> شحن الألعاب الآن</a>
+    <a href="/games" onclick="redirectToGames(event); return false;" class="block bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-center py-1.5 rounded-lg font-bold text-[10px] shadow-sm hover:from-fuchsia-500 hover:to-purple-500 transition max-w-xs mx-auto mt-1.5"><i class="fa-solid fa-gamepad mr-1"></i> شحن الألعاب الآن</a>
   </div>
 
   <% if (banners && banners.length > 0) { %>
@@ -303,5 +303,82 @@
 
   if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js'); }); }
 </script>
+
+<!-- شاشة تحميل قسم الألعاب -->
+<div id="gamesLoader" class="fixed inset-0 z-[99999] bg-[#050505] hidden flex-col items-center justify-center" style="background-image: linear-gradient(rgba(0,243,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,243,255,0.06) 1px, transparent 1px); background-size: 20px 20px;">
+  <div class="relative z-10 text-center px-4">
+    <div class="w-24 h-24 mx-auto mb-6 relative">
+      <div class="absolute inset-0 border-4 border-cyan-400/20 rounded-full"></div>
+      <div class="absolute inset-0 border-4 border-transparent border-t-cyan-400 border-r-fuchsia-500 rounded-full animate-spin"></div>
+      <div class="absolute inset-0 flex items-center justify-center">
+        <i class="fa-solid fa-gamepad text-3xl text-cyan-400 animate-pulse"></i>
+      </div>
+    </div>
+    <h2 class="text-2xl font-black text-white mb-2" style="text-shadow: 0 0 12px rgba(0,243,255,0.9);">جاري التحويل...</h2>
+    <p class="text-slate-400 text-sm font-bold">إلى قسم شحن الألعاب</p>
+    <div class="mt-5 flex justify-center gap-1.5">
+      <div class="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+      <div class="w-2 h-2 bg-fuchsia-400 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+      <div class="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+    </div>
+  </div>
+</div>
+<script>
+function playGamingClick() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(900, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + 0.12);
+  } catch(e) {}
+}
+
+function redirectToGames(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  
+  playGamingClick();
+  
+  const loader = document.getElementById('gamesLoader');
+  if (loader) {
+    loader.classList.remove('hidden');
+    loader.classList.add('flex');
+  }
+  
+  const phrase = 'سيتم الآن تحويلك إلى قسم شحن الألعاب';
+  
+  // المحاولة 1: Google TTS
+  try {
+    const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ar&q=' + encodeURIComponent(phrase);
+    const audio = new Audio(url);
+    audio.volume = 1.0;
+    audio.play().catch(() => {
+      // المحاولة 2: speechSynthesis (بصوت رجل إن وجد)
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(phrase);
+        u.lang = 'ar-SA';
+        u.rate = 0.9;
+        u.pitch = 0.6; // صوت منخفض = رجل
+        u.volume = 1.0;
+        const voices = window.speechSynthesis.getVoices();
+        const maleVoice = voices.find(v => v.lang.startsWith('ar') && (v.name.toLowerCase().includes('male') || v.name.includes('Maged') || v.name.includes('Tarik')));
+        if (maleVoice) u.voice = maleVoice;
+        window.speechSynthesis.speak(u);
+      }
+    });
+  } catch(err) {}
+  
+  setTimeout(() => {
+    window.location.href = '/games';
+  }, 3000);
+}
+</script>
+
 </body>
 </html>

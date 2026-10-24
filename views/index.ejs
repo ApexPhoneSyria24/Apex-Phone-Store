@@ -342,54 +342,100 @@ function playGamingClick() {
 function redirectToGames(e) {
   if (e) { e.preventDefault(); e.stopPropagation(); }
   
-  // 1. تشغيل نقرة الزر فوراً
+  // 1. نقرة الزر
   playGamingClick();
   
-  // 2. ظهور شاشة التحميل فوراً
+  // 2. إظهار شاشة التحميل
   const loader = document.getElementById('gamesLoader');
   if (loader) {
     loader.classList.remove('hidden');
     loader.classList.add('flex');
+    loader.classList.add('opacity-100');
+    loader.classList.remove('opacity-0');
   }
   
-  // 3. تشغيل الصوت فوراً في نفس لحظة الضغط
   const phrase = 'سيتم الآن تحويلك إلى قسم شحن الألعاب';
+  let transitionStarted = false;
   
-  try {
-    const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ar&q=' + encodeURIComponent(phrase);
-    const audio = new Audio(url);
-    audio.volume = 1.0;
-    audio.play().catch(function() {
-      // خطة بديلة: speechSynthesis بصوت رجل
-      try {
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-          const u = new SpeechSynthesisUtterance(phrase);
-          u.lang = 'ar-SA';
-          u.rate = 0.85;
-          u.pitch = 0.6;
-          u.volume = 1.0;
-          const voices = window.speechSynthesis.getVoices();
-          const maleVoice = voices.find(function(v) { 
-            return v.lang.startsWith('ar') && (v.name.toLowerCase().includes('male') || v.name.includes('Maged') || v.name.includes('Tarik')); 
-          });
-          if (maleVoice) u.voice = maleVoice;
-          window.speechSynthesis.speak(u);
-        }
-      } catch(err) {}
-    });
-  } catch(err) {}
-  
-  // 4. انتظار 4 ثوانٍ كاملة ثم التلاشي
-  setTimeout(function() {
+  function finishTransition() {
+    if (transitionStarted) return;
+    transitionStarted = true;
+    
     if (loader) {
+      loader.classList.remove('opacity-100');
       loader.classList.add('opacity-0');
     }
-    // 5. الانتقال بعد انتهاء التلاشي (0.8 ثانية)
+    
     setTimeout(function() {
       window.location.href = '/games';
-    }, 800);
-  }, 4000);
+    }, 800); // وقت التلاشي
+  }
+  
+  // حد أقصى 12 ثانية في حال تعليق الصوت
+  const safetyTimeout = setTimeout(finishTransition, 12000);
+  
+  // المحاولة الأولى: استخدام محرك الصوت المدمج في الهاتف (أفضل جودة وأكثر واقعية)
+  let speechSuccess = false;
+  try {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(phrase);
+      u.lang = 'ar-SA';
+      u.rate = 0.95; 
+      u.pitch = 0.6; // نبرة منخفضة لصوت رجل
+      u.volume = 1.0;
+      
+      const voices = window.speechSynthesis.getVoices();
+      const maleVoice = voices.find(v => v.lang.startsWith('ar') && (v.name.toLowerCase().includes('male') || v.name.includes('Maged') || v.name.includes('Tarik') || v.name.includes('Maged')));
+      if (maleVoice) u.voice = maleVoice;
+      
+      u.onend = function() {
+        clearTimeout(safetyTimeout);
+        finishTransition();
+      };
+      
+      u.onerror = function() {
+        // إذا فشل، نجرب جوجل
+        playGoogleTTS();
+      };
+      
+      window.speechSynthesis.speak(u);
+      speechSuccess = true;
+    }
+  } catch(err) {
+    console.log('Speech synthesis failed', err);
+  }
+  
+  // المحاولة الثانية: جوجل (احتياطي)
+  function playGoogleTTS() {
+    if (transitionStarted) return;
+    try {
+      const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ar&q=' + encodeURIComponent(phrase);
+      const audio = new Audio(url);
+      audio.volume = 1.0;
+      audio.onended = function() {
+        clearTimeout(safetyTimeout);
+        finishTransition();
+      };
+      audio.onerror = function() {
+        // إذا فشل كل شيء، انتقل فوراً
+        clearTimeout(safetyTimeout);
+        finishTransition();
+      };
+      audio.play().catch(function() {
+        clearTimeout(safetyTimeout);
+        finishTransition();
+      });
+    } catch(err) {
+      clearTimeout(safetyTimeout);
+      finishTransition();
+    }
+  }
+  
+  // إذا لم يدعم المتصفح النطق، نستخدم جوجل مباشرة
+  if (!speechSuccess) {
+      playGoogleTTS();
+  }
 }
 </script>
 

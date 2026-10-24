@@ -351,37 +351,66 @@ function redirectToGames(e) {
   }
   
   const phrase = 'سيتم الآن تحويلك إلى قسم شحن الألعاب';
+  let transitionStarted = false;
   
-  // المحاولة 1: Google TTS
-  try {
-    const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ar&q=' + encodeURIComponent(phrase);
-    const audio = new Audio(url);
-    audio.volume = 1.0;
-    audio.play().catch(() => {
-      // المحاولة 2: speechSynthesis (بصوت رجل إن وجد)
+  function finishTransition() {
+    if (transitionStarted) return;
+    transitionStarted = true;
+    if (loader) loader.classList.add('opacity-0');
+    setTimeout(function() {
+      window.location.href = '/games';
+    }, 800);
+  }
+  
+  // سقف أقصى (10 ثوانٍ) في حال فشل الصوت
+  const safetyTimeout = setTimeout(finishTransition, 10000);
+  
+  function trySpeechSynthesis() {
+    try {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(phrase);
         u.lang = 'ar-SA';
-        u.rate = 0.9;
-        u.pitch = 0.6; // صوت منخفض = رجل
+        u.rate = 0.85;
+        u.pitch = 0.6;
         u.volume = 1.0;
         const voices = window.speechSynthesis.getVoices();
-        const maleVoice = voices.find(v => v.lang.startsWith('ar') && (v.name.toLowerCase().includes('male') || v.name.includes('Maged') || v.name.includes('Tarik')));
+        const maleVoice = voices.find(function(v) { 
+          return v.lang.startsWith('ar') && (v.name.toLowerCase().includes('male') || v.name.includes('Maged') || v.name.includes('Tarik')); 
+        });
         if (maleVoice) u.voice = maleVoice;
+        u.onend = function() { clearTimeout(safetyTimeout); finishTransition(); };
+        u.onerror = function() { clearTimeout(safetyTimeout); finishTransition(); };
         window.speechSynthesis.speak(u);
+      } else {
+        clearTimeout(safetyTimeout);
+        finishTransition();
       }
-    });
-  } catch(err) {}
+    } catch(err) {
+      clearTimeout(safetyTimeout);
+      finishTransition();
+    }
+  }
   
-  setTimeout(() => {
-    // بدء التلاشي
-    loader.classList.add('opacity-0');
-    // الانتقال بعد انتهاء التلاشي
-    setTimeout(() => {
-      window.location.href = '/games';
-    }, 700); 
-  }, 2300);
+  try {
+    const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ar&q=' + encodeURIComponent(phrase);
+    const audio = new Audio(url);
+    audio.volume = 1.0;
+    audio.onended = function() {
+      clearTimeout(safetyTimeout);
+      finishTransition();
+    };
+    audio.onerror = function() {
+      clearTimeout(safetyTimeout);
+      trySpeechSynthesis();
+    };
+    audio.play().catch(function() {
+      clearTimeout(safetyTimeout);
+      trySpeechSynthesis();
+    });
+  } catch(err) {
+    trySpeechSynthesis();
+  }
 }
 </script>
 

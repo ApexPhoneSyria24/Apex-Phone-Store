@@ -2,3 +2,7 @@ node_modules/
 phones.db
 *.log
 .env
+private_docs/
+public/uploads/
+phones.db.backup
+phones.db

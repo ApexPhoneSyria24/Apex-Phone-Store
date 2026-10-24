@@ -354,9 +354,11 @@ function redirectToGames(e) {
     loader.classList.remove('opacity-0');
   }
   
-  const phrase = 'سيتم الآن تحويلك إلى قسم شحن الألعاب';
-  let transitionStarted = false;
+  // 3. تشغيل الصوت الرجولي العميق (ملف MP3)
+  const audio = new Audio('/sounds/welcome_games.mp3');
+  audio.volume = 1.0;
   
+  let transitionStarted = false;
   function finishTransition() {
     if (transitionStarted) return;
     transitionStarted = true;
@@ -365,77 +367,22 @@ function redirectToGames(e) {
       loader.classList.remove('opacity-100');
       loader.classList.add('opacity-0');
     }
-    
     setTimeout(function() {
       window.location.href = '/games';
-    }, 800); // وقت التلاشي
+    }, 800);
   }
   
-  // حد أقصى 12 ثانية في حال تعليق الصوت
-  const safetyTimeout = setTimeout(finishTransition, 12000);
+  // انتظار انتهاء الصوت الفعلي
+  audio.onended = finishTransition;
+  audio.onerror = finishTransition; // في حال فشل تحميل الملف
   
-  // المحاولة الأولى: استخدام محرك الصوت المدمج في الهاتف (أفضل جودة وأكثر واقعية)
-  let speechSuccess = false;
-  try {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(phrase);
-      u.lang = 'ar-SA';
-      u.rate = 0.95; 
-      u.pitch = 0.6; // نبرة منخفضة لصوت رجل
-      u.volume = 1.0;
-      
-      const voices = window.speechSynthesis.getVoices();
-      const maleVoice = voices.find(v => v.lang.startsWith('ar') && (v.name.toLowerCase().includes('male') || v.name.includes('Maged') || v.name.includes('Tarik') || v.name.includes('Maged')));
-      if (maleVoice) u.voice = maleVoice;
-      
-      u.onend = function() {
-        clearTimeout(safetyTimeout);
-        finishTransition();
-      };
-      
-      u.onerror = function() {
-        // إذا فشل، نجرب جوجل
-        playGoogleTTS();
-      };
-      
-      window.speechSynthesis.speak(u);
-      speechSuccess = true;
-    }
-  } catch(err) {
-    console.log('Speech synthesis failed', err);
-  }
+  audio.play().catch(function() {
+    // خطة بديلة: الانتظار 4 ثوانٍ ثم الانتقال
+    setTimeout(finishTransition, 4000);
+  });
   
-  // المحاولة الثانية: جوجل (احتياطي)
-  function playGoogleTTS() {
-    if (transitionStarted) return;
-    try {
-      const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ar&q=' + encodeURIComponent(phrase);
-      const audio = new Audio(url);
-      audio.volume = 1.0;
-      audio.onended = function() {
-        clearTimeout(safetyTimeout);
-        finishTransition();
-      };
-      audio.onerror = function() {
-        // إذا فشل كل شيء، انتقل فوراً
-        clearTimeout(safetyTimeout);
-        finishTransition();
-      };
-      audio.play().catch(function() {
-        clearTimeout(safetyTimeout);
-        finishTransition();
-      });
-    } catch(err) {
-      clearTimeout(safetyTimeout);
-      finishTransition();
-    }
-  }
-  
-  // إذا لم يدعم المتصفح النطق، نستخدم جوجل مباشرة
-  if (!speechSuccess) {
-      playGoogleTTS();
-  }
+  // حد أقصى 8 ثوانٍ في حال تعليق الصوت
+  const safetyTimeout = setTimeout(finishTransition, 8000);
 }
 </script>
 

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="UTF-8"><title>إضافة باقة</title><link rel="stylesheet" href="/css/style.css"></head>
+<body class="bg-slate-50 min-h-screen p-4 flex items-center justify-center">
+  <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg border border-slate-200">
+    <h2 class="text-2xl font-extrabold text-slate-900 mb-6 text-center">إضافة باقة شحن جديدة</h2>
+    <form action="/admin/games/add" method="POST" class="space-y-4">
+      <div><label class="block text-sm font-bold mb-1">اسم اللعبة (مثال: PUBG Mobile)</label><input type="text" name="game_name" required class="w-full px-4 py-2 border rounded-lg outline-none focus:border-blue-500"></div>
+      <div><label class="block text-sm font-bold mb-1">اسم الباقة (مثال: 60 UC)</label><input type="text" name="package_name" required class="w-full px-4 py-2 border rounded-lg outline-none focus:border-blue-500"></div>
+      <div><label class="block text-sm font-bold mb-1">السعر ($)</label><input type="number" step="0.01" name="price" required class="w-full px-4 py-2 border rounded-lg outline-none focus:border-blue-500"></div>
+      <div class="flex gap-3 pt-4">
+        <button type="submit" class="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-bold">حفظ</button>
+        <a href="/admin/games" class="px-6 py-2.5 bg-slate-100 rounded-lg font-bold text-slate-700">إلغاء</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شحن الألعاب | Apex فون</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  body { background-color: #0b0f19; color: #e2e8f0; }
+  .game-section { background: linear-gradient(145deg, #111827, #0b0f19); border: 1px solid #1f2937; border-radius: 1.5rem; margin-bottom: 2rem; overflow: hidden; position: relative; }
+  .game-header { background: linear-gradient(90deg, rgba(37,99,235,0.2) 0%, transparent 100%); padding: 1.5rem; border-bottom: 1px solid #1f2937; }
+  .package-card { background: #1f2937; border: 1px solid #374151; border-radius: 1rem; transition: all 0.3s ease; cursor: pointer; }
+  .package-card:hover { transform: translateY(-5px); border-color: #3b82f6; box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.3); }
+  .neon-text { text-shadow: 0 0 10px rgba(59, 130, 246, 0.8); }
+</style>
+</head>
+<body class="font-sans antialiased min-h-screen">
+
+<nav class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
+    <a href="/" class="flex items-center gap-2 text-white">
+      <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-mobile-screen"></i></div>
+      <span class="text-lg font-extrabold">Apex فون</span>
+    </a>
+    <a href="/" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition"><i class="fa-solid fa-arrow-right mr-1"></i> العودة للمتجر</a>
+  </div>
+</nav>
+
+<div class="max-w-5xl mx-auto px-4 py-10">
+  <div class="text-center mb-12">
+    <div class="inline-flex items-center justify-center w-20 h-20 bg-blue-600/20 text-blue-500 rounded-full mb-4 text-3xl shadow-[0_0_20px_rgba(59,130,246,0.3)]"><i class="fa-solid fa-gamepad"></i></div>
+    <h1 class="text-4xl md:text-5xl font-black text-white mb-3 neon-text">شحن الألعاب الفوري</h1>
+    <p class="text-slate-400 text-lg">أفضل الأسعار لشحن شدات ببجي، جواهر فري فاير، وبطاقات جوجل بلاي. شحن فوري وآمن 100%.</p>
+  </div>
+
+  <% if (Object.keys(grouped).length === 0) { %>
+    <div class="text-center py-20 bg-slate-900 rounded-3xl border border-slate-800">
+      <i class="fa-solid fa-gamepad text-6xl text-slate-700 mb-4"></i>
+      <h3 class="text-xl font-bold text-slate-400">لا توجد باقات شحن متاحة حالياً</h3>
+    </div>
+  <% } else { %>
+    <% Object.entries(grouped).forEach(([gameName, packages]) => { %>
+      <div class="game-section">
+        <div class="game-header flex items-center gap-4">
+          <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white text-2xl shadow-lg">
+            <i class="fa-solid fa-crosshairs"></i>
+          </div>
+          <h2 class="text-2xl font-black text-white"><%= gameName %></h2>
+        </div>
+        
+        <div class="p-6 grid grid-cols-2 md:grid-cols-3 gap-4">
+          <% packages.forEach(pkg => { %>
+            <a href="https://wa.me/963980259127?text=مرحباً،%20أريد%20شحن%20<%= encodeURIComponent(pkg.package_name) %>%20للعبة%20<%= encodeURIComponent(gameName) %>" target="_blank" class="package-card p-4 flex flex-col items-center justify-center text-center group">
+              <div class="text-blue-400 text-2xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-gem"></i></div>
+              <h3 class="text-lg font-bold text-white mb-1"><%= pkg.package_name %></h3>
+              <div class="text-xl font-black text-green-400">$<%= pkg.price %></div>
+            </a>
+          <% }) %>
+        </div>
+      </div>
+    <% }) %>
+  <% } %>
+</div>
+
+<footer class="text-center py-8 text-slate-500 text-sm border-t border-slate-800 mt-10">
+  جميع الحقوق محفوظة © 2026 Apex فون
+</footer>
+</body>
+</html>

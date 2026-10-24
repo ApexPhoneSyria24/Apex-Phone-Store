@@ -167,6 +167,18 @@ app.post('/post-ad', upload.array('images', 8), (req, res) => {
     res.render('ad-success', { sellerPhone: b.seller_phone, userCode: user.user_code });
 });
 
+
+// ===== مسارات الألعاب =====
+app.get('/games', (req, res) => {
+    const packages = db.prepare('SELECT * FROM game_packages WHERE is_active = 1 ORDER BY game_name, price').all();
+    const grouped = {};
+    packages.forEach(p => {
+        if (!grouped[p.game_name]) grouped[p.game_name] = [];
+        grouped[p.game_name].push(p);
+    });
+    res.render('games', { grouped });
+});
+
 app.get('/policy', (req, res) => { res.render('policy'); });
 
 // ====== لوحة الإدارة ======
@@ -291,6 +303,39 @@ app.post('/admin/feature/:id', requireAuth, (req, res) => {
 });
 
 // ====== إدارة الأجهزة ======
+
+// ===== إدارة الألعاب =====
+app.get('/admin/games', requireAuth, (req, res) => {
+    const packages = db.prepare('SELECT * FROM game_packages ORDER BY game_name, price').all();
+    res.render('admin-games', { packages });
+});
+
+app.get('/admin/games/add', requireAuth, (req, res) => {
+    res.render('admin-games-add');
+});
+
+app.post('/admin/games/add', requireAuth, (req, res) => {
+    const { game_name, package_name, price } = req.body;
+    db.prepare('INSERT INTO game_packages (game_name, package_name, price) VALUES (?, ?, ?)').run(game_name, package_name, price);
+    res.redirect('/admin/games');
+});
+
+app.get('/admin/games/edit/:id', requireAuth, (req, res) => {
+    const pkg = db.prepare('SELECT * FROM game_packages WHERE id = ?').get(req.params.id);
+    res.render('admin-games-edit', { pkg });
+});
+
+app.post('/admin/games/edit/:id', requireAuth, (req, res) => {
+    const { game_name, package_name, price, is_active } = req.body;
+    db.prepare('UPDATE game_packages SET game_name=?, package_name=?, price=?, is_active=? WHERE id=?').run(game_name, package_name, price, is_active ? 1 : 0, req.params.id);
+    res.redirect('/admin/games');
+});
+
+app.post('/admin/games/delete/:id', requireAuth, (req, res) => {
+    db.prepare('DELETE FROM game_packages WHERE id = ?').run(req.params.id);
+    res.redirect('/admin/games');
+});
+
 app.get('/admin/add', requireAuth, (req, res) => { res.render('add-phone'); });
 app.post('/admin/add', requireAuth, upload.array('images', 8), (req, res) => {
     const b = req.body; const images = req.files ? req.files.map(f => '/uploads/' + f.filename) : [];

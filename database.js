@@ -55,5 +55,16 @@ db.exec(`
 const cols = ['is_featured INTEGER DEFAULT 0', "availability TEXT DEFAULT 'متوفر'", "seller_name TEXT DEFAULT ''", "seller_phone TEXT DEFAULT ''"];
 cols.forEach(c => { try { db.exec(`ALTER TABLE phones ADD COLUMN ${c}`); } catch (e) {} });
 
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS game_packages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    game_name TEXT NOT NULL,
+    package_name TEXT NOT NULL,
+    price REAL NOT NULL,
+    is_active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
 console.log('✅ قاعدة البيانات جاهزة - مع نظام المستخدمين الكامل');
 module.exports = db;

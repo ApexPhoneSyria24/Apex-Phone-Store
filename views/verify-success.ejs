@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تم إرسال التوثيق | Apex فون</title>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .royal-bg { background: linear-gradient(135deg, #0a0a0a 0%, #111827 100%); border: 2px solid rgba(212, 175, 55, 0.4); box-shadow: 0 0 40px rgba(212, 175, 55, 0.15); }
+</style>
+</head>
+<body class="font-sans bg-slate-900 text-white min-h-screen flex items-center justify-center p-4">
+  <div class="royal-bg rounded-3xl p-6 md:p-8 max-w-md w-full text-center">
+    <div class="w-20 h-20 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-5 text-4xl shadow-lg animate-bounce">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+    
+    <h2 class="text-2xl font-extrabold text-white mb-3">تم إرسال طلب التوثيق!</h2>
+    
+    <!-- معرف المستخدم -->
+    <div class="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-5 mb-5 shadow-lg">
+      <p class="text-xs text-purple-100 font-bold mb-1">معرفك في الموقع (احتفظ به)</p>
+      <p class="text-3xl font-black text-white tracking-widest" dir="ltr"><%= userCode %></p>
+      <p class="text-[10px] text-purple-200 mt-2">استخدم هذا المعرف للتواصل مع الإدارة أو متابعة طلبك</p>
+    </div>
+    
+    <div class="bg-white/5 border border-white/10 rounded-xl p-4 mb-6 text-right">
+      <p class="text-xs font-bold text-slate-300 leading-relaxed mb-2">
+        <i class="fa-solid fa-clock text-gold-500 mr-1"></i> <b>قيد المراجعة:</b> سيتواصل معك قسم الإدارة قريباً.
+      </p>
+      <p class="text-[10px] text-slate-400 font-bold leading-relaxed">
+        <i class="fa-solid fa-bell text-blue-400 mr-1"></i> عند الموافقة، ستصلك إشعارات تلقائية في الموقع، وستظهر شارة "بائع موثوق" بجانب إعلاناتك.
+      </p>
+    </div>
+    
+    <a href="/" class="block w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-xl font-extrabold text-sm transition shadow-lg">
+      <i class="fa-solid fa-store mr-1"></i> العودة للمتجر
+    </a>
+  </div>
+  <script>
+    localStorage.setItem('apex_user_phone', '<%= phone %>');
+  </script>
+</body>
+</html>

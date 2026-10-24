@@ -1,0 +1,4 @@
+node_modules/
+phones.db
+*.log
+.env

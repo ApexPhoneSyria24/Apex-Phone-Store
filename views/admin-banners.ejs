@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إدارة البانرات | Apex فون</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Almarai', 'sans-serif'] }, colors: { brand: { 500: '#2563eb', 600: '#1d4ed8' } } } } }</script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1BPM70EPWG"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1BPM70EPWG');
+</script>
+</head>
+<body class="font-sans bg-slate-50 text-slate-800 antialiased min-h-screen">
+<nav class="bg-white shadow-sm border-b border-slate-200">
+  <div class="max-w-7xl mx-auto px-3 flex justify-between items-center h-12">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center text-white text-xs"><i class="fa-solid fa-images"></i></div>
+      <span class="text-sm font-extrabold text-slate-900">إدارة صور البانر</span>
+    </div>
+    <a href="/admin" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[10px]"><i class="fa-solid fa-arrow-right"></i> عودة للإدارة</a>
+  </div>
+</nav>
+<main class="max-w-4xl mx-auto px-3 py-6">
+  <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-6">
+    <h3 class="text-sm font-extrabold mb-3">إضافة صورة بانر جديدة</h3>
+    <form action="/admin/banners/add" method="POST" enctype="multipart/form-data" class="flex flex-col md:flex-row gap-3 items-end">
+      <div class="flex-1 w-full border-2 border-dashed border-brand-300 rounded-lg p-3 text-center relative bg-slate-50 hover:bg-brand-50 transition cursor-pointer">
+        <input type="file" name="banner_image" required accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+        <p class="text-xs font-bold text-slate-600"><i class="fa-solid fa-cloud-arrow-up text-brand-500 text-lg mb-1 block"></i> اختر صورة البانر (يفضل عرض 1200 بكسل)</p>
+      </div>
+      <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm w-full md:w-auto shadow-md transition">رفع الصورة</button>
+    </form>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <% banners.forEach(b => { %>
+      <div class="relative bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm group">
+        <img src="<%= b.image_url %>" class="w-full h-40 object-cover">
+        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+          <form action="/admin/banners/delete/<%= b.id %>" method="POST" onsubmit="return confirm('حذف هذا البانر؟')">
+            <button type="submit" class="bg-red-500 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-600 transition"><i class="fa-solid fa-trash"></i></button>
+          </form>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</main>
+</body>
+</html>

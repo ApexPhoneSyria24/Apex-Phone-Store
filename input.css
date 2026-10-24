@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.hide-scroll::-webkit-scrollbar { height: 4px; }
+.hide-scroll::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 10px; }
+.hide-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }

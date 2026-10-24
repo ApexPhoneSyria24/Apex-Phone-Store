@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>كود التحقق | Apex فون</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Almarai', 'sans-serif'] }, colors: { brand: { 500: '#2563eb', 600: '#1d4ed8' } } } } }</script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1BPM70EPWG"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1BPM70EPWG');
+</script>
+</head>
+<body class="font-sans bg-gradient-to-br from-slate-900 to-slate-800 min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 text-center">
+    <div class="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+      <i class="fa-solid fa-shield-halved text-white text-3xl"></i>
+    </div>
+    <h1 class="text-2xl font-extrabold text-slate-900 mb-2">كود التحقق</h1>
+    <p class="text-slate-500 text-sm mb-2">تم إرسال كود مكون من 6 أرقام إلى</p>
+    <p class="text-brand-600 font-extrabold text-lg mb-8" dir="ltr"><%= phone %></p>
+
+    <% if (error) { %>
+      <div class="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm font-bold"><%= error %></div>
+    <% } %>
+
+    <form action="/verify" method="POST" class="space-y-5">
+      <input type="hidden" name="phone" value="<%= phone %>">
+      <input type="text" name="code" required maxlength="6" placeholder="000000" class="w-full py-4 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 outline-none bg-slate-50 text-3xl font-extrabold text-center tracking-[1em]" dir="ltr" autocomplete="one-time-code">
+      <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-4 rounded-xl font-extrabold text-lg transition shadow-lg shadow-brand-500/30">تأكيد الدخول</button>
+    </form>
+    <a href="/login" class="block mt-6 text-slate-500 hover:text-brand-600 text-sm font-bold transition">← تغيير رقم الهاتف</a>
+  </div>
+</body>
+</html>

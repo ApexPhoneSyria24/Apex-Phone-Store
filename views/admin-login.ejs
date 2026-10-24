@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دخول الإدارة | Apex فون</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Almarai', 'sans-serif'] }, colors: { brand: { 500: '#2563eb', 600: '#1d4ed8' } } } } }</script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1BPM70EPWG"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1BPM70EPWG');
+</script>
+</head>
+<body class="font-sans bg-gradient-to-br from-slate-900 to-slate-800 min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 text-center border-t-8 border-brand-600">
+    <div class="w-16 h-16 bg-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+      <i class="fa-solid fa-user-shield text-white text-3xl"></i>
+    </div>
+    <h1 class="text-2xl font-extrabold text-slate-900 mb-2">لوحة الإدارة</h1>
+    <p class="text-slate-500 text-sm mb-8">هذه الصفحة مخصصة للمدير فقط. يرجى إدخال كلمة المرور.</p>
+
+    <% if (error) { %>
+      <div class="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm font-bold border border-red-100"><%= error %></div>
+    <% } %>
+
+    <form action="/admin/login" method="POST" class="space-y-5">
+      <div class="relative">
+        <i class="fa-solid fa-lock absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="password" name="password" required placeholder="أدخل كلمة المرور السرية" class="w-full pl-4 pr-12 py-4 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 outline-none bg-slate-50 text-lg font-bold text-center" dir="ltr">
+      </div>
+      <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-4 rounded-xl font-extrabold text-lg transition shadow-lg shadow-brand-500/30">دخول آمن</button>
+    </form>
+    <a href="/" class="block mt-6 text-slate-500 hover:text-brand-600 text-sm font-bold transition">← العودة للمتجر</a>
+  </div>
+</body>
+</html>

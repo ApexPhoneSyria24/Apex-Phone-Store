@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إدارة المستخدمين | Apex فون</title>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="font-sans bg-slate-50 text-slate-800 antialiased min-h-screen">
+
+<nav class="bg-white shadow-sm border-b border-slate-200">
+  <div class="max-w-7xl mx-auto px-3 flex justify-between items-center h-12">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-purple-600 rounded-lg flex items-center justify-center text-white text-xs"><i class="fa-solid fa-users"></i></div>
+      <span class="text-sm font-extrabold text-slate-900">إدارة المستخدمين</span>
+    </div>
+    <a href="/admin" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[10px]"><i class="fa-solid fa-arrow-right"></i> عودة</a>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-3 py-6">
+  <!-- البحث -->
+  <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
+    <form action="/admin/users" method="GET" class="flex gap-2">
+      <input type="text" name="q" value="<%= search %>" placeholder="ابحث بالمعرف (APX-...)، الرقم، أو الاسم..." class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-purple-500 text-sm">
+      <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition"><i class="fa-solid fa-search"></i> بحث</button>
+    </form>
+  </div>
+
+  <% if (users.length === 0) { %>
+    <div class="text-center py-16 bg-white rounded-xl border border-slate-200">
+      <i class="fa-solid fa-users-slash text-4xl text-slate-200 mb-3"></i>
+      <p class="text-slate-500 font-bold">لا يوجد مستخدمون</p>
+    </div>
+  <% } else { %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <% users.forEach(u => { %>
+        <div class="bg-white rounded-xl shadow-sm border <%= u.is_banned ? 'border-red-300' : (u.is_verified ? 'border-blue-300' : 'border-slate-200') %> p-4">
+          <div class="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg <%= u.is_banned ? 'bg-red-500' : (u.is_verified ? 'bg-blue-500' : 'bg-slate-400') %>">
+              <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-extrabold text-slate-900"><%= u.name || 'بدون اسم' %></p>
+              <p class="text-[10px] text-purple-600 font-bold" dir="ltr"><%= u.user_code %></p>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 mb-4">
+            <p class="text-xs text-slate-600"><i class="fa-solid fa-phone text-slate-400 w-4"></i> <span dir="ltr"><%= u.phone %></span></p>
+            <p class="text-xs">
+              <% if (u.is_verified) { %>
+                <span class="inline-flex items-center gap-1 text-blue-600 font-bold"><i class="fa-solid fa-circle-check"></i> موثق</span>
+              <% } else { %>
+                <span class="text-slate-400 font-bold">غير موثق</span>
+              <% } %>
+              <% if (u.is_banned) { %>
+                <span class="inline-flex items-center gap-1 text-red-600 font-bold mr-3"><i class="fa-solid fa-ban"></i> محظور</span>
+              <% } %>
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <% if (!u.is_verified) { %>
+              <form action="/admin/users/verify/<%= u.id %>" method="POST">
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-bold text-[11px] transition"><i class="fa-solid fa-check"></i> توثيق</button>
+              </form>
+            <% } else { %>
+              <form action="/admin/users/unverify/<%= u.id %>" method="POST">
+                <button type="submit" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-lg font-bold text-[11px] transition">إلغاء التوثيق</button>
+              </form>
+            <% } %>
+            <% if (!u.is_banned) { %>
+              <form action="/admin/users/ban/<%= u.id %>" method="POST" onsubmit="return confirm('حظر هذا المستخدم؟')">
+                <button type="submit" class="w-full bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded-lg font-bold text-[11px] transition"><i class="fa-solid fa-ban"></i> حظر</button>
+              </form>
+            <% } else { %>
+              <form action="/admin/users/unban/<%= u.id %>" method="POST">
+                <button type="submit" class="w-full bg-green-100 hover:bg-green-200 text-green-700 py-2 rounded-lg font-bold text-[11px] transition">إلغاء الحظر</button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</main>
+</body>
+</html>

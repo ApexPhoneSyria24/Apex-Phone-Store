@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة الإدارة | Apex فون</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Almarai', 'sans-serif'] }, colors: { brand: { 500: '#2563eb', 600: '#1d4ed8' } } } } }</script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1BPM70EPWG"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1BPM70EPWG');
+</script>
+</head>
+<body class="font-sans bg-slate-50 text-slate-800 antialiased min-h-screen">
+
+<nav class="bg-white shadow-sm border-b border-slate-200">
+  <div class="max-w-7xl mx-auto px-3 flex justify-between items-center h-12">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-slate-900 rounded-lg flex items-center justify-center text-white text-xs"><i class="fa-solid fa-user-shield"></i></div>
+      <span class="text-sm font-extrabold text-slate-900">لوحة الإدارة</span>
+    </div>
+    <div class="flex gap-2">
+      <a href="/admin/reviews" class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[10px] shadow-sm"><i class="fa-solid fa-star"></i> التقييمات</a>
+      <a href="/admin/verifications" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[10px] shadow-sm"><i class="fa-solid fa-id-card"></i> التوثيقات</a>
+      <a href="/admin/users" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[10px] shadow-sm"><i class="fa-solid fa-users"></i> المستخدمون</a>
+      <a href="/admin/banners" class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[10px] shadow-sm"><i class="fa-solid fa-images"></i> البانرات</a>
+      <a href="/admin/pending" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[10px] shadow-sm"><i class="fa-solid fa-bell"></i> طلبات الإعلانات</a>
+      <a href="/admin/add" class="bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[10px] shadow-sm"><i class="fa-solid fa-plus"></i> إضافة</a>
+      <a href="/" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[10px]"><i class="fa-solid fa-store"></i> المتجر</a>
+      <a href="/admin/logout" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[10px]"><i class="fa-solid fa-right-from-bracket"></i> خروج</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-3 py-6">
+  
+  <!-- الإحصائيات -->
+  <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
+    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+      <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg"><i class="fa-solid fa-mobile-screen"></i></div>
+      <div><p class="text-[10px] text-slate-500 font-bold">أجهزة المتجر</p><p class="text-lg font-extrabold text-slate-900"><%= stats.adminPhonesCount %></p></div>
+    </div>
+    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+      <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-lg"><i class="fa-solid fa-users"></i></div>
+      <div><p class="text-[10px] text-slate-500 font-bold">إعلانات الزبائن</p><p class="text-lg font-extrabold text-slate-900"><%= stats.userAdsCount %></p></div>
+    </div>
+    <a href="/admin/pending" class="bg-white p-3 rounded-xl border border-amber-300 shadow-sm flex items-center gap-3 hover:bg-amber-50 transition group">
+      <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center text-lg group-hover:scale-110 transition"><i class="fa-solid fa-bell"></i></div>
+      <div><p class="text-[10px] text-amber-600 font-extrabold">بانتظار المراجعة</p><p class="text-lg font-extrabold text-amber-700"><%= stats.pendingCount %></p></div>
+    </a>
+    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+      <div class="w-10 h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center text-lg"><i class="fa-solid fa-ban"></i></div>
+      <div><p class="text-[10px] text-slate-500 font-bold">تم بيعها</p><p class="text-lg font-extrabold text-slate-900"><%= stats.soldCount %></p></div>
+    </div>
+    <a href="/admin/verifications" class="bg-white p-3 rounded-xl border border-blue-300 shadow-sm flex items-center gap-3 hover:bg-blue-50 transition group">
+      <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg group-hover:scale-110 transition"><i class="fa-solid fa-id-card"></i></div>
+      <div><p class="text-[10px] text-blue-600 font-extrabold">طلبات التوثيق</p><p class="text-lg font-extrabold text-blue-700"><%= stats.verificationsCount %></p></div>
+    </a>
+    <a href="/admin/reviews" class="bg-white p-3 rounded-xl border border-yellow-300 shadow-sm flex items-center gap-3 hover:bg-yellow-50 transition group">
+      <div class="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center text-lg group-hover:scale-110 transition"><i class="fa-solid fa-star"></i></div>
+      <div><p class="text-[10px] text-yellow-600 font-extrabold">تقييمات جديدة</p><p class="text-lg font-extrabold text-yellow-700"><%= stats.reviewsCount %></p></div>
+    </a>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <% if (phones.length === 0) { %>
+      <div class="text-center py-12">
+        <i class="fa-solid fa-box-open text-4xl text-slate-200 mb-2"></i>
+        <h3 class="text-sm font-bold text-slate-700">لا توجد هواتف مضافة</h3>
+      </div>
+    <% } else { %>
+    <div class="overflow-x-auto">
+      <table class="w-full text-right border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px]">
+            <th class="p-2 font-bold">#</th>
+            <th class="p-2 font-bold">الهاتف</th>
+            <th class="p-2 font-bold">الماركة</th>
+            <th class="p-2 font-bold">السعر</th>
+            <th class="p-2 font-bold text-center">الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <% phones.forEach(p => { %>
+            <tr class="hover:bg-slate-50/50 transition <%= p.availability === 'تم البيع' ? 'opacity-50' : '' %>">
+              <td class="p-2 text-slate-400 text-[10px] font-bold"><%= p.id %></td>
+              <td class="p-2">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-slate-100 p-0.5 flex-shrink-0">
+                    <img src="https://images.weserv.nl/?url=https://apexphonesyria.online<%= (JSON.parse(p.images || '[]'))[0] || 'https://via.placeholder.com/100' %>&w=100&output=webp&q=80" class="w-full h-full object-contain rounded">
+                  </div>
+                  <span class="font-bold text-slate-800 text-[11px]"><%= p.name %></span>
+                </div>
+              </td>
+              <td class="p-2 text-slate-600 font-medium text-[10px]"><%= p.brand %></td>
+              <td class="p-2 font-extrabold text-slate-900 text-[11px]">$<%= p.price %></td>
+              <td class="p-2">
+                <div class="flex items-center justify-center gap-1">
+                  
+<form action="/admin/feature/<%= p.id %>" method="POST" style="display:inline;">
+  <button type="submit" class="w-6 h-6 flex items-center justify-center rounded <%= p.is_featured === 1 ? 'bg-amber-400 text-white' : 'bg-slate-100 text-slate-400' %> hover:bg-amber-500 hover:text-white transition text-[10px]" title="تمييز الإعلان"><i class="fa-solid fa-star"></i></button>
+</form>
+<a href="/admin/edit/<%= p.id %>" class="w-6 h-6 flex items-center justify-center rounded bg-amber-100 text-amber-600 hover:bg-amber-200 transition text-[10px]" title="تعديل"><i class="fa-solid fa-pen"></i></a>
+
+                  
+                  <% if (p.availability !== 'تم البيع') { %>
+                    <form action="/admin/sold-out/<%= p.id %>" method="POST" style="display:inline;">
+                      <button type="submit" class="w-6 h-6 flex items-center justify-center rounded bg-slate-800 text-white hover:bg-slate-700 transition text-[10px]" title="تم البيع"><i class="fa-solid fa-tag"></i></button>
+                    </form>
+                  <% } else { %>
+                    <form action="/admin/delete/<%= p.id %>" method="POST" onsubmit="return confirm('حذف نهائي؟')">
+                      <button type="submit" class="w-6 h-6 flex items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition text-[10px]" title="حذف نهائي"><i class="fa-solid fa-trash"></i></button>
+                    </form>
+                  <% } %>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% } %>
+  </div>
+</main>
+</body>
+</html>

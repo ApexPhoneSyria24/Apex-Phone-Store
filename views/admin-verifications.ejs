@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إدارة التوثيقات | Apex فون</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Almarai', 'sans-serif'] }, colors: { brand: { 500: '#2563eb', 600: '#1d4ed8' } } } } }</script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1BPM70EPWG"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1BPM70EPWG');
+</script>
+</head>
+<body class="font-sans bg-slate-50 text-slate-800 antialiased min-h-screen">
+
+<nav class="bg-white shadow-sm border-b border-slate-200">
+  <div class="max-w-7xl mx-auto px-3 flex justify-between items-center h-12">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xs"><i class="fa-solid fa-id-card"></i></div>
+      <span class="text-sm font-extrabold text-slate-900">طلبات توثيق الحسابات</span>
+    </div>
+    <a href="/admin" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[10px]"><i class="fa-solid fa-arrow-right"></i> عودة للإدارة</a>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-3 py-6">
+  <% if (docs.length === 0) { %>
+    <div class="text-center py-12 bg-white rounded-xl border border-slate-200">
+      <i class="fa-solid fa-id-card text-4xl text-slate-200 mb-2"></i>
+      <h3 class="text-sm font-bold text-slate-700">لا توجد طلبات توثيق جديدة</h3>
+    </div>
+  <% } else { %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <% docs.forEach(doc => { %>
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 <%= doc.status !== 'pending' ? 'opacity-60' : '' %>">
+          
+          <div class="flex items-center gap-3 mb-3 border-b border-slate-100 pb-3">
+            <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600"><i class="fa-solid fa-user-check"></i></div>
+            <div>
+              <p class="text-sm font-extrabold text-slate-900"><%= doc.name %></p>
+              <p class="text-[10px] text-brand-600 font-bold" dir="ltr"><%= doc.phone %></p>
+            </div>
+            <% if(doc.status === 'approved') { %>
+              <span class="ml-auto bg-green-100 text-green-700 text-[9px] font-bold px-2 py-1 rounded-full">موثق</span>
+            <% } %>
+          </div>
+
+          <!-- عرض الصور بشكل آمن -->
+          <div class="grid grid-cols-3 gap-2 mb-4">
+            <a href="/admin/view-doc/<%= doc.id_front %>" target="_blank" class="block h-16 rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
+              <img src="/admin/view-doc/<%= doc.id_front %>" class="w-full h-full object-cover">
+              <p class="text-[8px] text-center text-slate-500 mt-1">أمامي</p>
+            </a>
+            <a href="/admin/view-doc/<%= doc.id_back %>" target="_blank" class="block h-16 rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
+              <img src="/admin/view-doc/<%= doc.id_back %>" class="w-full h-full object-cover">
+              <p class="text-[8px] text-center text-slate-500 mt-1">خلفي</p>
+            </a>
+            <a href="/admin/view-doc/<%= doc.selfie %>" target="_blank" class="block h-16 rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
+              <img src="/admin/view-doc/<%= doc.selfie %>" class="w-full h-full object-cover">
+              <p class="text-[8px] text-center text-slate-500 mt-1">سيلفي</p>
+            </a>
+          </div>
+
+          <div class="flex gap-2">
+            <form action="/admin/verify/approve/<%= doc.id %>" method="POST" class="flex-1">
+              <button type="submit" class="w-full bg-slate-900 hover:bg-black text-white py-2 rounded-lg font-bold text-xs transition"><i class="fa-solid fa-check"></i> موافقة وتوثيق</button>
+            </form>
+            <form action="/admin/verify/reject/<%= doc.id %>" method="POST" class="flex-1" onsubmit="return confirm('رفض وحذف الطلب؟')">
+              <button type="submit" class="w-full bg-red-100 hover:bg-red-200 text-red-600 py-2 rounded-lg font-bold text-xs transition"><i class="fa-solid fa-xmark"></i> رفض</button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</main>
+
+</body>
+</html>

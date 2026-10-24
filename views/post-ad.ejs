@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بِع جهازك | Apex فون</title>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Almarai', 'sans-serif'] }, colors: { brand: { 500: '#2563eb', 600: '#1d4ed8' } } } } }</script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1BPM70EPWG"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1BPM70EPWG');
+</script>
+</head>
+<body class="font-sans bg-slate-50 text-slate-800 antialiased min-h-screen p-3">
+  <div class="w-full max-w-xl mx-auto bg-white rounded-xl shadow-md p-4 md:p-6 border border-slate-100 my-4">
+    <div class="text-center mb-4">
+      <div class="w-12 h-12 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl"><i class="fa-solid fa-bullhorn"></i></div>
+      <h2 class="text-lg font-extrabold text-slate-900">أضف إعلانك (بِع جهازك)</h2>
+      <p class="text-slate-500 text-[10px] mt-1">سيتم مراجعة إعلانك من قبل الإدارة قبل نشره لضمان الأمان للجميع.</p>
+    </div>
+    
+    <form action="/post-ad" method="POST" enctype="multipart/form-data" class="space-y-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-700 mb-1">اسم الجهاز *</label>
+          <input type="text" name="name" required class="w-full px-2.5 py-1.5 rounded border border-slate-200 focus:border-brand-500 outline-none bg-slate-50 text-xs">
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-700 mb-1">الماركة *</label>
+          <input type="text" name="brand" required class="w-full px-2.5 py-1.5 rounded border border-slate-200 focus:border-brand-500 outline-none bg-slate-50 text-xs">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-700 mb-1">السعر المطلوب ($) *</label>
+          <input type="number" step="0.01" name="price" required class="w-full px-2.5 py-1.5 rounded border border-slate-200 focus:border-brand-500 outline-none bg-slate-50 text-xs">
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-700 mb-1">رقم هاتفك (للتواصل) *</label>
+          <input type="tel" name="seller_phone" required placeholder="09xxxxxxxx" class="w-full px-2.5 py-1.5 rounded border border-slate-200 focus:border-brand-500 outline-none bg-slate-50 text-xs" dir="ltr">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-bold text-slate-700 mb-1">اسمك الكريم *</label>
+        <input type="text" name="seller_name" required class="w-full px-2.5 py-1.5 rounded border border-slate-200 focus:border-brand-500 outline-none bg-slate-50 text-xs">
+      </div>
+
+      <div class="border-2 border-dashed border-brand-300 rounded-lg p-3 text-center hover:bg-brand-50/50 transition relative">
+        <input type="file" name="images" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+        <i class="fa-solid fa-cloud-arrow-up text-2xl text-brand-500 mb-1"></i>
+        <p class="text-[10px] font-bold text-slate-700">اضغط لرفع صور جهازك</p>
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-bold text-slate-700 mb-1">وصف الجهاز (اختياري)</label>
+        <textarea name="description" rows="2" class="w-full px-2.5 py-1.5 rounded border border-slate-200 focus:border-brand-500 outline-none bg-slate-50 text-xs"></textarea>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="submit" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white py-2 rounded-lg font-extrabold text-xs shadow-sm transition">نشر الإعلان للمراجعة</button>
+        <a href="/" class="px-4 py-2 rounded-lg font-bold text-slate-600 bg-slate-200 hover:bg-slate-300 transition text-xs">إلغاء</a>
+      </div>
+    </form>
+  </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const fileInputs = document.querySelectorAll('input[type="file"][name="images"]');
+    fileInputs.forEach(input => {
+      const previewContainer = document.createElement('div');
+      previewContainer.className = 'grid grid-cols-4 gap-2 mt-3';
+      input.parentElement.after(previewContainer);
+
+      input.addEventListener('change', function(event) {
+        previewContainer.innerHTML = '';
+        const files = event.target.files;
+
+        for (let i = 0; i < files.length; i++) {
+          if (files[i].type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              const imgWrap = document.createElement('div');
+              imgWrap.className = 'relative aspect-square rounded-lg overflow-hidden border border-slate-200 shadow-sm';
+              imgWrap.innerHTML = '<img src="' + e.target.result + '" class="w-full h-full object-cover">';
+              previewContainer.appendChild(imgWrap);
+            }
+            reader.readAsDataURL(files[i]);
+          }
+        }
+      });
+    });
+  });
+</script>
+
+
+<script>
+  document.querySelector('form').addEventListener('submit', function(e) {
+    const phone = document.querySelector('input[name="seller_phone"]').value;
+    localStorage.setItem('apex_user_phone', phone);
+  });
+</script>
+</body>
+</html>

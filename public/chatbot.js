@@ -29,7 +29,7 @@
 
   const widgetHTML = `
     <!-- النافذة الترحيبية (Teaser) -->
-    <div id="mimo-teaser" style="display:none; position:fixed; bottom:105px; right:25px; z-index:99998; background:rgba(17,34,64,0.95); backdrop-filter:blur(10px); border:1px solid #00f3ff; border-radius:20px 20px 0 20px; padding:15px; width:270px; box-shadow:0 10px 30px rgba(0,243,255,0.3); font-family:'Cairo', sans-serif; transform-origin: bottom right; animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;" dir="rtl">
+    <div id="mimo-teaser" style="display:none; position:fixed; bottom:90px; right:25px; z-index:999999; background:rgba(17,34,64,0.95); backdrop-filter:blur(10px); border:1px solid #00f3ff; border-radius:20px 20px 0 20px; padding:15px; width:270px; box-shadow:0 10px 30px rgba(0,243,255,0.3); font-family:'Cairo', sans-serif; transform-origin: bottom right; animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;" dir="rtl">
       <button id="mimo-close-teaser" style="position:absolute; top:-10px; left:-10px; background:#ef4444; color:white; border:none; width:24px; height:24px; border-radius:50%; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3);">✕</button>
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
         <div style="width:45px; height:45px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:2px solid #00f3ff; box-shadow:0 0 15px rgba(0,243,255,0.5);">
@@ -45,11 +45,11 @@
     </div>
 
     <!-- زر أيقونة ميمو -->
-    <button id="chat-toggle" style="position:fixed; bottom:25px; right:25px; width:70px; height:70px; border-radius:50%; background:#112240; color:white; border:3px solid #00f3ff; box-shadow:0 6px 25px rgba(0,243,255,0.6); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:28px; z-index:99999; transition:transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow:hidden;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    <button id="chat-toggle" style="position:fixed; bottom:25px; right:25px; width:55px; height:55px; border-radius:50%; background:#112240; color:white; border:3px solid #00f3ff; box-shadow:0 6px 25px rgba(0,243,255,0.6); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:22px; z-index:999998; transition:transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow:hidden;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
       <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover; background:#fff;">
     </button>
     
-    <div id="chat-window" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; background:#0a192f; z-index:100000; font-family:'Cairo', sans-serif; flex-direction:column; overflow:hidden;" dir="rtl">
+    <div id="chat-window" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; background:#0a192f; z-index:999999; font-family:'Cairo', sans-serif; flex-direction:column; overflow:hidden;" dir="rtl">
       
       <div style="background:#112240; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; box-shadow:0 2px 5px rgba(0,0,0,0.2);">
         <div style="display:flex; align-items:center; gap:15px;">

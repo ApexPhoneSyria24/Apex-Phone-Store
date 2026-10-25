@@ -110,12 +110,32 @@
     const sendBtn = document.getElementById('chat-send');
     const messagesContainer = document.getElementById('chat-messages');
     
+    
+  // معالجة حجم الشاشة مع الكيبورد
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const chatWindow = document.getElementById('chat-window');
+      if (chatWindow && chatWindow.style.display === 'flex') {
+        chatWindow.style.height = window.visualViewport.height + 'px';
+        const messagesContainer = document.getElementById('chat-messages');
+        if (messagesContainer) messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+    });
+    window.visualViewport.addEventListener('scroll', () => {
+      const chatWindow = document.getElementById('chat-window');
+      if (chatWindow && chatWindow.style.display === 'flex') {
+        chatWindow.style.top = window.visualViewport.offsetTop + 'px';
+      }
+    });
+  }
+  
     let chatHistory = [];
     let isHumanMode = false;
 
     toggleBtn.onclick = () => { 
       chatWindow.style.display = 'flex'; 
       document.body.style.overflow = 'hidden'; 
+      if (window.visualViewport) chatWindow.style.height = window.visualViewport.height + 'px';
     };
     closeBtn.onclick = () => { 
       chatWindow.style.display = 'none'; 
@@ -157,7 +177,7 @@
           const isAdmin = m.sender === 'admin';
           const isSystem = m.sender === 'system';
           if (isSystem) return `<div style="text-align:center; color:#ef4444; font-size:12px; margin:10px 0;">${m.message}</div>`;
-          return `<div style="background:${isAdmin ? '#1e293b' : 'linear-gradient(135deg, #00f3ff, #0055ff)'}; color:${isAdmin ? '#e2e8f0' : 'white'}; padding:12px 16px; border-radius:15px ${isAdmin ? '15px 0 15px' : '15px 15px 0'}; font-size:14px; align-self:${isAdmin ? 'flex-start' : 'flex-end'}; max-width:85%;">${m.message}</div>`;
+          return `<div style="background:${isAdmin ? '#1e293b' : 'linear-gradient(135deg, #00f3ff, #0055ff)'}; color:${isAdmin ? '#e2e8f0' : 'white'}; padding:12px 16px; border-radius:15px ${isAdmin ? '15px 15px 15px 0' : '15px 15px 0 15px'}; font-size:14px; align-self:${isAdmin ? 'flex-end' : 'flex-start'}; max-width:85%; margin-${isAdmin ? 'right' : 'left'}:auto;">${m.message}</div>`;
         }).join('');
         
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -203,9 +223,10 @@
           });
           if (!res.ok) {
              const err = await res.json();
-             alert('خطأ في الإرسال: ' + (err.error || 'غير معروف'));
+             humanChat.innerHTML = humanChat.innerHTML.replace(text, ''); // إزالة الرسالة الوهمية
+             alert('عذراً، فشل الإرسال: ' + (err.error || 'خطأ في السيرفر'));
           }
-        } catch(e) { alert('تعذر الاتصال بالسيرفر'); }
+        } catch(e) { humanChat.innerHTML = humanChat.innerHTML.replace(text, ''); alert('تعذر الاتصال بالسيرفر. تأكد من الإنترنت.'); }
         return;
       }
 

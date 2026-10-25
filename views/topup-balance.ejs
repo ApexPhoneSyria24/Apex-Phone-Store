@@ -19,7 +19,7 @@
   </nav>
 
   <div class="max-w-2xl mx-auto px-4 py-8 flex-1 w-full">
-    <% if (req.query.success) { %>
+    <% if (typeof success !== 'undefined' && success) { %>
       <div class="bg-green-500/20 border border-green-500 text-green-400 p-4 rounded-xl mb-6 font-bold text-center">✅ تم إرسال طلب الإيداع بنجاح. سيتم مراجعته من قبل الإدارة وإضافة الرصيد قريباً.</div>
     <% } %>
 

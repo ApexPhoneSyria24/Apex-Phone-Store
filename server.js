@@ -366,7 +366,7 @@ app.get('/topup-balance', (req, res) => {
     const user = db.prepare('SELECT balance FROM users WHERE phone = ?').get(req.query.phone);
     if (user) userBalance = user.balance;
   }
-  res.render('topup-balance', { userBalance, phoneQuery: req.query.phone || '' });
+  res.render('topup-balance', { userBalance, phoneQuery: req.query.phone || '', success: req.query.success });
 });
 
 app.post('/topup-balance', upload.single('receipt'), (req, res) => {

@@ -27,7 +27,7 @@
 
   const widgetHTML = `
     <!-- Teaser -->
-    <div id="mimo-teaser" style="display:none; position:fixed; bottom:90px; right:25px; z-index:999999; background:rgba(17,34,64,0.95); backdrop-filter:blur(10px); border:1px solid #00f3ff; border-radius:20px 20px 0 20px; padding:15px; width:270px; box-shadow:0 10px 30px rgba(0,243,255,0.3); font-family:'Cairo', sans-serif; transform-origin: bottom right; animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;" dir="rtl">
+    <div id="mimo-teaser" style="display:none; position:fixed; bottom:90px; right:25px; z-index:999999; background:rgba(17,34,64,0.95); backdrop-filter:blur(10px); border:1px solid #00f3ff; border-radius:20px 20px 0 20px; padding:15px; width:270px; box-shadow:0 10px 30px rgba(0,243,255,0.3); font-family:'Cairo', sans-serif; transform-origin: bottom right; opacity: 0; transition: opacity 0.5s ease, transform 0.5s ease; transform: translateY(20px);" dir="rtl">
       <button id="mimo-close-teaser" style="position:absolute; top:-10px; left:-10px; background:#ef4444; color:white; border:none; width:24px; height:24px; border-radius:50%; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3);">✕</button>
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
         <div style="width:45px; height:45px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:2px solid #00f3ff; box-shadow:0 0 15px rgba(0,243,255,0.5);">
@@ -158,13 +158,14 @@
     handleVisualViewport();
 
     setTimeout(() => {
-      if (chatWindow.style.display === 'none' && !localStorage.getItem('mimo_teaser_closed_v5')) {
+      if (chatWindow.style.display === 'none' && !localStorage.getItem('mimo_teaser_closed_v6')) {
         teaser.style.display = 'block';
+        setTimeout(() => { teaser.style.opacity = '1'; teaser.style.transform = 'translateY(0)'; }, 50);
         playSound('pop');
       }
     }, 2000);
 
-    closeTeaser.onclick = () => { teaser.style.display = 'none'; localStorage.setItem('mimo_teaser_closed_v5', 'true'); };
+    closeTeaser.onclick = () => { teaser.style.display = 'none'; localStorage.setItem('mimo_teaser_closed_v6', 'true'); };
 
     teaserBtn.onclick = () => {
       playSound('send');

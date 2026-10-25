@@ -67,18 +67,9 @@ try {
 } catch(e) { console.error('Migration Error:', e.message); }
 
 
-const TELEGRAM_TOKEN = '8953449632:AAEimtiSqDpeBnse6bnTKyU1xAhkvIvltsg';
-const TELEGRAM_CHAT_ID = '5785915708';
 
-function sendTelegram(message) {
-  if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) return;
-  fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey },
-    body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'HTML' })
-  }).catch(() => {});
-}
+
+
 
 
 try {
@@ -108,6 +99,24 @@ try {
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 } catch(e) { console.error('Chat Tables Error:', e.message); }
+
+
+const TELEGRAM_TOKEN = '8953449632:AAEimtiSqDpeBnse6bnTKyU1xAhkvIvltsg';
+const TELEGRAM_CHAT_ID = '5785915708';
+
+async function sendTelegram(message) {
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'HTML' })
+    });
+    const data = await res.json();
+    if (!data.ok) console.error('Telegram Error:', data.description);
+  } catch(err) {
+    console.error('Telegram Fetch Error:', err.message);
+  }
+}
 
 const app = express();
 const PORT = 3000;
@@ -590,6 +599,9 @@ app.post('/api/human-chat/send', (req, res) => {
     
     db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'visitor', ?)").run(visitor_id, message);
     
+    // إرسال إشعار إلى تيليجرام
+    sendTelegram(`💬 <b>رسالة جديدة في الدردشة!</b>\nالزائر: ${visitor_id}\nالرسالة: ${message}`);
+    
     try {
       if (typeof sendTelegram === 'function') {
         sendTelegram(`💬 <b>رسالة جديدة في الدردشة!</b>\nالزائر: ${visitor_id}\nالرسالة: ${message}`);
@@ -663,6 +675,11 @@ app.get('/api/admin/chat/messages/:visitorId', requireAuth, (req, res) => {
   const msgs = db.prepare("SELECT * FROM chat_messages WHERE visitor_id = ? ORDER BY id ASC").all(req.params.visitorId);
   const session = db.prepare("SELECT * FROM chat_sessions WHERE visitor_id = ?").get(req.params.visitorId) || { status: 'open', rating: 0, feedback: '' };
   res.json({ messages: msgs, session });
+});
+
+app.get('/api/test-telegram', (req, res) => {
+  sendTelegram('🚀 هذه رسالة تجريبية من موقع Apex! إذا وصلتك، فالإشعارات تعمل بنجاح.');
+  res.send('تم إرسال الرسالة التجريبية إلى تيليجرام. افحص هاتفك!');
 });
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

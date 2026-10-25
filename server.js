@@ -269,7 +269,8 @@ app.get('/admin', requireAuth, (req, res) => {
     verificationsCount: db.prepare("SELECT COUNT(*) c FROM verifications WHERE status='pending'").get().c,
     reviewsCount: db.prepare("SELECT COUNT(*) c FROM reviews WHERE status='pending'").get().c,
     usersCount: db.prepare("SELECT COUNT(*) c FROM users").get().c,
-    topupsCount: db.prepare("SELECT COUNT(*) c FROM topup_orders WHERE status='pending'").get().c
+    topupsCount: db.prepare("SELECT COUNT(*) c FROM topup_orders WHERE status='pending'").get().c,
+    pendingDepositsCount: db.prepare("SELECT COUNT(*) c FROM wallet_deposits WHERE status='pending'").get().c
   };
   res.render('admin', { phones, stats, pendingDeposits });
 });

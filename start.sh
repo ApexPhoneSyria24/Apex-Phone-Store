@@ -1,26 +1,21 @@
 #!/bin/sh
-
-# 1. مجلدات مضمونة
+mkdir -p /app/data
 mkdir -p /app/public/uploads
 mkdir -p /app/private_docs
 
-# 2. استعادة DB إذا مفقود
-if [ ! -f /app/phones.db ]; then
-  echo "📦 نسخ أولي لقاعدة البيانات..."
-  cp /app/backup/phones.db /app/phones.db 2>/dev/null || echo "⚠️ backup DB غير موجود"
+# نسخ قاعدة البيانات الأولية فقط إذا لم تكن موجودة (لن تمسح أبداً)
+if [ ! -f /app/data/phones.db ]; then
+  echo "📦 إنشاء قاعدة بيانات أولية..."
+  cp /app/backup/phones.db /app/data/phones.db 2>/dev/null || true
 fi
 
-# 3. استعادة الصور إذا المجلد فارغ
+# ربط قاعدة البيانات بالمسار الذي يتوقعه السيرفر
+ln -sf /app/data/phones.db /app/phones.db
+
+# استعادة الصور إذا كان المجلد فارغاً
 if [ -d /app/backup/uploads ] && [ -z "$(ls -A /app/public/uploads 2>/dev/null)" ]; then
-  echo "🖼️ استعادة الصور من backup..."
+  echo "🖼️ استعادة الصور..."
   cp -r /app/backup/uploads/. /app/public/uploads/ 2>/dev/null || true
 fi
 
-# 4. استعادة وثائق التوثيق إذا المجلد فارغ
-if [ -d /app/backup/private_docs ] && [ -z "$(ls -A /app/private_docs 2>/dev/null)" ]; then
-  echo "📄 استعادة وثائق التوثيق..."
-  cp -r /app/backup/private_docs/. /app/private_docs/ 2>/dev/null || true
-fi
-
-# 5. تشغيل الموقع
 node server.js

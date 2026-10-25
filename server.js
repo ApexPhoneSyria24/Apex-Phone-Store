@@ -10,8 +10,8 @@ const compression = require('compression');
 try {
   const cols = db.prepare("PRAGMA table_info(games)").all();
   if (!cols.some(c => c.name === 'banner_url')) {
-    db.exec('DROP TABLE IF EXISTS games');
-    db.exec('DROP TABLE IF EXISTS game_packages');
+    console.log('Updating games table...');
+    console.log('Updating packages table...');
     db.exec(`CREATE TABLE games (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, name_ar TEXT, slug TEXT UNIQUE, image_url TEXT, banner_url TEXT, developer TEXT, description TEXT, instructions TEXT, delivery_time TEXT, refund_policy TEXT, is_active INTEGER DEFAULT 1, sort_order INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
     db.exec(`CREATE TABLE game_packages (id INTEGER PRIMARY KEY AUTOINCREMENT, game_name TEXT NOT NULL, package_name TEXT NOT NULL, price REAL NOT NULL, is_active INTEGER DEFAULT 1, sort_order INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
     const seed = [

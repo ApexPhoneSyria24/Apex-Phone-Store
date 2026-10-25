@@ -165,6 +165,7 @@
       checkHumanChat();
     };
 
+    
     async function checkHumanChat() {
       if (!isHumanMode) return;
       try {
@@ -184,12 +185,14 @@
           const isAdmin = m.sender === 'admin';
           const isSystem = m.sender === 'system';
           if (isSystem) return `<div style="text-align:center; color:#ef4444; font-size:12px; margin:10px 0;">${m.message}</div>`;
-          return `<div style="background:${isAdmin ? '#1e293b' : 'linear-gradient(135deg, #00f3ff, #0055ff)'}; color:${isAdmin ? '#e2e8f0' : 'white'}; padding:12px 16px; border-radius:15px ${isAdmin ? '15px 15px 15px 0' : '15px 15px 0 15px'}; font-size:14px; align-self:${isAdmin ? 'flex-end' : 'flex-start'}; max-width:85%; margin-${isAdmin ? 'right' : 'left'}:auto;">${m.message}</div>`;
+          return `<div style="background:${isAdmin ? '#1e293b' : 'linear-gradient(135deg, #00f3ff, #0055ff)'}; color:${isAdmin ? '#e2e8f0' : 'white'}; padding:12px 16px; border-radius:15px ${isAdmin ? '15px 0 15px' : '15px 15px 0'}; font-size:14px; align-self:${isAdmin ? 'flex-start' : 'flex-end'}; max-width:85%; box-shadow:0 2px 5px rgba(0,0,0,0.2);">${m.message}</div>`;
         }).join('');
         
+        const messagesContainer = document.getElementById('chat-messages');
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       } catch(e) {}
     }
+
     setInterval(checkHumanChat, 3000);
 
     let selectedRating = 0;

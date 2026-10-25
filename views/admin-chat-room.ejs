@@ -1,39 +1,58 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8"><title>محادثة مع <%= visitorId %></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>محادثة مع <%= visitorId %></title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } } } }</script>
+  <style>
+    body { background-color: #0b1120; color: white; }
+    #chat-box::-webkit-scrollbar { width: 5px; }
+    #chat-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+  </style>
 </head>
-<body class="bg-slate-100 font-sans h-screen flex flex-col">
-  <div class="bg-slate-900 text-white p-4 flex justify-between items-center shadow-md">
+<body class="font-sans h-screen flex flex-col overflow-hidden">
+  
+  <!-- الرأس -->
+  <div class="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center flex-shrink-0 shadow-lg z-10">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center font-bold">👤</div>
+      <a href="/admin/chats" class="bg-slate-800 hover:bg-slate-700 text-slate-300 w-10 h-10 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-arrow-right"></i></a>
+      <div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,243,255,0.3)]">
+        <i class="fa-solid fa-user"></i>
+      </div>
       <div>
-        <h3 class="font-bold">الزائر: <%= visitorId %></h3>
-        <p class="text-xs text-slate-400">الحالة: <%= session.status === 'closed' ? 'مغلقة' : 'مفتوحة' %></p>
+        <h3 class="font-black text-lg text-white">الزائر: <span dir="ltr" class="text-cyan-400"><%= visitorId %></span></h3>
+        <p class="text-xs text-slate-400"><%= session.status === 'closed' ? '🔴 مغلقة' : '🟢 نشطة الآن' %></p>
       </div>
     </div>
     <div class="flex gap-2">
       <% if(session.status !== 'closed') { %>
-        <button id="close-chat-btn" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-bold transition">إغلاق المحادثة</button>
+        <button id="close-chat-btn" class="bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2">
+          <i class="fa-solid fa-lock"></i> إغلاق المحادثة
+        </button>
       <% } %>
-      <a href="/admin/chats" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-bold transition">رجوع</a>
     </div>
   </div>
-  
+
+  <!-- تقييم الزبون -->
   <% if(session.rating > 0) { %>
-    <div class="bg-amber-100 text-amber-800 p-3 text-center font-bold text-sm border-b border-amber-200">
+    <div class="bg-amber-500/10 border-b border-amber-500/30 text-amber-400 p-3 text-center font-bold text-sm">
       تقييم الزبون: <%= '⭐'.repeat(session.rating) %> | ملاحظات: <%= session.feedback || 'لا يوجد' %>
     </div>
   <% } %>
 
-  <div id="chat-box" class="flex-1 p-4 overflow-y-auto flex flex-col gap-3 bg-slate-50"></div>
+  <!-- صندوق الرسائل -->
+  <div id="chat-box" class="flex-1 p-5 overflow-y-auto flex flex-col gap-4 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed" style="background-color: #0b1120;"></div>
 
-  <div class="p-4 bg-white border-t flex gap-2">
-    <input id="msg-input" type="text" placeholder="اكتب ردك هنا..." class="flex-1 border p-3 rounded-xl outline-none focus:border-blue-500" <%= session.status === 'closed' ? 'disabled' : '' %>>
-    <button id="send-btn" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50" <%= session.status === 'closed' ? 'disabled' : '' %>>إرسال</button>
+  <!-- حقل الإدخال (ثابت) -->
+  <div class="bg-slate-900 border-t border-slate-800 p-4 flex gap-3 flex-shrink-0">
+    <input id="msg-input" type="text" placeholder="اكتب ردك هنا..." class="flex-1 bg-slate-950 border border-slate-700 rounded-full px-6 py-4 text-white focus:border-cyan-500 outline-none transition" <%= session.status === 'closed' ? 'disabled' : '' %>>
+    <button id="send-btn" class="bg-gradient-to-br from-cyan-500 to-blue-600 text-white w-14 h-14 rounded-full flex items-center justify-center text-xl shadow-[0_0_20px_rgba(0,243,255,0.3)] hover:scale-105 transition disabled:opacity-50 disabled:scale-100" <%= session.status === 'closed' ? 'disabled' : '' %>>
+      <i class="fa-solid fa-paper-plane"></i>
+    </button>
   </div>
 
   <script>
@@ -43,27 +62,33 @@
     let lastMsgCount = 0;
 
     async function loadMessages() {
-      const res = await fetch('/api/admin/chat/messages/' + visitorId);
-      const data = await res.json();
-      
-      if (data.messages.length !== lastMsgCount) {
-        chatBox.innerHTML = '';
-        data.messages.forEach(m => {
-          const isAdmin = m.sender === 'admin';
-          const isSystem = m.sender === 'system';
-          if (isSystem) {
-            chatBox.innerHTML += `<div class="text-center text-red-500 text-xs font-bold my-2">${m.message}</div>`;
-            return;
-          }
-          chatBox.innerHTML += `
-            <div class="max-w-[75%] p-3 rounded-xl text-sm ${isAdmin ? 'bg-blue-600 text-white self-end rounded-br-none' : 'bg-white border text-slate-800 self-start rounded-bl-none'}">
-              ${m.message}
-              <div class="text-[10px] mt-1 opacity-70 text-left" dir="ltr">${m.created_at.split(' ')[1]}</div>
-            </div>`;
-        });
-        chatBox.scrollTop = chatBox.scrollHeight;
-        lastMsgCount = data.messages.length;
-      }
+      try {
+        const res = await fetch('/api/admin/chat/messages/' + visitorId);
+        const data = await res.json();
+        
+        if (data.messages.length !== lastMsgCount) {
+          chatBox.innerHTML = '';
+          data.messages.forEach(m => {
+            const isAdmin = m.sender === 'admin';
+            const isSystem = m.sender === 'system';
+            
+            if (isSystem) {
+              chatBox.innerHTML += `<div class="text-center text-red-400 bg-red-500/10 p-2 rounded-lg text-xs font-bold w-fit mx-auto my-2 border border-red-500/20">${m.message}</div>`;
+              return;
+            }
+
+            chatBox.innerHTML += `
+              <div class="max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed ${isAdmin ? 'bg-gradient-to-br from-cyan-600 to-blue-700 text-white self-start rounded-tr-none shadow-lg' : 'bg-slate-800 border border-slate-700 text-slate-200 self-end rounded-tl-none shadow-md'}">
+                ${m.message}
+                <div class="text-[10px] mt-2 opacity-60 text-left" dir="ltr">
+                  <i class="fa-regular fa-clock"></i> ${m.created_at.split(' ')[1]}
+                </div>
+              </div>`;
+          });
+          chatBox.scrollTop = chatBox.scrollHeight;
+          lastMsgCount = data.messages.length;
+        }
+      } catch(e) { console.error(e); }
     }
 
     async function sendMsg() {
@@ -90,7 +115,7 @@
       };
     }
 
-    setInterval(loadMessages, 3000);
+    setInterval(loadMessages, 2000);
     loadMessages();
   </script>
 </body>

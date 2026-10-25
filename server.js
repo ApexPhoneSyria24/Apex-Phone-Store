@@ -66,6 +66,19 @@ try {
   }
 } catch(e) { console.error('Migration Error:', e.message); }
 
+
+const TELEGRAM_TOKEN = '8953449632:AAEimtiSqDpeBnse6bnTKyU1xAhkvIvltsg';
+const TELEGRAM_CHAT_ID = '5785915708';
+
+function sendTelegram(message) {
+  if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) return;
+  fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'HTML' })
+  }).catch(() => {});
+}
+
 const app = express();
 const PORT = 3000;
 
@@ -251,6 +264,7 @@ app.post('/post-ad', upload.array('images', 8), (req, res) => {
   const user = getOrCreateUser(b.seller_name, b.seller_phone);
   const images = req.files ? req.files.map(f => '/uploads/' + f.filename) : [];
   db.prepare(`INSERT INTO phones (name, brand, price, description, images, availability, is_admin, status, seller_name, seller_phone) VALUES (?, ?, ?, ?, ?, 'متوفر', 0, 'pending', ?, ?)`).run(b.name, b.brand, b.price, b.description, JSON.stringify(images), b.seller_name, b.seller_phone);
+  sendTelegram(`📱 <b>إعلان هاتف جديد!</b>\n📱 الهاتف: ${b.name}\n💵 السعر: ${b.price}\n👤 البائع: ${b.seller_name} (${b.seller_phone})`);
   res.render('ad-success', { sellerPhone: b.seller_phone, userCode: user.user_code });
 });
 app.get('/policy', (req, res) => { res.render('policy'); });
@@ -279,9 +293,11 @@ app.post('/games/:gameName/order', (req, res) => {
       db.prepare('UPDATE users SET balance = balance - ? WHERE phone = ?').run(priceNum, user_phone);
       db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone, payment_method, status) VALUES (?, ?, ?, ?, ?, 'wallet', 'pending')`).run(gameName, package_name, player_id, priceNum, user_phone);
       db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(user_phone, `💳 تم خصم $${priceNum} من محفظتك لطلب ${package_name} في ${gameName}`);
+      sendTelegram(`🎮 <b>طلب شحن (محفظة)!</b>\n🎯 اللعبة: ${gameName}\n📦 الباقة: ${package_name}\n🆔 الآي دي: ${player_id}\n📱 الهاتف: ${user_phone}\n💵 السعر: ${priceNum}`);
       res.json({ success: true, message: 'تم الدفع من المحفظة بنجاح!' });
     } else {
       db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone, payment_method) VALUES (?, ?, ?, ?, ?, 'manual')`).run(gameName, package_name, player_id, priceNum, user_phone);
+      sendTelegram(`🎮 <b>طلب شحن (يدوي)!</b>\n🎯 اللعبة: ${gameName}\n📦 الباقة: ${package_name}\n🆔 الآي دي: ${player_id}\n📱 الهاتف: ${user_phone}\n💵 السعر: ${priceNum}`);
       res.json({ success: true, message: 'تم إرسال الطلب بنجاح' });
     }
   } catch(e) {
@@ -307,6 +323,7 @@ app.post('/topup-balance', upload.single('receipt'), (req, res) => {
   let user = db.prepare('SELECT id FROM users WHERE phone = ?').get(phone);
   if (!user) db.prepare('INSERT INTO users (user_code, name, phone) VALUES (?, ?, ?)').run(generateUserCode(), 'زبون', phone);
   db.prepare(`INSERT INTO wallet_deposits (user_phone, amount_usd, amount_syp, transfer_ref, receipt_image) VALUES (?, ?, ?, ?, ?)`).run(phone, amount_usd, amount_syp, transfer_ref, receipt_image);
+  sendTelegram(`💰 <b>طلب إيداع رصيد جديد!</b>\n📱 الهاتف: ${phone}\n💵 المبلغ: ${amount_usd}\n🔢 رقم العملية: ${transfer_ref || 'غير مذكور'}`);
   res.redirect('/topup-balance?phone=' + phone + '&success=1');
 });
 

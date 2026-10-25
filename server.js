@@ -70,14 +70,19 @@ app.use('/uploads', express.static('public/uploads', { maxAge: '30d', immutable:
 app.use('/css', express.static('public/css', { maxAge: '7d' }));
 app.use(express.static('public'));
 
+
 // ===== Visitor Tracking (Silent) =====
 app.use((req, res, next) => {
   if (req.path.startsWith('/css') || req.path.startsWith('/uploads') || req.path.startsWith('/admin') || req.path === '/favicon.ico') return next();
   try {
-    const ipHeader = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
-    let cleanIp = ipHeader.split(',')[0].trim();
-    if (cleanIp === '::1' || cleanIp.startsWith('127.')) cleanIp = '8.8.8.8'; 
+    const ipHeader = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    let cleanIp = ipHeader.split(',')[0].trim().replace('::ffff:', '');
     
+    let isLocal = false;
+    if (cleanIp === '::1' || cleanIp.startsWith('127.') || cleanIp.startsWith('192.168.') || cleanIp.startsWith('10.') || cleanIp.startsWith('172.')) {
+       isLocal = true;
+    }
+
     const ua = req.headers['user-agent'] || 'Unknown';
     let device = 'كمبيوتر'; if (/mobile/i.test(ua)) device = 'هاتف'; if (/tablet|ipad/i.test(ua)) device = 'تابلت';
     let os = 'غير معروف'; if (/android/i.test(ua)) os = 'Android'; else if (/iphone|ipad|ipod/i.test(ua)) os = 'iOS'; else if (/windows/i.test(ua)) os = 'Windows'; else if (/mac/i.test(ua)) os = 'Mac';
@@ -86,16 +91,25 @@ app.use((req, res, next) => {
     const info = stmt.run(cleanIp, ua, req.path, device + ' / ' + os);
     const visitId = info.lastInsertRowid;
 
-    if (cleanIp !== '8.8.8.8') {
-      fetch('https://ipwho.is/' + cleanIp).then(r => r.json()).then(data => {
-        if (data && data.success) db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run(data.country, data.city, visitId);
-      }).catch(() => {});
+    if (isLocal) {
+        db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('سوريا (شبكة محلية)', 'دمشق', visitId);
     } else {
-      db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('Syria', 'Damascus (Local)', visitId);
+        fetch('https://ipwho.is/' + cleanIp)
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.success) {
+                    db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run(data.country || 'غير معروف', data.city || 'غير معروف', visitId);
+                } else {
+                    db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('فشل التحديد', 'فشل', visitId);
+                }
+            }).catch((err) => {
+                db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('خطأ بالشبكة', 'خطأ', visitId);
+            });
     }
   } catch(e) { }
   next();
 });
+
 
 // ===== Phone Link API =====
 app.post('/api/track-phone', (req, res) => {

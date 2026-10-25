@@ -18,7 +18,7 @@
           <tr>
             <th class="p-3">الوقت</th>
             <th class="p-3">IP</th>
-            <th class="p-3">الموقع التقريبي</th>
+            <th class="p-3">الموقع</th>
             <th class="p-3">الجهاز</th>
             <th class="p-3">الهاتف</th>
             <th class="p-3">الصفحة</th>
@@ -29,7 +29,7 @@
             <tr class="hover:bg-gray-50">
               <td class="p-3 text-xs text-gray-500" dir="ltr"><%= v.created_at %></td>
               <td class="p-3 font-bold" dir="ltr"><%= v.ip %></td>
-              <td class="p-3 text-sm">
+              <td class="p-3 text-sm font-bold text-blue-600">
                 <% if(v.country) { %> 🌍 <%= v.country %> - <%= v.city || '' %> <% } else { %> <span class="text-gray-400">جاري التحديد...</span> <% } %>
               </td>
               <td class="p-3 text-xs"><%= v.device_type %></td>

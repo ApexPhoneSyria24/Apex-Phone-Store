@@ -23,6 +23,22 @@
   </div>
 
   <div class="max-w-7xl mx-auto p-4 md:p-6">
+
+  <% if (typeof pendingDeposits !== 'undefined' && pendingDeposits.length > 0) { %>
+    <div class="bg-amber-100 border-r-4 border-amber-500 text-amber-800 p-4 rounded-xl shadow-md mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-bell fa-shake text-2xl text-amber-600"></i>
+        <div>
+          <h3 class="font-black text-lg">تنبيه: لديك طلبات إيداع جديدة!</h3>
+          <p class="text-sm font-bold">يوجد <strong class="text-xl"><%= pendingDeposits.length %></strong> طلبات شحن رصيد بانتظار المراجعة.</p>
+        </div>
+      </div>
+      <a href="/admin/deposits" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-3 rounded-lg shadow transition whitespace-nowrap">
+        <i class="fa-solid fa-eye"></i> مراجعة الإيداعات الآن
+      </a>
+    </div>
+  <% } %>
+  
     
     <!-- شريط الأزرار السريعة (الذي كان ناقصاً) -->
     <div class="flex flex-wrap gap-2 mb-6">

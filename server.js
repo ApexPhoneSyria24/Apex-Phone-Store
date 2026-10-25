@@ -259,6 +259,8 @@ function requireAuth(req, res, next) { if (req.session.isAdmin) return next(); r
 
 app.get('/admin', requireAuth, (req, res) => {
   const phones = db.prepare('SELECT * FROM phones ORDER BY id DESC LIMIT 100').all();
+  let pendingDeposits = [];
+  try { pendingDeposits = db.prepare("SELECT * FROM wallet_deposits WHERE status = 'pending' ORDER BY id DESC").all(); } catch(e) {}
   const stats = {
     adminPhonesCount: db.prepare("SELECT COUNT(*) c FROM phones WHERE is_admin=1 AND status='approved'").get().c,
     userAdsCount: db.prepare("SELECT COUNT(*) c FROM phones WHERE is_admin=0 AND status='approved'").get().c,
@@ -269,7 +271,7 @@ app.get('/admin', requireAuth, (req, res) => {
     usersCount: db.prepare("SELECT COUNT(*) c FROM users").get().c,
     topupsCount: db.prepare("SELECT COUNT(*) c FROM topup_orders WHERE status='pending'").get().c
   };
-  res.render('admin', { phones, stats });
+  res.render('admin', { phones, stats, pendingDeposits });
 });
 
 app.get('/admin/visits', requireAuth, (req, res) => {

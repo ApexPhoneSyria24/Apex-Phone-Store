@@ -80,6 +80,16 @@ function sendTelegram(message) {
   }).catch(() => {});
 }
 
+
+try {
+  db.exec(`CREATE TABLE IF NOT EXISTS chat_sessions (
+    visitor_id TEXT PRIMARY KEY,
+    status TEXT DEFAULT 'open',
+    rating INTEGER DEFAULT 0,
+    feedback TEXT,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+} catch(e) {}
 const app = express();
 const PORT = 3000;
 

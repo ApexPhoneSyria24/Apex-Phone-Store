@@ -1,157 +1,239 @@
 (function() {
-  // --- محرك الأصوات ---
+  // الأصوات
   let audioCtx;
   function playSound(type) {
     try {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      
+      const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
       const now = audioCtx.currentTime;
-      if (type === 'send') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(600, now);
-        osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-        osc.start(now); osc.stop(now + 0.1);
-      } else if (type === 'receive') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(800, now);
-        osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-        osc.start(now); osc.stop(now + 0.1);
-      }
+      if (type === 'send') { osc.type = 'sine'; osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(800, now + 0.1); }
+      else { osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(600, now + 0.1); }
+      gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+      osc.start(now); osc.stop(now + 0.1);
     } catch(e) {}
   }
 
-  const chatHTML = `
-    <div id="chat-widget" style="position:fixed; bottom:20px; right:20px; z-index:99999; font-family:'Cairo', sans-serif;" dir="rtl">
-      <button id="chat-toggle" style="width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; border:2px solid rgba(255,255,255,0.2); box-shadow:0 4px 20px rgba(0,243,255,0.5); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:26px; transition:transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">🤖</button>
+  const widgetHTML = `
+    <!-- زر ميمو -->
+    <button id="chat-toggle" style="position:fixed; bottom:25px; right:25px; width:65px; height:65px; border-radius:50%; background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; border:3px solid rgba(255,255,255,0.15); box-shadow:0 6px 25px rgba(0,243,255,0.6); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:28px; z-index:99999; transition:transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+      <i class="fa-solid fa-comment-dots" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"></i>
+    </button>
+    
+    <!-- النافذة الملكية -->
+    <div id="chat-window" style="display:none; position:fixed; inset:0; background:#0b1120; z-index:100000; font-family:'Cairo', sans-serif; flex-direction:column;" dir="rtl">
       
-      <div id="chat-window" style="display:none; position:absolute; bottom:75px; right:0; width:calc(100vw - 40px); max-width:360px; height:calc(100vh - 120px); max-height:550px; background:rgba(10,10,10,0.95); backdrop-filter:blur(15px); border:1px solid rgba(0,243,255,0.3); border-radius:20px; box-shadow:0 20px 40px rgba(0,0,0,0.8); overflow:hidden; flex-direction:column; transform-origin: bottom right; animation: chatPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
-        
-        <!-- رأس النافذة -->
-        <div style="background:linear-gradient(90deg, #0f172a, #1e293b); padding:15px; border-bottom:1px solid rgba(0,243,255,0.2); display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <div style="width:35px; height:35px; background:linear-gradient(135deg, #00f3ff, #0055ff); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px;">🤖</div>
-            <div>
-              <div style="color:white; font-weight:900; font-size:15px;">ميمو (Mimo)</div>
-              <div style="color:#00f3ff; font-size:11px; display:flex; align-items:center; gap:5px;"><span style="display:inline-block; width:6px; height:6px; background:#39ff14; border-radius:50%;"></span> متصل الآن</div>
-            </div>
+      <!-- الرأس -->
+      <div style="background:rgba(30,41,59,0.95); padding:15px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+        <div style="display:flex; align-items:center; gap:15px;">
+          <div style="width:45px; height:45px; background:linear-gradient(135deg, #00f3ff, #0055ff); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 0 20px rgba(0,243,255,0.4);">
+            <i class="fa-solid fa-headset text-white"></i>
           </div>
-          <button id="chat-close" style="background:none; border:none; color:#888; cursor:pointer; font-size:22px; transition:0.2s;" onmouseover="this.style.color='white'">✕</button>
-        </div>
-
-        <!-- الرسائل -->
-        <div id="chat-messages" style="flex:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; background-image:radial-gradient(circle at 50% 0%, rgba(0,243,255,0.05), transparent 70%);">
-          <div style="background:rgba(30,41,59,0.8); color:#e2e8f0; padding:12px 16px; border-radius:15px 15px 0 15px; font-size:13.5px; align-self:flex-start; max-width:88%; border:1px solid rgba(255,255,255,0.05); box-shadow:0 4px 10px rgba(0,0,0,0.2); line-height:1.6;">
-            أهلاً بك في <b>Apex Phone Syria</b>! 🥰<br>أنا <b>ميمو</b>. كيف يمكنني مساعدتك اليوم؟
+          <div>
+            <div style="color:white; font-weight:900; font-size:18px;">دعم Apex</div>
+            <div style="color:#39ff14; font-size:12px; font-weight:bold; display:flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; background:#39ff14; border-radius:50%;"></span> متصل الآن</div>
           </div>
         </div>
-
-        <!-- الإدخال -->
-        <div style="padding:12px; border-top:1px solid rgba(0,243,255,0.1); background:rgba(15,23,42,0.9); display:flex; gap:10px; align-items:center; flex-shrink:0;">
-          <input id="chat-input" type="text" placeholder="اكتب رسالتك هنا..." style="flex:1; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:25px; padding:12px 16px; color:white; font-size:13.5px; outline:none; transition:border 0.3s;" onfocus="this.style.borderColor='#00f3ff'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
-          <button id="chat-send" style="background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; border:none; width:42px; height:42px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow:0 4px 15px rgba(0,243,255,0.3); transition:0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
+        <button id="chat-close" style="background:#334155; border:none; color:#94a3b8; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:20px; transition:0.2s;" onmouseover="this.style.background='#ef4444'; this.style.color='white'"><i class="fa-solid fa-xmark"></i></button>
       </div>
+
+      <!-- منطقة الرسائل -->
+      <div id="chat-messages" style="flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:15px; background-image:radial-gradient(circle at 50% 0%, rgba(0,243,255,0.05), transparent 70%);">
+        
+        <!-- شاشة الاختيار -->
+        <div id="choice-screen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:25px; text-align:center;">
+          <div style="width:100px; height:100px; background:linear-gradient(135deg, #00f3ff, #0055ff); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:50px; box-shadow:0 0 40px rgba(0,243,255,0.4);">
+            <i class="fa-solid fa-robot text-white"></i>
+          </div>
+          <h3 style="color:white; font-size:22px; font-weight:900; margin:0;">مرحباً بك في المتجر الأول! 🥰</h3>
+          <p style="color:#94a3b8; font-size:15px; margin:0; max-width:300px;">كيف تفضل أن نخدمك اليوم؟ اختر طريقة التواصل:</p>
+          
+          <button id="btn-ai" style="width:100%; max-width:320px; background:linear-gradient(135deg, #0f172a, #1e293b); border:2px solid #00f3ff; color:white; padding:18px; border-radius:15px; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:15px; box-shadow:0 4px 20px rgba(0,243,255,0.2); transition:0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+            <i class="fa-solid fa-robot text-2xl text-cyan-400"></i> التحدث مع ميمو (ذكاء اصطناعي)
+          </button>
+          
+          <button id="btn-human" style="width:100%; max-width:320px; background:#1e293b; border:1px solid #334155; color:white; padding:18px; border-radius:15px; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:15px; transition:0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+            <i class="fa-solid fa-user-headset text-2xl text-slate-400"></i> التحدث مع الدعم البشري
+          </button>
+        </div>
+
+        <!-- دردشة ميمو -->
+        <div id="ai-chat" style="display:none; flex-direction:column; gap:15px; width:100%;">
+          <div style="background:#1e293b; color:#e2e8f0; padding:15px; border-radius:15px 15px 0 15px; font-size:15px; align-self:flex-start; max-width:88%; border:1px solid rgba(255,255,255,0.05); box-shadow:0 2px 10px rgba(0,0,0,0.2);">
+            مرحباً بك! أنا ميمو. كيف يمكنني مساعدتك في اختيار هاتفك أو شحن ألعابك؟ ✨
+          </div>
+        </div>
+
+        <!-- دردشة بشرية -->
+        <div id="human-chat" style="display:none; flex-direction:column; gap:15px; width:100%;"></div>
+
+      </div>
+
+      <!-- حقل الإدخال -->
+      <div id="input-area" style="display:none; padding:15px; background:#1e293b; border-top:1px solid #334155; gap:10px; align-items:center;">
+        <input id="chat-input" type="text" placeholder="اكتب رسالتك هنا..." style="flex:1; background:#0f172a; border:1px solid #334155; border-radius:30px; padding:14px 20px; color:white; font-size:15px; outline:none; transition:0.3s;" onfocus="this.style.borderColor='#00f3ff'">
+        <button id="chat-send" style="background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; border:none; width:50px; height:50px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 4px 15px rgba(0,243,255,0.3); transition:0.2s;"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+
+      <!-- شاشة التقييم -->
+      <div id="rating-screen" style="display:none; padding:30px; background:#0b1120; text-align:center; flex-direction:column; justify-content:center; align-items:center; height:100%;">
+        <h3 style="color:white; font-size:22px; font-weight:900; margin-bottom:10px;">تم إغلاق المحادثة</h3>
+        <p style="color:#94a3b8; margin-bottom:30px;">كيف كانت تجربتك مع الدعم؟</p>
+        <div style="display:flex; gap:10px; margin-bottom:30px;" id="stars-container">
+          <i class="fa-solid fa-star star-btn text-4xl text-slate-600 cursor-pointer transition" data-val="1"></i>
+          <i class="fa-solid fa-star star-btn text-4xl text-slate-600 cursor-pointer transition" data-val="2"></i>
+          <i class="fa-solid fa-star star-btn text-4xl text-slate-600 cursor-pointer transition" data-val="3"></i>
+          <i class="fa-solid fa-star star-btn text-4xl text-slate-600 cursor-pointer transition" data-val="4"></i>
+          <i class="fa-solid fa-star star-btn text-4xl text-slate-600 cursor-pointer transition" data-val="5"></i>
+        </div>
+        <textarea id="rating-feedback" placeholder="أضف ملاحظاتك (اختياري)..." style="width:100%; max-width:300px; background:#1e293b; border:1px solid #334155; border-radius:12px; padding:15px; color:white; margin-bottom:20px; outline:none; resize:none;" rows="3"></textarea>
+        <button id="submit-rating" style="background:#00f3ff; color:#000; border:none; padding:12px 40px; border-radius:30px; font-weight:bold; font-size:16px; cursor:pointer; box-shadow:0 4px 15px rgba(0,243,255,0.3);">إرسال التقييم</button>
+      </div>
+
     </div>
   `;
 
   document.addEventListener('DOMContentLoaded', () => {
     const div = document.createElement('div');
-    div.innerHTML = chatHTML;
-    document.body.appendChild(div.firstElementChild);
+    div.innerHTML = widgetHTML;
+    document.body.appendChild(div);
 
     const toggleBtn = document.getElementById('chat-toggle');
+    const chatWindow = document.getElementById('chat-window');
     const closeBtn = document.getElementById('chat-close');
-    const windowEl = document.getElementById('chat-window');
-    let chatHistory = [];
+    
+    const choiceScreen = document.getElementById('choice-screen');
+    const aiChat = document.getElementById('ai-chat');
+    const humanChat = document.getElementById('human-chat');
+    const inputArea = document.getElementById('input-area');
+    const ratingScreen = document.getElementById('rating-screen');
+    
+    const btnAI = document.getElementById('btn-ai');
+    const btnHuman = document.getElementById('btn-human');
+
     const inputEl = document.getElementById('chat-input');
     const sendBtn = document.getElementById('chat-send');
-    const messagesEl = document.getElementById('chat-messages');
-
-    toggleBtn.onclick = () => { 
-      windowEl.style.display = windowEl.style.display === 'none' ? 'flex' : 'none'; 
-    };
     
-    closeBtn.onclick = () => { windowEl.style.display = 'none'; };
+    let chatHistory = [];
+    let isHumanMode = false;
+    let visitorId = document.cookie.split('; ').find(row => row.startsWith('apex_visitor_id='))?.split('=')[1] || 'unknown';
 
+    toggleBtn.onclick = () => { chatWindow.style.display = 'flex'; };
+    closeBtn.onclick = () => { chatWindow.style.display = 'none'; };
+
+    btnAI.onclick = () => {
+      choiceScreen.style.display = 'none';
+      aiChat.style.display = 'flex';
+      inputArea.style.display = 'flex';
+      inputEl.focus();
+    };
+
+    btnHuman.onclick = () => {
+      choiceScreen.style.display = 'none';
+      humanChat.style.display = 'flex';
+      inputArea.style.display = 'flex';
+      isHumanMode = true;
+      inputEl.focus();
+      checkHumanChat();
+    };
+
+    // دالة جلب المحادثة البشرية
+    async function checkHumanChat() {
+      if (!isHumanMode) return;
+      try {
+        const res = await fetch('/api/human-chat/messages/' + visitorId);
+        const data = await res.json();
+        
+        if (data.status === 'closed') {
+          inputArea.style.display = 'none';
+          if (data.rating > 0) {
+            humanChat.innerHTML = '<div style="color:#39ff14; text-align:center; margin-top:20px; font-weight:bold;">شكراً لتقييمك! ⭐</div>';
+          } else {
+            ratingScreen.style.display = 'flex';
+          }
+        }
+
+        humanChat.innerHTML = data.messages.map(m => {
+          const isAdmin = m.sender === 'admin';
+          const isSystem = m.sender === 'system';
+          if (isSystem) return `<div style="text-align:center; color:#ef4444; font-size:12px; margin:10px 0;">${m.message}</div>`;
+          return `<div style="background:${isAdmin ? '#1e293b' : 'linear-gradient(135deg, #00f3ff, #0055ff)'}; color:${isAdmin ? '#e2e8f0' : 'white'}; padding:12px 16px; border-radius:15px ${isAdmin ? '15px 0 15px' : '15px 15px 0'}; font-size:14px; align-self:${isAdmin ? 'flex-start' : 'flex-end'}; max-width:85%; box-shadow:0 2px 5px rgba(0,0,0,0.2);">${m.message}</div>`;
+        }).join('');
+        
+        const messagesContainer = document.getElementById('chat-messages');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      } catch(e) {}
+    }
+    setInterval(checkHumanChat, 3000);
+
+    // شاشة التقييم
+    let selectedRating = 0;
+    document.querySelectorAll('.star-btn').forEach(star => {
+      star.onclick = function() {
+        selectedRating = parseInt(this.getAttribute('data-val'));
+        document.querySelectorAll('.star-btn').forEach(s => {
+          if (parseInt(s.getAttribute('data-val')) <= selectedRating) {
+            s.style.color = '#fbbf24';
+          } else {
+            s.style.color = '#475569';
+          }
+        });
+      };
+    });
+
+    document.getElementById('submit-rating').onclick = async () => {
+      if (selectedRating === 0) return alert('يرجى اختيار النجوم أولاً');
+      const feedback = document.getElementById('rating-feedback').value;
+      await fetch('/api/human-chat/rate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ visitor_id: visitorId, rating: selectedRating, feedback })
+      });
+      ratingScreen.style.display = 'none';
+      humanChat.innerHTML = '<div style="color:#39ff14; text-align:center; margin-top:20px; font-weight:bold;">شكراً لتقييمك! ⭐</div>';
+    };
+
+    // إرسال الرسائل
     async function sendMessage() {
       const text = inputEl.value.trim();
       if (!text) return;
-
-      // تشغيل صوت الإرسال
       playSound('send');
-
-      // إضافة رسالة الزبون
-      messagesEl.innerHTML += `<div style="background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; padding:12px 16px; border-radius:15px 15px 15px 0; font-size:13.5px; align-self:flex-end; max-width:88%; box-shadow:0 4px 10px rgba(0,243,255,0.2); line-height:1.5;">${text}</div>`;
       inputEl.value = '';
-      chatHistory.push({ role: 'user', text: text });
-      messagesEl.scrollTop = messagesEl.scrollHeight;
 
-      // مؤشر الكتابة
+      if (isHumanMode) {
+        await fetch('/api/human-chat/send', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ visitor_id: visitorId, message: text })
+        });
+        checkHumanChat();
+        return;
+      }
+
+      // دردشة AI
+      aiChat.innerHTML += `<div style="background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; padding:12px 16px; border-radius:15px 15px 15px 0; font-size:14px; align-self:flex-end; max-width:85%;">${text}</div>`;
+      chatHistory.push({ role: 'user', text: text });
+      const messagesContainer = document.getElementById('chat-messages');
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
       const loadingId = 'loading-' + Date.now();
-      messagesEl.innerHTML += `
-        <div id="${loadingId}" style="display:flex; align-items:center; gap:5px; background:rgba(30,41,59,0.8); padding:12px 16px; border-radius:15px 15px 0 15px; align-self:flex-start; width:fit-content;">
-          <span style="width:6px; height:6px; background:#00f3ff; border-radius:50%; animation: pulse 1s infinite;"></span>
-          <span style="width:6px; height:6px; background:#00f3ff; border-radius:50%; animation: pulse 1s infinite 0.2s;"></span>
-          <span style="width:6px; height:6px; background:#00f3ff; border-radius:50%; animation: pulse 1s infinite 0.4s;"></span>
-        </div>`;
-      messagesEl.scrollTop = messagesEl.scrollHeight;
+      aiChat.innerHTML += `<div id="${loadingId}" style="color:#888; font-size:12px; align-self:flex-start;">جاري الكتابة... ⏳</div>`;
 
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
-        
         const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text, history: chatHistory }),
-          signal: controller.signal
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, history: chatHistory })
         });
-        clearTimeout(timeoutId);
-        
         const data = await res.json();
         document.getElementById(loadingId)?.remove();
-
         if (data.reply) {
-          // تشغيل صوت الاستلام
           playSound('receive');
           chatHistory.push({ role: 'model', text: data.reply });
-          messagesEl.innerHTML += `<div style="background:rgba(30,41,59,0.8); color:#e2e8f0; padding:12px 16px; border-radius:15px 15px 0 15px; font-size:13.5px; align-self:flex-start; max-width:88%; border:1px solid rgba(255,255,255,0.05); box-shadow:0 4px 10px rgba(0,0,0,0.2); line-height:1.6;">${data.reply}</div>`;
-        } else {
-          messagesEl.innerHTML += `<div style="color:#ef4444; font-size:12px; align-self:flex-start; padding:10px; background:rgba(239,68,68,0.1); border-radius:10px;">حدث خطأ، يرجى المحاولة لاحقاً.</div>`;
+          aiChat.innerHTML += `<div style="background:#1e293b; color:#e2e8f0; padding:12px 16px; border-radius:15px 15px 0 15px; font-size:14px; align-self:flex-start; max-width:85%; border:1px solid rgba(255,255,255,0.05);">${data.reply}</div>`;
         }
-      } catch(e) {
-        document.getElementById(loadingId)?.remove();
-        if (e.name === 'AbortError') {
-           messagesEl.innerHTML += `<div style="color:#ef4444; font-size:12px; align-self:flex-start; padding:10px; background:rgba(239,68,68,0.1); border-radius:10px;">السيرفر استغرق وقتاً طويلاً. يرجى المحاولة لاحقاً.</div>`;
-        } else {
-           messagesEl.innerHTML += `<div style="color:#ef4444; font-size:12px; align-self:flex-start; padding:10px; background:rgba(239,68,68,0.1); border-radius:10px;">حدث خطأ في الاتصال.</div>`;
-        }
-      }
-      messagesEl.scrollTop = messagesEl.scrollHeight;
+      } catch(e) {}
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
     sendBtn.onclick = sendMessage;
     inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
   });
-
-  // إضافة الأنيميشن
-  const style = document.createElement('style');
-  style.innerHTML = `
-    @keyframes chatPop { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-    @keyframes pulse { 0% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.3; transform: scale(0.8); } }
-    #chat-messages::-webkit-scrollbar { width: 4px; }
-    #chat-messages::-webkit-scrollbar-track { background: transparent; }
-    #chat-messages::-webkit-scrollbar-thumb { background: rgba(0,243,255,0.3); border-radius: 10px; }
-  `;
-  document.head.appendChild(style);
 })();

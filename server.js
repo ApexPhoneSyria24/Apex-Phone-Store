@@ -164,14 +164,17 @@ app.post('/post-ad', upload.array('images', 8), (req, res) => {
 app.get('/policy', (req, res) => { res.render('policy'); });
 
 // ===== Games (Public) =====
+
 app.get('/games', (req, res) => {
-    const dbGames = db.prepare("SELECT * FROM games").all();
-    const packages = db.prepare('SELECT * FROM game_packages WHERE is_active = 1').all();
-    const existingGames = [...new Set(packages.map(p => p.game_name))];
-    const games = existingGames.map(name => {
-        const dbGame = dbGames.find(g => g.name === name);
-        return dbGame || { name: name, image_url: null };
+    const packages = db.prepare('SELECT * FROM game_packages WHERE is_active = 1 ORDER BY game_name, price').all();
+    const grouped = {};
+    packages.forEach(p => {
+        if (!grouped[p.game_name]) grouped[p.game_name] = [];
+        grouped[p.game_name].push(p);
     });
+    res.render('games', { grouped });
+});
+
     res.render('games', { games });
 });
 

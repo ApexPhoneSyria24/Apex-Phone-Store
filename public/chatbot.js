@@ -70,8 +70,13 @@
           <div style="width:100px; height:100px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:3px solid #00f3ff; box-shadow:0 0 30px rgba(0,243,255,0.4);">
              <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover;">
           </div>
-          <h3 style="color:#e6f1ff; font-size:22px; font-weight:900; margin:0;">مرحباً بك! 🥰</h3>
-          <p style="color:#8892b0; font-size:15px; margin:0; max-width:300px;">كيف تفضل أن نخدمك اليوم؟</p>
+          
+          <h3 style="color:#e6f1ff; font-size:22px; font-weight:900; margin:0; text-align:center; line-height:1.5;">أهلاً بك في <span style="color:#00f3ff;">Apex Phone</span>! 👑</h3>
+          <p style="color:#8892b0; font-size:14px; margin:0; max-width:300px; line-height:1.8; text-align:center;">
+            المتجر الأول والموثوق في سوريا لبيع الهواتف الذكية الأصلية وشحن الألعاب.<br>
+            أنا <b>ميمو</b>، مساعدك الشخصي الذكي. كيف يمكنني أن أخدمك اليوم؟ ✨
+          </p>
+
           
           <button id="btn-ai" style="width:100%; max-width:320px; background:#112240; border:2px solid #00f3ff; color:#e6f1ff; padding:18px; border-radius:15px; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:15px;">
             <i class="fa-solid fa-robot text-2xl text-[#00f3ff]"></i> التحدث مع ميمو (ذكاء اصطناعي)
@@ -140,7 +145,7 @@
 
     // إظهار النافذة الترحيبية بعد 4 ثواني
     setTimeout(() => {
-      if (chatWindow.style.display === 'none' && !localStorage.getItem('mimo_teaser_closed')) {
+      if (chatWindow.style.display === 'none' && !localStorage.getItem('mimo_teaser_closed_v3')) {
         teaser.style.display = 'block';
         playSound('pop'); // صوت النافذة
       }
@@ -148,7 +153,7 @@
 
     closeTeaser.onclick = () => { 
       teaser.style.display = 'none'; 
-      localStorage.setItem('mimo_teaser_closed', 'true'); 
+      localStorage.setItem('mimo_teaser_closed_v3', 'true'); 
     };
 
     teaserBtn.onclick = () => {

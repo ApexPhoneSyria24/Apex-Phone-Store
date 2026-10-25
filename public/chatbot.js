@@ -24,7 +24,7 @@
       <i class="fa-solid fa-comment-dots" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"></i>
     </button>
     
-    <div id="chat-window" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#0b141a; z-index:100000; font-family:'Cairo', sans-serif; flex-direction:column; overflow:hidden;" dir="rtl">
+    <div id="chat-window" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; background:#0b141a; z-index:100000; font-family:'Cairo', sans-serif; flex-direction:column; overflow:hidden;" dir="rtl">
       
       <div style="background:#202c33; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; box-shadow:0 2px 5px rgba(0,0,0,0.2);">
         <div style="display:flex; align-items:center; gap:15px;">
@@ -102,7 +102,24 @@
     let chatHistory = [];
     let isHumanMode = false;
 
-    toggleBtn.onclick = () => { chatWindow.style.display = 'flex'; document.body.style.overflow = 'hidden'; };
+    // حل مشكلة لوحة المفاتيح للزبون
+    if (window.visualViewport) {
+      const adjustViewport = () => {
+        if (chatWindow.style.display === 'flex') {
+          chatWindow.style.height = window.visualViewport.height + 'px';
+          chatWindow.style.top = window.visualViewport.offsetTop + 'px';
+          if(messagesContainer) messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+      };
+      window.visualViewport.addEventListener('resize', adjustViewport);
+      window.visualViewport.addEventListener('scroll', adjustViewport);
+    }
+
+    toggleBtn.onclick = () => { 
+      chatWindow.style.display = 'flex'; 
+      document.body.style.overflow = 'hidden';
+      if (window.visualViewport) chatWindow.style.height = window.visualViewport.height + 'px';
+    };
     closeBtn.onclick = () => { chatWindow.style.display = 'none'; document.body.style.overflow = ''; };
 
     btnAI.onclick = () => { choiceScreen.style.display = 'none'; aiChat.style.display = 'flex'; inputArea.style.display = 'flex'; inputEl.focus(); };

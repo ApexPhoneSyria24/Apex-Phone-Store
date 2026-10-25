@@ -2,20 +2,21 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>محادثة مع <%= visitorId %></title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } } } }</script>
   <style>
-    body { background-color: #0b141a; color: #e9edef; }
+    body { background-color: #0b141a; color: #e9edef; margin: 0; padding: 0; overflow: hidden; position: fixed; width: 100%; height: 100%; }
     #chat-box::-webkit-scrollbar { width: 5px; }
     #chat-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
   </style>
 </head>
-<body class="font-sans h-screen flex flex-col overflow-hidden">
+<body class="font-sans flex flex-col">
   
+  <!-- الرأس -->
   <div class="bg-[#202c33] border-b border-[#2a3942] p-4 flex justify-between items-center flex-shrink-0 shadow-md z-10">
     <div class="flex items-center gap-3">
       <a href="/admin/chats" class="bg-[#2a3942] hover:bg-[#334155] text-[#aebac1] w-10 h-10 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-arrow-right"></i></a>
@@ -36,14 +37,17 @@
     </div>
   </div>
 
+  <!-- التقييم -->
   <% if(session.rating > 0) { %>
-    <div class="bg-[#202c33] border-b border-[#2a3942] text-amber-400 p-2 text-center font-bold text-sm">
+    <div class="bg-[#202c33] border-b border-[#2a3942] text-amber-400 p-2 text-center font-bold text-sm flex-shrink-0">
       تقييم الزبون: <%= '⭐'.repeat(session.rating) %>
     </div>
   <% } %>
 
-  <div id="chat-box" class="flex-1 p-5 overflow-y-auto flex flex-col gap-1 bg-[#0b141a]"></div>
+  <!-- صندوق الرسائل -->
+  <div id="chat-box" class="flex-1 p-5 overflow-y-auto flex flex-col gap-1 bg-[#0b141a]" style="min-height: 0;"></div>
 
+  <!-- حقل الإدخال -->
   <div class="bg-[#202c33] border-t border-[#2a3942] p-3 flex gap-3 flex-shrink-0">
     <input id="msg-input" type="text" placeholder="اكتب رسالة..." class="flex-1 bg-[#2a3942] border-none rounded-full px-5 py-3 text-[#e9edef] focus:outline-none" <%= session.status === 'closed' ? 'disabled' : '' %>>
     <button id="send-btn" class="bg-[#00a884] text-white w-12 h-12 rounded-full flex items-center justify-center text-xl hover:opacity-90 transition disabled:opacity-50" <%= session.status === 'closed' ? 'disabled' : '' %>>
@@ -52,6 +56,19 @@
   </div>
 
   <script>
+    // حل مشكلة لوحة المفاتيح
+    if (window.visualViewport) {
+      const adjustViewport = () => {
+        document.body.style.height = window.visualViewport.height + 'px';
+        document.body.style.top = window.visualViewport.offsetTop + 'px';
+        const chatBox = document.getElementById('chat-box');
+        if(chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+      };
+      window.visualViewport.addEventListener('resize', adjustViewport);
+      window.visualViewport.addEventListener('scroll', adjustViewport);
+      adjustViewport();
+    }
+
     const visitorId = "<%= visitorId %>";
     const chatBox = document.getElementById('chat-box');
     const input = document.getElementById('msg-input');

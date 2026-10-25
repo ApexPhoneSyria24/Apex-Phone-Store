@@ -1,23 +1,124 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة الإدارة | Apex فون</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة الإدارة | Apex فون</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } } } }</script>
+</head>
+<body class="bg-slate-100 font-sans min-h-screen">
+  
+  <!-- شريط علوي يحتوي على زر الإحصائيات -->
+  <div class="bg-slate-900 text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
+      <h1 class="font-black text-xl"><i class="fa-solid fa-shield-halved text-cyan-400"></i> لوحة الإدارة</h1>
+      <div class="flex gap-3">
+        <a href="/admin/visits" class="bg-cyan-600 hover:bg-cyan-700 px-4 py-2 rounded-lg font-bold text-sm transition shadow-sm">
+          <i class="fa-solid fa-chart-line"></i> إحصائيات الزوار
+        </a>
+        <a href="/" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg font-bold text-sm transition">
+          <i class="fa-solid fa-store"></i> المتجر
+        </a>
+        <a href="/admin/logout" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-bold text-sm transition">
+          <i class="fa-solid fa-right-from-bracket"></i> خروج
+        </a>
+      </div>
+    </div>
+  </div>
 
+  <div class="max-w-7xl mx-auto p-4 md:p-6">
     
+    <!-- بطاقات الإحصائيات السريعة -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white p-4 rounded-xl shadow-sm border text-center">
+        <div class="text-sm font-bold text-slate-500 mb-1">إعلانات المتجر</div>
+        <div class="text-2xl font-black text-blue-600"><%= stats.adminPhonesCount %></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border text-center">
+        <div class="text-sm font-bold text-slate-500 mb-1">إعلانات الزبائن</div>
+        <div class="text-2xl font-black text-green-600"><%= stats.userAdsCount %></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border text-center">
+        <div class="text-sm font-bold text-slate-500 mb-1">قيد المراجعة</div>
+        <div class="text-2xl font-black text-amber-500"><%= stats.pendingCount %></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border text-center">
+        <div class="text-sm font-bold text-slate-500 mb-1">طلبات الشحن</div>
+        <div class="text-2xl font-black text-purple-600"><%= stats.topupsCount %></div>
+      </div>
+    </div>
 
-  
-  
+    <!-- جدول إدارة الهواتف -->
+    <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+      <div class="p-4 border-b bg-slate-50 flex justify-between items-center">
+        <h2 class="font-bold text-slate-800"><i class="fa-solid fa-mobile-screen"></i> إدارة الهواتف</h2>
+        <a href="/admin/add" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm">+ إضافة هاتف</a>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-right text-sm">
+          <thead class="bg-slate-100 text-slate-600">
+            <tr>
+              <th class="p-3">#</th>
+              <th class="p-3">الصورة</th>
+              <th class="p-3">الاسم</th>
+              <th class="p-3">الماركة</th>
+              <th class="p-3">السعر</th>
+              <th class="p-3">الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <% phones.forEach(phone => { %>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3 text-slate-500"><%= phone.id %></td>
+                <td class="p-3">
+                  <% let img = 'https://via.placeholder.com/50'; try { let imgs = JSON.parse(phone.images); if(imgs && imgs.length > 0) img = imgs[0]; } catch(e){} %>
+                  <img src="<%= img %>" class="w-10 h-10 object-cover rounded border">
+                </td>
+                <td class="p-3 font-bold text-slate-800"><%= phone.name %></td>
+                <td class="p-3 text-slate-600"><%= phone.brand %></td>
+                <td class="p-3 font-bold text-green-600">$<%= phone.price %></td>
+                <td class="p-3 flex gap-2">
+                  <a href="/admin/edit/<%= phone.id %>" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold hover:bg-blue-200"><i class="fa-solid fa-pen"></i></a>
+                  <form action="/admin/feature/<%= phone.id %>" method="POST" class="inline">
+                    <button class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs font-bold hover:bg-amber-200"><i class="fa-solid fa-star"></i></button>
+                  </form>
+                  <form action="/admin/delete/<%= phone.id %>" method="POST" class="inline" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
+                    <button class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold hover:bg-red-200"><i class="fa-solid fa-trash"></i></button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+            <% if(phones.length === 0) { %>
+              <tr><td colspan="6" class="p-6 text-center text-slate-500 font-bold">لا توجد هواتف مضافة.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-  
-  <!-- admin/visits-click -->
-  
+    <!-- بطاقات أخرى -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+      <a href="/admin/pending" class="bg-white p-4 rounded-xl shadow-sm border text-center hover:shadow-md transition">
+        <div class="text-sm font-bold text-slate-700 mb-1">الإعلانات المعلقة</div>
+        <div class="text-xl font-black text-amber-500"><%= stats.pendingCount %></div>
+      </a>
+      <a href="/admin/verifications" class="bg-white p-4 rounded-xl shadow-sm border text-center hover:shadow-md transition">
+        <div class="text-sm font-bold text-slate-700 mb-1">طلبات التوثيق</div>
+        <div class="text-xl font-black text-blue-500"><%= stats.verificationsCount %></div>
+      </a>
+      <a href="/admin/reviews" class="bg-white p-4 rounded-xl shadow-sm border text-center hover:shadow-md transition">
+        <div class="text-sm font-bold text-slate-700 mb-1">التقييمات</div>
+        <div class="text-xl font-black text-purple-500"><%= stats.reviewsCount %></div>
+      </a>
+      <a href="/admin/users" class="bg-white p-4 rounded-xl shadow-sm border text-center hover:shadow-md transition">
+        <div class="text-sm font-bold text-slate-700 mb-1">المستخدمون</div>
+        <div class="text-xl font-black text-slate-700"><%= stats.usersCount %></div>
+      </a>
+    </div>
 
-
-  
+  </div>
 </body>
 </html>

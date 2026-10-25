@@ -59,7 +59,7 @@
       try {
         // إضافة مؤقت 10 ثواني
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
 
         const res = await fetch('/api/chat', {
           method: 'POST',

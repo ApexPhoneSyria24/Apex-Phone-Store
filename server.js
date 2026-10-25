@@ -498,7 +498,7 @@ app.post('/api/chat', async (req, res) => {
     }
 
     // استخدام الرابط التقليدي مع وضع المفتاح في الرابط (الطريقة الأكثر استقراراً)
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent`;
     
         const response = await fetch(url, {
       method: 'POST',

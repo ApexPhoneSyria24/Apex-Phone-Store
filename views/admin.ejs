@@ -11,41 +11,46 @@
 </head>
 <body class="bg-slate-100 font-sans min-h-screen">
   
-  <!-- شريط علوي يحتوي على زر الإحصائيات -->
+  <!-- الشريط العلوي -->
   <div class="bg-slate-900 text-white shadow-md">
     <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
       <h1 class="font-black text-xl"><i class="fa-solid fa-shield-halved text-cyan-400"></i> لوحة الإدارة</h1>
-      <div class="flex gap-3">
-        <a href="/admin/visits" class="bg-cyan-600 hover:bg-cyan-700 px-4 py-2 rounded-lg font-bold text-sm transition shadow-sm">
-          <i class="fa-solid fa-chart-line"></i> إحصائيات الزوار
-        </a>
-        <a href="/" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg font-bold text-sm transition">
-          <i class="fa-solid fa-store"></i> المتجر
-        </a>
-        <a href="/admin/logout" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-bold text-sm transition">
-          <i class="fa-solid fa-right-from-bracket"></i> خروج
-        </a>
+      <div class="flex gap-2">
+        <a href="/" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg font-bold text-xs transition"><i class="fa-solid fa-store"></i> المتجر</a>
+        <a href="/admin/logout" class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded-lg font-bold text-xs transition"><i class="fa-solid fa-right-from-bracket"></i> خروج</a>
       </div>
     </div>
   </div>
 
   <div class="max-w-7xl mx-auto p-4 md:p-6">
     
-    <!-- بطاقات الإحصائيات السريعة -->
+    <!-- شريط الأزرار السريعة (الذي كان ناقصاً) -->
+    <div class="flex flex-wrap gap-2 mb-6">
+      <a href="/admin/visits" class="bg-cyan-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-cyan-700 transition"><i class="fa-solid fa-chart-line"></i> إحصائيات الزوار</a>
+      <a href="/admin/games" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-indigo-700 transition"><i class="fa-solid fa-gamepad"></i> إدارة الألعاب</a>
+      <a href="/admin/pending" class="bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-amber-600 transition"><i class="fa-solid fa-clock"></i> الإعلانات المعلقة</a>
+      <a href="/admin/verifications" class="bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-blue-600 transition"><i class="fa-solid fa-id-card"></i> طلبات التوثيق</a>
+      <a href="/admin/users" class="bg-purple-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-purple-700 transition"><i class="fa-solid fa-users"></i> المستخدمون</a>
+      <a href="/admin/reviews" class="bg-pink-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-pink-600 transition"><i class="fa-solid fa-star"></i> التقييمات</a>
+      <a href="/admin/topups" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-green-700 transition"><i class="fa-solid fa-bolt"></i> طلبات الشحن</a>
+      <a href="/admin/banners" class="bg-slate-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-slate-700 transition"><i class="fa-solid fa-images"></i> البانرات</a>
+    </div>
+
+    <!-- بطاقات الإحصائيات -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      <div class="bg-white p-4 rounded-xl shadow-sm border text-center">
+      <div class="bg-white p-4 rounded-xl shadow-sm border-r-4 border-blue-500">
         <div class="text-sm font-bold text-slate-500 mb-1">إعلانات المتجر</div>
         <div class="text-2xl font-black text-blue-600"><%= stats.adminPhonesCount %></div>
       </div>
-      <div class="bg-white p-4 rounded-xl shadow-sm border text-center">
+      <div class="bg-white p-4 rounded-xl shadow-sm border-r-4 border-green-500">
         <div class="text-sm font-bold text-slate-500 mb-1">إعلانات الزبائن</div>
         <div class="text-2xl font-black text-green-600"><%= stats.userAdsCount %></div>
       </div>
-      <div class="bg-white p-4 rounded-xl shadow-sm border text-center">
+      <div class="bg-white p-4 rounded-xl shadow-sm border-r-4 border-amber-500">
         <div class="text-sm font-bold text-slate-500 mb-1">قيد المراجعة</div>
         <div class="text-2xl font-black text-amber-500"><%= stats.pendingCount %></div>
       </div>
-      <div class="bg-white p-4 rounded-xl shadow-sm border text-center">
+      <div class="bg-white p-4 rounded-xl shadow-sm border-r-4 border-purple-500">
         <div class="text-sm font-bold text-slate-500 mb-1">طلبات الشحن</div>
         <div class="text-2xl font-black text-purple-600"><%= stats.topupsCount %></div>
       </div>
@@ -54,8 +59,8 @@
     <!-- جدول إدارة الهواتف -->
     <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
       <div class="p-4 border-b bg-slate-50 flex justify-between items-center">
-        <h2 class="font-bold text-slate-800"><i class="fa-solid fa-mobile-screen"></i> إدارة الهواتف</h2>
-        <a href="/admin/add" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm">+ إضافة هاتف</a>
+        <h2 class="font-bold text-slate-800"><i class="fa-solid fa-mobile-screen text-cyan-600"></i> إدارة الهواتف (آخر 100 إعلان)</h2>
+        <a href="/admin/add" class="bg-cyan-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-cyan-700 transition"><i class="fa-solid fa-plus"></i> إضافة هاتف</a>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-right text-sm">
@@ -74,19 +79,25 @@
               <tr class="hover:bg-slate-50">
                 <td class="p-3 text-slate-500"><%= phone.id %></td>
                 <td class="p-3">
-                  <% let img = 'https://via.placeholder.com/50'; try { let imgs = JSON.parse(phone.images); if(imgs && imgs.length > 0) img = imgs[0]; } catch(e){} %>
-                  <img src="<%= img %>" class="w-10 h-10 object-cover rounded border">
+                  <% 
+                    let img = 'https://placehold.co/50x50/e2e8f0/64748b?text=No+Img'; 
+                    try { 
+                      let imgs = JSON.parse(phone.images || '[]'); 
+                      if(imgs && imgs.length > 0) img = imgs[0]; 
+                    } catch(e){} 
+                  %>
+                  <img src="<%= img %>" class="w-12 h-12 object-cover rounded-lg border border-slate-200 shadow-sm" onerror="this.src='https://placehold.co/50x50/e2e8f0/64748b?text=Error'">
                 </td>
                 <td class="p-3 font-bold text-slate-800"><%= phone.name %></td>
-                <td class="p-3 text-slate-600"><%= phone.brand %></td>
-                <td class="p-3 font-bold text-green-600">$<%= phone.price %></td>
-                <td class="p-3 flex gap-2">
-                  <a href="/admin/edit/<%= phone.id %>" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold hover:bg-blue-200"><i class="fa-solid fa-pen"></i></a>
+                <td class="p-3 text-slate-600 font-semibold"><%= phone.brand %></td>
+                <td class="p-3 font-black text-green-600">$<%= phone.price %></td>
+                <td class="p-3 flex gap-1">
+                  <a href="/admin/edit/<%= phone.id %>" class="bg-blue-100 text-blue-700 p-2 rounded-lg hover:bg-blue-200 transition" title="تعديل"><i class="fa-solid fa-pen"></i></a>
                   <form action="/admin/feature/<%= phone.id %>" method="POST" class="inline">
-                    <button class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs font-bold hover:bg-amber-200"><i class="fa-solid fa-star"></i></button>
+                    <button class="bg-amber-100 text-amber-700 p-2 rounded-lg hover:bg-amber-200 transition" title="تمييز"><i class="fa-solid fa-star"></i></button>
                   </form>
                   <form action="/admin/delete/<%= phone.id %>" method="POST" class="inline" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
-                    <button class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold hover:bg-red-200"><i class="fa-solid fa-trash"></i></button>
+                    <button class="bg-red-100 text-red-700 p-2 rounded-lg hover:bg-red-200 transition" title="حذف"><i class="fa-solid fa-trash"></i></button>
                   </form>
                 </td>
               </tr>
@@ -99,27 +110,38 @@
       </div>
     </div>
 
-    <!-- بطاقات أخرى -->
+    <!-- روابط سريعة إضافية في الأسفل -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-      <a href="/admin/pending" class="bg-white p-4 rounded-xl shadow-sm border text-center hover:shadow-md transition">
-        <div class="text-sm font-bold text-slate-700 mb-1">الإعلانات المعلقة</div>
-        <div class="text-xl font-black text-amber-500"><%= stats.pendingCount %></div>
+      <a href="/admin/pending" class="bg-white p-4 rounded-xl shadow-sm border hover:shadow-md hover:border-amber-400 transition flex items-center justify-between group">
+        <div>
+          <div class="text-sm font-bold text-slate-700 mb-1">الإعلانات المعلقة</div>
+          <div class="text-xl font-black text-amber-500"><%= stats.pendingCount %></div>
+        </div>
+        <i class="fa-solid fa-chevron-left text-slate-300 group-hover:text-amber-500"></i>
       </a>
-      <a href="/admin/verifications" class="bg-white p-4 rounded-xl shadow-sm border text-center hover:shadow-md transition">
-        <div class="text-sm font-bold text-slate-700 mb-1">طلبات التوثيق</div>
-        <div class="text-xl font-black text-blue-500"><%= stats.verificationsCount %></div>
+      <a href="/admin/verifications" class="bg-white p-4 rounded-xl shadow-sm border hover:shadow-md hover:border-blue-400 transition flex items-center justify-between group">
+        <div>
+          <div class="text-sm font-bold text-slate-700 mb-1">طلبات التوثيق</div>
+          <div class="text-xl font-black text-blue-500"><%= stats.verificationsCount %></div>
+        </div>
+        <i class="fa-solid fa-chevron-left text-slate-300 group-hover:text-blue-500"></i>
       </a>
-      <a href="/admin/reviews" class="bg-white p-4 rounded-xl shadow-sm border text-center hover:shadow-md transition">
-        <div class="text-sm font-bold text-slate-700 mb-1">التقييمات</div>
-        <div class="text-xl font-black text-purple-500"><%= stats.reviewsCount %></div>
+      <a href="/admin/reviews" class="bg-white p-4 rounded-xl shadow-sm border hover:shadow-md hover:border-pink-400 transition flex items-center justify-between group">
+        <div>
+          <div class="text-sm font-bold text-slate-700 mb-1">التقييمات</div>
+          <div class="text-xl font-black text-pink-500"><%= stats.reviewsCount %></div>
+        </div>
+        <i class="fa-solid fa-chevron-left text-slate-300 group-hover:text-pink-500"></i>
       </a>
-      <a href="/admin/users" class="bg-white p-4 rounded-xl shadow-sm border text-center hover:shadow-md transition">
-        <div class="text-sm font-bold text-slate-700 mb-1">المستخدمون</div>
-        <div class="text-xl font-black text-slate-700"><%= stats.usersCount %></div>
+      <a href="/admin/users" class="bg-white p-4 rounded-xl shadow-sm border hover:shadow-md hover:border-purple-400 transition flex items-center justify-between group">
+        <div>
+          <div class="text-sm font-bold text-slate-700 mb-1">المستخدمون</div>
+          <div class="text-xl font-black text-purple-600"><%= stats.usersCount %></div>
+        </div>
+        <i class="fa-solid fa-chevron-left text-slate-300 group-hover:text-purple-600"></i>
       </a>
     </div>
 
   </div>
-<script src="/tracker.js"></script>
 </body>
 </html>

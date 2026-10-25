@@ -74,7 +74,8 @@ function sendTelegram(message) {
   if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) return;
   fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey },
     body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'HTML' })
   }).catch(() => {});
 }
@@ -497,11 +498,12 @@ app.post('/api/chat', async (req, res) => {
     }
 
     // استخدام الرابط التقليدي مع وضع المفتاح في الرابط (الطريقة الأكثر استقراراً)
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent`;
     
         const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey },
       body: JSON.stringify({
         contents: [{ parts: [{ text: context + "\n\nسؤال الزبون: " + message }] }]
       })

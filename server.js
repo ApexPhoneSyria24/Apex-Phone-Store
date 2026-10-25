@@ -497,10 +497,9 @@ app.post('/api/chat', async (req, res) => {
     }
 
     // استخدام الرابط التقليدي مع وضع المفتاح في الرابط (الطريقة الأكثر استقراراً)
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
     
-    console.log('Sending request to Gemini...');
-    const response = await fetch(url, {
+        const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -509,8 +508,7 @@ app.post('/api/chat', async (req, res) => {
     });
 
     const data = await response.json();
-    console.log('Gemini Response received:', data.error ? data.error.message : 'Success');
-    
+        
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       res.json({ reply: data.candidates[0].content.parts[0].text });
     } else {

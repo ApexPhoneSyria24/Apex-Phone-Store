@@ -49,6 +49,18 @@ try {
     if (!vCols.includes('visitor_id')) db.exec("ALTER TABLE visits ADD COLUMN visitor_id TEXT");
   } catch(e) {}
 
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS chat_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, visitor_id TEXT NOT NULL,
+      sender TEXT NOT NULL, message TEXT NOT NULL, is_read INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+    db.exec(`CREATE TABLE IF NOT EXISTS chat_sessions (
+      visitor_id TEXT PRIMARY KEY, status TEXT DEFAULT 'open', rating INTEGER DEFAULT 0,
+      feedback TEXT, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+  } catch(e) {}
+
   const gameCount = db.prepare('SELECT COUNT(*) c FROM games').get().c;
   if (gameCount === 0) {
     const seed = [
@@ -66,41 +78,7 @@ try {
   }
 } catch(e) { console.error('Migration Error:', e.message); }
 
-
-
-
-
-
-
-try {
-  db.exec(`CREATE TABLE IF NOT EXISTS chat_sessions (
-    visitor_id TEXT PRIMARY KEY,
-    status TEXT DEFAULT 'open',
-    rating INTEGER DEFAULT 0,
-    feedback TEXT,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
-} catch(e) {}
-
-try {
-  db.exec(`CREATE TABLE IF NOT EXISTS chat_messages (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    visitor_id TEXT NOT NULL,
-    sender TEXT NOT NULL,
-    message TEXT NOT NULL,
-    is_read INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
-  db.exec(`CREATE TABLE IF NOT EXISTS chat_sessions (
-    visitor_id TEXT PRIMARY KEY,
-    status TEXT DEFAULT 'open',
-    rating INTEGER DEFAULT 0,
-    feedback TEXT,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
-} catch(e) { console.error('Chat Tables Error:', e.message); }
-
-
+// ===== Telegram Setup =====
 const TELEGRAM_TOKEN = '8953449632:AAEimtiSqDpeBnse6bnTKyU1xAhkvIvltsg';
 const TELEGRAM_CHAT_ID = '5785915708';
 
@@ -113,9 +91,7 @@ async function sendTelegram(message) {
     });
     const data = await res.json();
     if (!data.ok) console.error('Telegram Error:', data.description);
-  } catch(err) {
-    console.error('Telegram Fetch Error:', err.message);
-  }
+  } catch(err) { console.error('Telegram Fetch Error:', err.message); }
 }
 
 const app = express();
@@ -141,7 +117,7 @@ const privateStorage = multer.diskStorage({
 });
 const uploadPrivate = multer({ storage: privateStorage });
 
-app.set('trust proxy', 1);
+app.set('trust proxy', true);
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -150,83 +126,206 @@ app.use('/uploads', express.static('public/uploads', { maxAge: '30d', immutable:
 app.use('/css', express.static('public/css', { maxAge: '7d' }));
 app.use(express.static('public'));
 
-
-
-// ===== Visitor Tracking (Real IP) =====
+// ===== Visitor Tracking (Silent) =====
 app.use((req, res, next) => {
   if (req.path.startsWith('/css') || req.path.startsWith('/uploads') || req.path.startsWith('/admin') || req.path === '/favicon.ico') return next();
   try {
-    // الأولوية القصوى لرؤوس الشبكة التي يرسلها Dokploy/Traefik
-    let ipHeader = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.headers['cf-connecting-ip'];
-    let cleanIp = ipHeader ? ipHeader.split(',')[0].trim() : req.ip || req.socket.remoteAddress;
-    cleanIp = cleanIp.replace('::ffff:', '');
-
+    const ipHeader = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
+    let cleanIp = ipHeader.split(',')[0].trim().replace('::ffff:', '');
     let isLocal = false;
-    // إذا كان الـ IP يبدأ بـ 172 أو 127 أو 192، فهذا يعني أنه IP داخلي (محلي)
-    if (cleanIp.startsWith('::1') || cleanIp.startsWith('127.') || cleanIp.startsWith('192.168.') || cleanIp.startsWith('10.') || cleanIp.startsWith('172.')) {
-       isLocal = true;
-    }
-
-    let visitorId = null;
-    if (req.headers.cookie) {
-      const cookies = req.headers.cookie.split(';');
-      for (let c of cookies) {
-        if (c.trim().startsWith('apex_vid=')) {
-          visitorId = c.split('=')[1];
-          break;
-        }
-      }
-    }
-    
-    if (!visitorId) {
-      visitorId = 'VIS-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-      res.setHeader('Set-Cookie', 'apex_vid=' + visitorId + '; Max-Age=31536000; Path=/');
-    }
+    if (cleanIp === '::1' || cleanIp.startsWith('127.') || cleanIp.startsWith('192.168.') || cleanIp.startsWith('10.') || cleanIp.startsWith('172.')) isLocal = true;
 
     const ua = req.headers['user-agent'] || 'Unknown';
     let device = 'كمبيوتر'; if (/mobile/i.test(ua)) device = 'هاتف'; if (/tablet|ipad/i.test(ua)) device = 'تابلت';
     let os = 'غير معروف'; if (/android/i.test(ua)) os = 'Android'; else if (/iphone|ipad|ipod/i.test(ua)) os = 'iOS'; else if (/windows/i.test(ua)) os = 'Windows'; else if (/mac/i.test(ua)) os = 'Mac';
 
+    let visitorId = null;
+    if (req.headers.cookie) {
+      const cookies = req.headers.cookie.split(';');
+      for (let c of cookies) { if (c.trim().startsWith('apex_visitor_id=')) { visitorId = c.split('=')[1]; break; } }
+    }
+    if (!visitorId) {
+      visitorId = 'VIS-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      res.setHeader('Set-Cookie', 'apex_visitor_id=' + visitorId + '; Max-Age=31536000; Path=/;');
+    }
+
     const stmt = db.prepare('INSERT INTO visits (ip, user_agent, path, device_type, visitor_id) VALUES (?, ?, ?, ?, ?)');
-    // إذا كان محلياً نكتب (محلي) بجانبه لتمييزه، وإلا نكتب الـ IP الحقيقي
-    const displayIp = isLocal ? cleanIp + ' (محلي)' : cleanIp;
-    const info = stmt.run(displayIp, ua, req.path, device + ' / ' + os, visitorId);
+    const info = stmt.run(cleanIp, ua, req.path, device + ' / ' + os, visitorId);
     const visitId = info.lastInsertRowid;
 
     if (isLocal) {
-        db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('سوريا', 'شبكة محلية', visitId);
+      db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('سوريا (محلي)', 'دمشق', visitId);
     } else {
-        fetch('https://ipwho.is/' + cleanIp)
-            .then(r => r.json())
-            .then(data => {
-                if (data && data.success) db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run(data.country || 'غير معروف', data.city || 'غير معروف', visitId);
-                else db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('فشل التحديد', 'فشل', visitId);
-            }).catch(() => {});
+      fetch('https://ipwho.is/' + cleanIp).then(r => r.json()).then(data => {
+        if (data && data.success) db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run(data.country || 'غير معروف', data.city || 'غير معروف', visitId);
+      }).catch(() => {});
     }
   } catch(e) { }
   next();
 });
 
+// ===== AI Chatbot (Mimo) =====
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message, history } = req.body;
+    if (!message) return res.status(400).json({ reply: 'الرجاء كتابة رسالة.' });
 
+    const phones = db.prepare("SELECT name, brand, price FROM phones WHERE status = 'approved' LIMIT 8").all();
+    const games = db.prepare("SELECT name FROM games WHERE is_active = 1 LIMIT 8").all();
 
-// ===== API: Balance & Phone Link =====
+    let systemPrompt = `أنت "ميمو" (Mimo)، المساعد الذكي لمتجر Apex Phone Syria (المتجر الأول والموثوق في سوريا).
+شخصيتك: لطيف جداً، ذكي، حساس لاحتياجات الزبون، تستخدم الإيموجي باعتدال، وتتحدث بأسلوب راقٍ ومباشر.
+قواعد صارمة: 
+1. ممنوع تكرار الترحيب إذا لم تكن أول رسالة.
+2. إجاباتك مختصرة (سطرين كحد أقصى) وذكية ومباشرة.
+3. أجب على السؤال المطروح فقط.
+4. معلومات المتجر: نبيع هواتف أصلية، ونشحن ألعاب فورية، والدفع عبر سيريتل كاش.
+الهواتف المتاحة: ${phones.map(p => `${p.name} ($${p.price})`).join(', ')}.
+الألعاب المتاحة: ${games.map(g => g.name).join(', ')}.`;
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود في السيرفر.' });
+
+    let contents = [];
+    if (history && Array.isArray(history)) {
+      history.forEach(msg => { contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }); });
+    }
+    contents.push({ role: 'user', parts: [{ text: systemPrompt + "\n\nرسالة الزبون: " + message }] });
+
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      body: JSON.stringify({ contents: contents })
+    });
+
+    const data = await response.json();
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      res.json({ reply: data.candidates[0].content.parts[0].text });
+    } else {
+      const googleError = data.error ? data.error.message : 'Unknown';
+      if (googleError.includes('not found')) {
+        const fallbackUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent';
+        const fbRes = await fetch(fallbackUrl, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+          body: JSON.stringify({ contents: contents })
+        });
+        const fbData = await fbRes.json();
+        if (fbData.candidates && fbData.candidates[0]) return res.json({ reply: fbData.candidates[0].content.parts[0].text });
+      }
+      res.status(400).json({ reply: '⚠️ خطأ من جوجل: ' + googleError });
+    }
+  } catch (e) { res.status(500).json({ reply: '⚠️ خطأ في السيرفر: ' + e.message }); }
+});
+
+// ===== Live Chat API (Human) =====
+app.post('/api/human-chat/init', (req, res) => {
+  try {
+    const { visitor_id } = req.body;
+    if (!visitor_id) return res.status(400).json({ error: 'Missing ID' });
+    let session = db.prepare("SELECT status FROM chat_sessions WHERE visitor_id = ?").get(visitor_id);
+    if (!session) {
+      db.prepare("INSERT INTO chat_sessions (visitor_id) VALUES (?)").run(visitor_id);
+      const welcomeMsg = "مرحباً بك في دعم Apex Phone! 👋\nتم استلام طلبك بنجاح، ونحن الآن نبحث لك عن أحد المطورين للرد عليك في أسرع وقت. يرجى البقاء معنا... ⏳";
+      db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'admin', ?)").run(visitor_id, welcomeMsg);
+      sendTelegram(`🔔 <b>زبون جديد دخل الدردشة الحية!</b>\nالزائر: ${visitor_id}`);
+    }
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/human-chat/send', (req, res) => {
+  try {
+    const { visitor_id, message } = req.body;
+    if (!visitor_id || !message) return res.status(400).json({ error: 'بيانات ناقصة' });
+    let session = db.prepare("SELECT status FROM chat_sessions WHERE visitor_id = ?").get(visitor_id);
+    if (!session) db.prepare("INSERT INTO chat_sessions (visitor_id) VALUES (?)").run(visitor_id);
+    else if (session.status === 'closed') return res.status(400).json({ error: 'تم إغلاق المحادثة' });
+    
+    db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'visitor', ?)").run(visitor_id, message);
+    sendTelegram(`💬 <b>رسالة جديدة في الدردشة!</b>\nالزائر: ${visitor_id}\nالرسالة: ${message}`);
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/human-chat/messages/:visitorId', (req, res) => {
+  try {
+    const msgs = db.prepare("SELECT * FROM chat_messages WHERE visitor_id = ? ORDER BY id ASC").all(req.params.visitorId);
+    const session = db.prepare("SELECT status, rating FROM chat_sessions WHERE visitor_id = ?").get(req.params.visitorId) || { status: 'open', rating: 0 };
+    res.json({ messages: msgs, status: session.status, rating: session.rating });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/human-chat/rate', (req, res) => {
+  try {
+    const { visitor_id, rating, feedback } = req.body;
+    db.prepare("UPDATE chat_sessions SET rating = ?, feedback = ? WHERE visitor_id = ?").run(rating, feedback || '', visitor_id);
+    sendTelegram(`⭐ <b>تقييم جديد!</b>\nالزائر: ${visitor_id}\nالتقييم: ${'⭐'.repeat(rating)}\nملاحظات: ${feedback || 'لا يوجد'}`);
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== Admin Chat Routes =====
+app.get('/admin/chats', requireAuth, (req, res) => {
+  try {
+    const chats = db.prepare(`
+      SELECT c.visitor_id, MAX(c.created_at) as last_time,
+      (SELECT COUNT(*) FROM chat_messages c2 WHERE c2.visitor_id = c.visitor_id AND c2.sender = 'visitor' AND c2.is_read = 0) as unread,
+      (SELECT message FROM chat_messages c3 WHERE c3.visitor_id = c.visitor_id ORDER BY id DESC LIMIT 1) as last_msg,
+      COALESCE(s.status, 'open') as status, COALESCE(s.rating, 0) as rating
+      FROM chat_messages c LEFT JOIN chat_sessions s ON c.visitor_id = s.visitor_id
+      GROUP BY c.visitor_id ORDER BY last_time DESC
+    `).all();
+    res.render('admin-chats', { chats });
+  } catch (err) {
+    res.send("حدث خطأ في تحميل الدردشات: " + err.message);
+  }
+});
+
+app.get('/admin/chats/:visitorId', requireAuth, (req, res) => {
+  db.prepare("UPDATE chat_messages SET is_read = 1 WHERE visitor_id = ? AND sender = 'visitor'").run(req.params.visitorId);
+  const session = db.prepare("SELECT * FROM chat_sessions WHERE visitor_id = ?").get(req.params.visitorId) || { status: 'open', rating: 0, feedback: '' };
+  res.render('admin-chat-room', { visitorId: req.params.visitorId, session });
+});
+
+app.get('/api/admin/chat/messages/:visitorId', requireAuth, (req, res) => {
+  const msgs = db.prepare("SELECT * FROM chat_messages WHERE visitor_id = ? ORDER BY id ASC").all(req.params.visitorId);
+  const session = db.prepare("SELECT * FROM chat_sessions WHERE visitor_id = ?").get(req.params.visitorId) || { status: 'open', rating: 0, feedback: '' };
+  res.json({ messages: msgs, session });
+});
+
+app.post('/api/admin/chat/send', requireAuth, (req, res) => {
+  try {
+    const { visitor_id, message } = req.body;
+    db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'admin', ?)").run(visitor_id, message);
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/admin/chat/close/:visitorId', requireAuth, (req, res) => {
+  try {
+    db.prepare("INSERT OR IGNORE INTO chat_sessions (visitor_id) VALUES (?)").run(req.params.visitorId);
+    db.prepare("UPDATE chat_sessions SET status = 'closed' WHERE visitor_id = ?").run(req.params.visitorId);
+    db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'system', 'تم إغلاق المحادثة من قبل الدعم. شكراً لتواصلك معنا!')").run(req.params.visitorId);
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== Notifications & Balance API =====
+app.post('/api/notifications/welcome', (req, res) => {
+  const { phone } = req.body; if (!phone) return res.json({ success: false });
+  const existing = db.prepare("SELECT id FROM notifications WHERE phone = ? AND message LIKE '%أهلاً بك%'").get(phone);
+  if (!existing) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(phone, '👑 أهلاً بك في Apex فون!');
+  res.json({ success: true });
+});
+app.get('/api/notifications/:phone', (req, res) => { res.json(db.prepare('SELECT * FROM notifications WHERE phone = ? ORDER BY id DESC').all(req.params.phone)); });
+app.post('/api/notifications/read/:phone', (req, res) => { db.prepare('UPDATE notifications SET is_read = 1 WHERE phone = ?').run(req.params.phone); res.json({ success: true }); });
+
 app.get('/api/user-balance/:phone', (req, res) => {
   try {
     const user = db.prepare('SELECT balance FROM users WHERE phone = ?').get(req.params.phone);
     res.json({ balance: user ? user.balance : 0 });
   } catch(e) { res.json({ balance: 0 }); }
-});
-
-app.post('/api/track-phone', (req, res) => {
-  try {
-    const { phone } = req.body;
-    if (phone) {
-      const ipHeader = req.headers['cf-connecting-ip'] || req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
-      let cleanIp = ipHeader.split(',')[0].trim().replace('::ffff:', '');
-      db.prepare("UPDATE visits SET user_phone = ? WHERE ip = ? AND id = (SELECT MAX(id) FROM visits WHERE ip = ?)").run(phone, cleanIp, cleanIp);
-    }
-  } catch(e) {}
-  res.json({ success: true });
 });
 
 function generateUserCode() {
@@ -241,16 +340,6 @@ function getOrCreateUser(name, phone) {
   db.prepare('INSERT INTO users (user_code, name, phone) VALUES (?, ?, ?)').run(code, name || '', phone);
   return db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
 }
-
-// ===== Notifications =====
-app.post('/api/notifications/welcome', (req, res) => {
-  const { phone } = req.body; if (!phone) return res.json({ success: false });
-  const existing = db.prepare("SELECT id FROM notifications WHERE phone = ? AND message LIKE '%أهلاً بك%'").get(phone);
-  if (!existing) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(phone, '👑 أهلاً بك في Apex فون!');
-  res.json({ success: true });
-});
-app.get('/api/notifications/:phone', (req, res) => { res.json(db.prepare('SELECT * FROM notifications WHERE phone = ? ORDER BY id DESC').all(req.params.phone)); });
-app.post('/api/notifications/read/:phone', (req, res) => { db.prepare('UPDATE notifications SET is_read = 1 WHERE phone = ?').run(req.params.phone); res.json({ success: true }); });
 
 // ===== Home & SEO =====
 app.get('/', (req, res) => {
@@ -311,7 +400,6 @@ app.post('/post-ad', upload.array('images', 8), (req, res) => {
   const user = getOrCreateUser(b.seller_name, b.seller_phone);
   const images = req.files ? req.files.map(f => '/uploads/' + f.filename) : [];
   db.prepare(`INSERT INTO phones (name, brand, price, description, images, availability, is_admin, status, seller_name, seller_phone) VALUES (?, ?, ?, ?, ?, 'متوفر', 0, 'pending', ?, ?)`).run(b.name, b.brand, b.price, b.description, JSON.stringify(images), b.seller_name, b.seller_phone);
-  sendTelegram(`📱 <b>إعلان هاتف جديد!</b>\n📱 الهاتف: ${b.name}\n💵 السعر: ${b.price}\n👤 البائع: ${b.seller_name} (${b.seller_phone})`);
   res.render('ad-success', { sellerPhone: b.seller_phone, userCode: user.user_code });
 });
 app.get('/policy', (req, res) => { res.render('policy'); });
@@ -340,16 +428,14 @@ app.post('/games/:gameName/order', (req, res) => {
       db.prepare('UPDATE users SET balance = balance - ? WHERE phone = ?').run(priceNum, user_phone);
       db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone, payment_method, status) VALUES (?, ?, ?, ?, ?, 'wallet', 'pending')`).run(gameName, package_name, player_id, priceNum, user_phone);
       db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(user_phone, `💳 تم خصم $${priceNum} من محفظتك لطلب ${package_name} في ${gameName}`);
-      sendTelegram(`🎮 <b>طلب شحن (محفظة)!</b>\n🎯 اللعبة: ${gameName}\n📦 الباقة: ${package_name}\n🆔 الآي دي: ${player_id}\n📱 الهاتف: ${user_phone}\n💵 السعر: ${priceNum}`);
+      sendTelegram(`🎮 <b>طلب شحن (محفظة)!</b>\nاللعبة: ${gameName}\nالباقة: ${package_name}\nالهاتف: ${user_phone}\nالسعر: $${priceNum}`);
       res.json({ success: true, message: 'تم الدفع من المحفظة بنجاح!' });
     } else {
       db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone, payment_method) VALUES (?, ?, ?, ?, ?, 'manual')`).run(gameName, package_name, player_id, priceNum, user_phone);
-      sendTelegram(`🎮 <b>طلب شحن (يدوي)!</b>\n🎯 اللعبة: ${gameName}\n📦 الباقة: ${package_name}\n🆔 الآي دي: ${player_id}\n📱 الهاتف: ${user_phone}\n💵 السعر: ${priceNum}`);
+      sendTelegram(`🎮 <b>طلب شحن (يدوي)!</b>\nاللعبة: ${gameName}\nالباقة: ${package_name}\nالهاتف: ${user_phone}\nالسعر: $${priceNum}`);
       res.json({ success: true, message: 'تم إرسال الطلب بنجاح' });
     }
-  } catch(e) {
-    res.status(500).json({ success: false, message: 'حدث خطأ في السيرفر' });
-  }
+  } catch(e) { res.status(500).json({ success: false, message: 'حدث خطأ في السيرفر' }); }
 });
 app.get('/api/topup-orders/:phone', (req, res) => { res.json(db.prepare("SELECT * FROM topup_orders WHERE user_phone = ? ORDER BY id DESC LIMIT 10").all(req.params.phone)); });
 
@@ -370,7 +456,7 @@ app.post('/topup-balance', upload.single('receipt'), (req, res) => {
   let user = db.prepare('SELECT id FROM users WHERE phone = ?').get(phone);
   if (!user) db.prepare('INSERT INTO users (user_code, name, phone) VALUES (?, ?, ?)').run(generateUserCode(), 'زبون', phone);
   db.prepare(`INSERT INTO wallet_deposits (user_phone, amount_usd, amount_syp, transfer_ref, receipt_image) VALUES (?, ?, ?, ?, ?)`).run(phone, amount_usd, amount_syp, transfer_ref, receipt_image);
-  sendTelegram(`💰 <b>طلب إيداع رصيد جديد!</b>\n📱 الهاتف: ${phone}\n💵 المبلغ: ${amount_usd}\n🔢 رقم العملية: ${transfer_ref || 'غير مذكور'}`);
+  sendTelegram(`💰 <b>طلب إيداع جديد!</b>\nالهاتف: ${phone}\nالمبلغ: $${amount_usd}`);
   res.redirect('/topup-balance?phone=' + phone + '&success=1');
 });
 
@@ -504,220 +590,9 @@ app.post('/admin/topups/reject/:id', requireAuth, (req, res) => {
   res.redirect('/admin/topups');
 });
 
-
-
-
-
-// ===== AI Chatbot (Mimo) =====
-app.post('/api/chat', async (req, res) => {
-  try {
-    const { message, history } = req.body;
-    if (!message) return res.status(400).json({ reply: 'الرجاء كتابة رسالة.' });
-
-    const phones = db.prepare("SELECT name, brand, price FROM phones WHERE status = 'approved' LIMIT 8").all();
-    const games = db.prepare("SELECT name FROM games WHERE is_active = 1 LIMIT 8").all();
-
-    // شخصية ميمو الصارمة والذكية
-    let systemPrompt = `أنت "ميمو" (Mimo)، المساعد الذكي لمتجر Apex Phone Syria (المتجر الأول والموثوق في سوريا).
-شخصيتك: لطيف جداً، ذكي، حساس لاحتياجات الزبون، تستخدم الإيموجي باعتدال، وتتحدث بأسلوب راقٍ ومباشر.
-
-قواعد صارمة يجب عليك الالتزام بها حرفياً:
-1. ممنوع منعاً باتاً تكرار الترحيب (مثل: أهلاً وسهلاً، مرحباً بك) إذا كانت هذه ليست أول رسالة في المحادثة. اعتبر الزبون صديقاً تتحدث معه.
-2. إجاباتك يجب أن تكون مختصرة (سطر إلى سطرين كحد أقصى) وذكية ومباشرة. لا تكتب فقرات طويلة.
-3. أجب على السؤال المطروح فقط دون فتح مواضيع جانبية.
-4. إذا سأل عن منتج، اذكر له السعر المتاح لدينا بذكاء.
-5. معلومات المتجر: نبيع هواتف أصلية بضمان، ونشحن ألعاب فورية (PUBG, Free Fire)، والدفع عبر سيريتل كاش (1 دولار = 142 ل.س جديدة).
-
-الهواتف المتاحة: ${phones.map(p => `${p.name} (${p.price})`).join(', ')}.
-الألعاب المتاحة: ${games.map(g => g.name).join(', ')}.`;
-
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود.' });
-
-    // بناء سجل المحادثة لكي يتذكر ميمو ما سبق
-    let contents = [];
-    if (history && Array.isArray(history)) {
-      history.forEach(msg => {
-        contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] });
-      });
-    }
-    
-    // إضافة رسالة الزبون الحالية مع تعليمات النظام
-    contents.push({ 
-      role: 'user', 
-      parts: [{ text: systemPrompt + "\n\nرسالة الزبون الآن: " + message }] 
-    });
-
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey 
-      },
-      body: JSON.stringify({ contents: contents })
-    });
-
-    const data = await response.json();
-    
-    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-      res.json({ reply: data.candidates[0].content.parts[0].text });
-    } else {
-      const googleError = data.error ? data.error.message : JSON.stringify(data);
-      console.error('Google API Error:', googleError);
-      // في حال فشل النموذج الكامل، نجرب النسخة السريعة
-      if (googleError.includes('not found')) {
-        const fallbackUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent';
-        const fbRes = await fetch(fallbackUrl, {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-          body: JSON.stringify({ contents: contents })
-        });
-        const fbData = await fbRes.json();
-        if (fbData.candidates && fbData.candidates[0]) return res.json({ reply: fbData.candidates[0].content.parts[0].text });
-      }
-      res.status(400).json({ reply: '⚠️ خطأ من جوجل: ' + googleError });
-    }
-  } catch (e) {
-    res.status(500).json({ reply: '⚠️ خطأ في السيرفر: ' + e.message });
-  }
-});
-
-
-// ===== Live Chat API =====
-app.post('/api/human-chat/send', (req, res) => {
-  try {
-    const { visitor_id, message } = req.body;
-    if (!visitor_id || !message) return res.status(400).json({ error: 'بيانات ناقصة' });
-    
-    let session = db.prepare("SELECT status FROM chat_sessions WHERE visitor_id = ?").get(visitor_id);
-    if (!session) {
-      db.prepare("INSERT INTO chat_sessions (visitor_id) VALUES (?)").run(visitor_id);
-    } else if (session.status === 'closed') {
-      return res.status(400).json({ error: 'تم إغلاق المحادثة' });
-    }
-    
-    db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'visitor', ?)").run(visitor_id, message);
-    
-    // إرسال إشعار إلى تيليجرام
-    sendTelegram(`💬 <b>رسالة جديدة في الدردشة!</b>\nالزائر: ${visitor_id}\nالرسالة: ${message}`);
-    
-    try {
-      if (typeof sendTelegram === 'function') {
-        sendTelegram(`💬 <b>رسالة جديدة في الدردشة!</b>\nالزائر: ${visitor_id}\nالرسالة: ${message}`);
-      }
-    } catch(e) { console.log('Telegram error:', e.message); }
-
-    res.json({ success: true });
-  } catch (e) {
-    console.error('Chat Save Error:', e);
-    res.status(500).json({ error: 'حدث خطأ داخلي' });
-  }
-});
-
-app.get('/api/human-chat/messages/:visitorId', (req, res) => {
-  try {
-    const msgs = db.prepare("SELECT * FROM chat_messages WHERE visitor_id = ? ORDER BY id ASC").all(req.params.visitorId);
-    const session = db.prepare("SELECT status, rating FROM chat_sessions WHERE visitor_id = ?").get(req.params.visitorId) || { status: 'open', rating: 0 };
-    res.json({ messages: msgs, status: session.status, rating: session.rating });
-  } catch(e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.post('/api/human-chat/rate', (req, res) => {
-  try {
-    const { visitor_id, rating, feedback } = req.body;
-    db.prepare("UPDATE chat_sessions SET rating = ?, feedback = ? WHERE visitor_id = ?").run(rating, feedback || '', visitor_id);
-    if (typeof sendTelegram === 'function') {
-      sendTelegram(`⭐ <b>تقييم جديد!</b>\nالزائر: ${visitor_id}\nالتقييم: ${'⭐'.repeat(rating)}\nملاحظات: ${feedback || 'لا يوجد'}`);
-    }
-    res.json({ success: true });
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-app.post('/api/admin/chat/close/:visitorId', requireAuth, (req, res) => {
-  try {
-    db.prepare("INSERT OR IGNORE INTO chat_sessions (visitor_id) VALUES (?)").run(req.params.visitorId);
-    db.prepare("UPDATE chat_sessions SET status = 'closed' WHERE visitor_id = ?").run(req.params.visitorId);
-    db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'system', 'تم إغلاق المحادثة من قبل الدعم. شكراً لتواصلك معنا!')").run(req.params.visitorId);
-    res.json({ success: true });
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-app.post('/api/admin/chat/send', requireAuth, (req, res) => {
-  try {
-    const { visitor_id, message } = req.body;
-    db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'admin', ?)").run(visitor_id, message);
-    res.json({ success: true });
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-
-app.get('/admin/chats', requireAuth, (req, res) => {
-  try {
-    // استعلام مبسط وآمن تماماً
-    const chats = db.prepare(`
-      SELECT 
-        c.visitor_id, 
-        MAX(c.created_at) as last_time,
-        (SELECT COUNT(*) FROM chat_messages c2 WHERE c2.visitor_id = c.visitor_id AND c2.sender = 'visitor' AND c2.is_read = 0) as unread,
-        (SELECT message FROM chat_messages c3 WHERE c3.visitor_id = c.visitor_id ORDER BY id DESC LIMIT 1) as last_msg,
-        COALESCE(s.status, 'open') as status, 
-        COALESCE(s.rating, 0) as rating
-      FROM chat_messages c 
-      LEFT JOIN chat_sessions s ON c.visitor_id = s.visitor_id
-      GROUP BY c.visitor_id 
-      ORDER BY last_time DESC
-    `).all();
-    
-    res.render('admin-chats', { chats });
-  } catch (err) {
-    console.error("Chats Route Error:", err.message);
-    res.send("حدث خطأ في تحميل الدردشات: " + err.message);
-  }
-});
-});
-
-app.get('/admin/chats/:visitorId', requireAuth, (req, res) => {
-  db.prepare("UPDATE chat_messages SET is_read = 1 WHERE visitor_id = ? AND sender = 'visitor'").run(req.params.visitorId);
-  const session = db.prepare("SELECT * FROM chat_sessions WHERE visitor_id = ?").get(req.params.visitorId) || { status: 'open', rating: 0, feedback: '' };
-  res.render('admin-chat-room', { visitorId: req.params.visitorId, session });
-});
-
-app.get('/api/admin/chat/messages/:visitorId', requireAuth, (req, res) => {
-  const msgs = db.prepare("SELECT * FROM chat_messages WHERE visitor_id = ? ORDER BY id ASC").all(req.params.visitorId);
-  const session = db.prepare("SELECT * FROM chat_sessions WHERE visitor_id = ?").get(req.params.visitorId) || { status: 'open', rating: 0, feedback: '' };
-  res.json({ messages: msgs, session });
-});
-
 app.get('/api/test-telegram', (req, res) => {
   sendTelegram('🚀 هذه رسالة تجريبية من موقع Apex! إذا وصلتك، فالإشعارات تعمل بنجاح.');
   res.send('تم إرسال الرسالة التجريبية إلى تيليجرام. افحص هاتفك!');
 });
-
-
-app.post('/api/human-chat/init', (req, res) => {
-  try {
-    const { visitor_id } = req.body;
-    if (!visitor_id) return res.status(400).json({ error: 'Missing ID' });
-    
-    let session = db.prepare("SELECT status FROM chat_sessions WHERE visitor_id = ?").get(visitor_id);
-    if (!session) {
-      db.prepare("INSERT INTO chat_sessions (visitor_id) VALUES (?)").run(visitor_id);
-      
-      // الرسالة التلقائية الاحترافية
-      const welcomeMsg = "مرحباً بك في دعم Apex Phone! 👋\nتم استلام طلبك بنجاح، ونحن الآن نبحث لك عن أحد المطورين للرد عليك في أسرع وقت. يرجى البقاء معنا... ⏳";
-      db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'admin', ?)").run(visitor_id, welcomeMsg);
-      
-      // إشعار تيليجرام
-      if (typeof sendTelegram === 'function') {
-        sendTelegram(`🔔 <b>زبون جديد دخل الدردشة الحية!</b>\nالزائر: ${visitor_id}`);
-      }
-    }
-    res.json({ success: true });
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
-
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

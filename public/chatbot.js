@@ -57,7 +57,7 @@
             <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover;">
           </div>
           <div>
-            <div style="color:#e6f1ff; font-weight:900; font-size:18px;">دعم Apex</div>
+            <div style="color:#e6f1ff; font-weight:900; font-size:18px;">ميمو ( Mimo ) 🥰</div>
             <div style="color:#39ff14; font-size:12px; font-weight:bold; display:flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; background:#39ff14; border-radius:50%;"></span> متصل الآن</div>
           </div>
         </div>

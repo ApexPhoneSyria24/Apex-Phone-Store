@@ -204,6 +204,9 @@ app.post('/api/chat', async (req, res) => {
       res.json({ reply: data.candidates[0].content.parts[0].text });
     } else {
       const googleError = data.error ? data.error.message : 'Unknown';
+      if (googleError.includes('high demand') || googleError.includes('quota')) {
+        return res.status(400).json({ reply: 'أعتذر منك جداً، يبدو أن هناك ضغطاً كبيراً على خوادم الذكاء الاصطناعي حالياً. يرجى المحاولة بعد قليل! 🙏' });
+      }
       if (googleError.includes('not found')) {
         const fallbackUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent';
         const fbRes = await fetch(fallbackUrl, {
@@ -213,7 +216,7 @@ app.post('/api/chat', async (req, res) => {
         const fbData = await fbRes.json();
         if (fbData.candidates && fbData.candidates[0]) return res.json({ reply: fbData.candidates[0].content.parts[0].text });
       }
-      res.status(400).json({ reply: '⚠️ خطأ من جوجل: ' + googleError });
+      res.status(400).json({ reply: 'عذراً، حدث خطأ مؤقت. يرجى المحاولة لاحقاً.' });
     }
   } catch (e) { res.status(500).json({ reply: '⚠️ خطأ في السيرفر: ' + e.message }); }
 });

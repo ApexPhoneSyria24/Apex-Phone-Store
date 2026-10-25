@@ -465,4 +465,53 @@ app.post('/admin/topups/reject/:id', requireAuth, (req, res) => {
   res.redirect('/admin/topups');
 });
 
+
+// ===== AI Chatbot =====
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message) return res.status(400).json({ error: 'Message required' });
+
+    // جلب سياق من قاعدة البيانات (هواتف وألعاب)
+    const phones = db.prepare("SELECT name, brand, price FROM phones WHERE status = 'approved' LIMIT 5").all();
+    const games = db.prepare("SELECT name FROM games WHERE is_active = 1 LIMIT 5").all();
+
+    let context = `أنت مساعد ذكي لمتجر "Apex Phone Syria" المتخصص في بيع الهواتف وشحن الألعاب. أجب باللغة العربية بأسلوب ودود ومحترف.
+معلومات المتجر:
+- يبيع هواتف مستعملة وجديدة.
+- يقدم خدمة شحن ألعاب (PUBG, Free Fire, وغيرها).
+- طرق الدفع: سيريتل كاش (1 دولار = 142 ليرة سورية جديدة).
+- يمكن للزبون شحن رصيد محفظته من صفحة "شحن رصيد" في الموقع.
+
+بعض الهواتف المتاحة حالياً: ${phones.map(p => `${p.name} بسعر ${p.price}`).join(', ')}.
+بعض الألعاب المتاحة: ${games.map(g => g.name).join(', ')}.
+
+قواعد مهمة:
+1. لا تخترع منتجات غير موجودة.
+2. إذا سأل عن هاتف غير موجود، اعتذر وقل له أن يتابع المتجر.
+3. إذا سأل عن الشحن، اشرح له طريقة شحن الرصيد عبر سيريتل كاش.
+4. كن مختصراً ومفيداً.`;
+
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: context }] },
+        contents: [{ parts: [{ text: message }] }]
+      })
+    });
+
+    const data = await response.json();
+    if (data.candidates && data.candidates[0].content) {
+      res.json({ reply: data.candidates[0].content.parts[0].text });
+    } else {
+      res.status(500).json({ error: 'Failed to get response from AI' });
+    }
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Server Error' });
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });
+

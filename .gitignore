@@ -7,3 +7,4 @@ public/uploads/
 phones.db.backup
 phones.db
 apex-data.zip
+.env

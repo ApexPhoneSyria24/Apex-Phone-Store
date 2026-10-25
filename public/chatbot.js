@@ -155,6 +155,13 @@
       inputArea.style.display = 'flex';
       isHumanMode = true;
       inputEl.focus();
+      
+      // إرسال طلب بدء المحادثة (للترحيب التلقائي)
+      fetch('/api/human-chat/init', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ visitor_id: visitorId })
+      }).then(() => checkHumanChat());
+      
       checkHumanChat();
     };
 

@@ -33,6 +33,7 @@
       <a href="/admin/games" class="relative bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-indigo-700 transition"><i class="fa-solid fa-gamepad"></i> إدارة الألعاب</a>
       
       <!-- إيداعات الرصيد -->
+      <a href="/admin/chats" class="relative bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-blue-700 transition"><i class="fa-solid fa-comments"></i> الدردشات الحية</a>
       <a href="/admin/deposits" class="relative bg-purple-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-purple-700 transition">
         <i class="fa-solid fa-money-bill-transfer"></i> إيداعات الرصيد
         <% if (stats.pendingDepositsCount > 0) { %>
@@ -127,13 +128,13 @@
                 <td class="p-3 text-slate-500"><%= phone.id %></td>
                 <td class="p-3">
                   <% 
-                    let img = 'https://placehold.co/50x50/e2e8f0/64748b?text=No+Img'; 
+                    let img = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><rect width="50" height="50" fill="%23e2e8f0"/><text x="50%" y="50%" font-size="10" text-anchor="middle" dy=".3em" fill="%2364748b">No Img</text></svg>'; 
                     try { 
                       let imgs = JSON.parse(phone.images || '[]'); 
                       if(imgs && imgs.length > 0) img = imgs[0]; 
                     } catch(e){} 
                   %>
-                  <img src="<%= img %>" class="w-12 h-12 object-cover rounded-lg border border-slate-200 shadow-sm" onerror="this.src='https://placehold.co/50x50/e2e8f0/64748b?text=Error'">
+                  <img src="<%= img %>" class="w-12 h-12 object-cover rounded-lg border border-slate-200 shadow-sm" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"50\" height=\"50\"><rect width=\"50\" height=\"50\" fill=\"%23fee2e2\"/><text x=\"50%\" y=\"50%\" font-size=\"8\" text-anchor=\"middle\" dy=\".3em\" fill=\"%23ef4444\">Error</text></svg>'">
                 </td>
                 <td class="p-3 font-bold text-slate-800"><%= phone.name %></td>
                 <td class="p-3 text-slate-600 font-semibold"><%= phone.brand %></td>

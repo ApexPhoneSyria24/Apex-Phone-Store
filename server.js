@@ -682,4 +682,28 @@ app.get('/api/test-telegram', (req, res) => {
   res.send('تم إرسال الرسالة التجريبية إلى تيليجرام. افحص هاتفك!');
 });
 
+
+app.post('/api/human-chat/init', (req, res) => {
+  try {
+    const { visitor_id } = req.body;
+    if (!visitor_id) return res.status(400).json({ error: 'Missing ID' });
+    
+    let session = db.prepare("SELECT status FROM chat_sessions WHERE visitor_id = ?").get(visitor_id);
+    if (!session) {
+      db.prepare("INSERT INTO chat_sessions (visitor_id) VALUES (?)").run(visitor_id);
+      
+      // الرسالة التلقائية الاحترافية
+      const welcomeMsg = "مرحباً بك في دعم Apex Phone! 👋\nتم استلام طلبك بنجاح، ونحن الآن نبحث لك عن أحد المطورين للرد عليك في أسرع وقت. يرجى البقاء معنا... ⏳";
+      db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'admin', ?)").run(visitor_id, welcomeMsg);
+      
+      // إشعار تيليجرام
+      if (typeof sendTelegram === 'function') {
+        sendTelegram(`🔔 <b>زبون جديد دخل الدردشة الحية!</b>\nالزائر: ${visitor_id}`);
+      }
+    }
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

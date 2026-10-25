@@ -5,52 +5,31 @@
   <meta charset="UTF-8">
   <title>إحصائيات الزوار</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 font-sans p-4 md:p-8">
+<body class="bg-slate-100 font-sans p-4">
   <div class="max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-black text-slate-800"><i class="fa-solid fa-chart-pie text-blue-600"></i> إحصائيات وسجل الزوار</h1>
-      <a href="/admin" class="bg-slate-800 text-white px-4 py-2 rounded-lg font-bold text-sm">عودة للوحة الإدارة</a>
+      <h1 class="text-2xl font-black text-slate-800">📊 إحصائيات وسجل الزوار</h1>
+      <a href="/admin" class="bg-slate-800 text-white px-4 py-2 rounded-lg font-bold text-sm">عودة</a>
     </div>
-    
     <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-      <div class="bg-white p-4 rounded-xl shadow-sm text-center"><div class="text-sm font-bold text-slate-500">إجمالي الزيارات</div><div class="text-2xl font-black text-blue-600"><%= stats.total %></div></div>
-      <div class="bg-white p-4 rounded-xl shadow-sm text-center"><div class="text-sm font-bold text-slate-500">زيارات اليوم</div><div class="text-2xl font-black text-green-600"><%= stats.today %></div></div>
-      <div class="bg-white p-4 rounded-xl shadow-sm text-center"><div class="text-sm font-bold text-slate-500">عناوين IP فريدة</div><div class="text-2xl font-black text-purple-600"><%= stats.unique_ips %></div></div>
-      <div class="bg-white p-4 rounded-xl shadow-sm text-center"><div class="text-sm font-bold text-slate-500">هواتف</div><div class="text-2xl font-black text-amber-500"><%= stats.mobile %></div></div>
-      <div class="bg-white p-4 rounded-xl shadow-sm text-center"><div class="text-sm font-bold text-slate-500">كمبيوتر</div><div class="text-2xl font-black text-slate-700"><%= stats.desktop %></div></div>
+      <div class="bg-white p-4 rounded-xl text-center shadow"><div class="text-sm font-bold text-slate-500">إجمالي الزيارات</div><div class="text-2xl font-black text-blue-600"><%= stats.total %></div></div>
+      <div class="bg-white p-4 rounded-xl text-center shadow"><div class="text-sm font-bold text-slate-500">زيارات اليوم</div><div class="text-2xl font-black text-green-600"><%= stats.today %></div></div>
+      <div class="bg-white p-4 rounded-xl text-center shadow"><div class="text-sm font-bold text-slate-500">IP فريدة</div><div class="text-2xl font-black text-purple-600"><%= stats.unique_ips %></div></div>
     </div>
-
-    <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-right text-sm">
-          <thead class="bg-slate-100 text-slate-600">
-            <tr>
-              <th class="p-3">الوقت</th>
-              <th class="p-3">عنوان IP</th>
-              <th class="p-3">الجهاز / النظام</th>
-              <th class="p-3">رقم الهاتف</th>
-              <th class="p-3">الصفحة</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <% visits.forEach(v => { %>
-              <tr class="hover:bg-slate-50">
-                <td class="p-3 text-xs text-slate-500 font-mono" dir="ltr"><%= v.created_at %></td>
-                <td class="p-3 font-bold text-slate-700" dir="ltr"><%= v.ip %></td>
-                <td class="p-3 text-xs"><%= v.device_type %></td>
-                <td class="p-3 font-bold text-green-600" dir="ltr"><%= v.user_phone || '-' %></td>
-                <td class="p-3 text-xs text-slate-500" dir="ltr"><%= v.path %></td>
-              </tr>
-            <% }) %>
-            <% if (visits.length === 0) { %>
-              <tr><td colspan="5" class="p-6 text-center text-slate-500 font-bold">لا توجد زيارات مسجلة بعد.</td></tr>
-            <% } %>
-          </tbody>
-        </table>
-      </div>
+    <div class="bg-white rounded-xl shadow overflow-hidden">
+      <table class="w-full text-right text-sm">
+        <thead class="bg-slate-100 text-slate-600">
+          <tr><th class="p-3">الوقت</th><th class="p-3">IP</th><th class="p-3">الجهاز</th><th class="p-3">الهاتف</th><th class="p-3">الصفحة</th></tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <% visits.forEach(v => { %>
+            <tr><td class="p-3 text-xs text-slate-500" dir="ltr"><%= v.created_at %></td><td class="p-3 font-bold" dir="ltr"><%= v.ip %></td><td class="p-3 text-xs"><%= v.device_type %></td><td class="p-3 text-green-600 font-bold" dir="ltr"><%= v.user_phone || '-' %></td><td class="p-3 text-xs text-slate-500" dir="ltr"><%= v.path %></td></tr>
+          <% }) %>
+          <% if (visits.length === 0) { %><tr><td colspan="5" class="p-6 text-center text-slate-500">لا توجد زيارات بعد.</td></tr><% } %>
+        </tbody>
+      </table>
     </div>
   </div>
 </body>

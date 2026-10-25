@@ -33,7 +33,6 @@
           </div>
           <div>
             <div style="color:#e6f1ff; font-weight:900; font-size:18px;">دعم Apex</div>
-            <!-- تم تغيير اللون إلى الأخضر هنا -->
             <div style="color:#39ff14; font-size:12px; font-weight:bold; display:flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; background:#39ff14; border-radius:50%;"></span> متصل الآن</div>
           </div>
         </div>
@@ -108,7 +107,7 @@
     
     let chatHistory = [];
     let isHumanMode = false;
-    let isClosedDismissed = false; // متغير جديد لمنع تكرار أزرار نعم/لا
+    let isClosedDismissed = false;
 
     if (window.visualViewport) {
       const adjustViewport = () => {
@@ -170,6 +169,7 @@
         } else {
           inputArea.style.display = 'flex';
           newChatOptions.style.display = 'none';
+          ratingScreen.style.display = 'none'; // إخفاء شاشة التقييم عند بدء محادثة جديدة
           isClosedDismissed = false;
         }
 
@@ -197,7 +197,8 @@
     document.getElementById('btn-yes-new').onclick = async () => {
       isClosedDismissed = false;
       newChatOptions.style.display = 'none';
-      humanChat.innerHTML = ''; // مسح الشاشة
+      ratingScreen.style.display = 'none'; // إخفاء شاشة التقييم
+      humanChat.innerHTML = ''; 
       await fetch('/api/human-chat/init', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ visitor_id: visitorId })

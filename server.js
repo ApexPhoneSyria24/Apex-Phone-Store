@@ -219,19 +219,30 @@ app.post('/api/chat', async (req, res) => {
 });
 
 // ===== Live Chat API (Human) =====
+
 app.post('/api/human-chat/init', (req, res) => {
   try {
     const { visitor_id } = req.body;
     if (!visitor_id) return res.status(400).json({ error: 'Missing ID' });
+    
     let session = db.prepare("SELECT status FROM chat_sessions WHERE visitor_id = ?").get(visitor_id);
-    if (!session) {
-      db.prepare("INSERT INTO chat_sessions (visitor_id) VALUES (?)").run(visitor_id);
+    
+    if (!session || session.status === 'closed') {
+      if (!session) {
+        db.prepare("INSERT INTO chat_sessions (visitor_id, status) VALUES (?, 'open')").run(visitor_id);
+      } else {
+        db.prepare("UPDATE chat_sessions SET status = 'open' WHERE visitor_id = ?").run(visitor_id);
+        db.prepare("DELETE FROM chat_messages WHERE visitor_id = ?").run(visitor_id); // حذف الرسائل القديمة
+      }
+      
       const welcomeMsg = "مرحباً بك في دعم Apex Phone! 👋\nتم استلام طلبك بنجاح، ونحن الآن نبحث لك عن أحد المطورين للرد عليك في أسرع وقت. يرجى البقاء معنا... ⏳";
       db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'admin', ?)").run(visitor_id, welcomeMsg);
-      sendTelegram(`🔔 <b>زبون جديد دخل الدردشة الحية!</b>\nالزائر: ${visitor_id}`);
+      
+      if (typeof sendTelegram === 'function') {
+        sendTelegram(`🔔 <b>زبون بدأ محادثة جديدة!</b>\nالزائر: ${visitor_id}`);
+      }
     }
-    const msgs = db.prepare("SELECT * FROM chat_messages WHERE visitor_id = ? ORDER BY id ASC").all(visitor_id);
-    res.json({ success: true, messages: msgs });
+    res.json({ success: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

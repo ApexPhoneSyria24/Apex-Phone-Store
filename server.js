@@ -466,18 +466,18 @@ app.post('/admin/topups/reject/:id', requireAuth, (req, res) => {
 });
 
 
-// ===== AI Chatbot =====
+
+
+// ===== AI Chatbot (Mimo) =====
 app.post('/api/chat', async (req, res) => {
   try {
     const { message } = req.body;
-    if (!message) return res.status(400).json({ error: 'Message required' });
+    if (!message) return res.status(400).json({ reply: 'الرجاء كتابة رسالة.' });
 
-    // جلب سياق من قاعدة البيانات (هواتف وألعاب)
     const phones = db.prepare("SELECT name, brand, price FROM phones WHERE status = 'approved' LIMIT 5").all();
     const games = db.prepare("SELECT name FROM games WHERE is_active = 1 LIMIT 5").all();
 
-    let context = `
-أنت اسمك "ميمو" (Mimo)، المساعد الذكي اللطيف والمحبوب لمتجر "Apex Phone Syria". 
+    let context = `أنت اسمك "ميمو" (Mimo)، المساعد الذكي اللطيف والمحبوب لمتجر "Apex Phone Syria".
 أنت تعمل لدى المتجر الأول والموثوق في سوريا لبيع الهواتف الذكية وشحن الألعاب.
 شخصيتك: ودود جداً، ترد بابتسامة، تستخدم الإيموجي بذكاء، وتشعر الزبون أنه في أيدٍ أمينة.
 معلومات المتجر:
@@ -486,29 +486,44 @@ app.post('/api/chat', async (req, res) => {
 - نقدم خدمة شحن ألعاب فورية (PUBG, Free Fire, Jawaker, وغيرها).
 - طرق الدفع: سيريتل كاش (1 دولار = 142 ليرة سورية جديدة).
 - يمكن للزبون شحن رصيد محفظته من صفحة "شحن رصيد" في الموقع.
-تحدث بأسلوب راقٍ، مختصر، ومفيد. إذا سألوك عن منتج، رحب بهم واذكر الأسعار إن توفرت. 
-`;
+تحدث بأسلوب راقٍ، مختصر، ومفيد. إذا سألوك عن منتج، رحب بهم واذكر الأسعار إن توفرت.
 
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}', {
+الهواتف المتاحة حالياً: ${phones.map(p => `${p.name} بسعر ${p.price}`).join(', ')}.
+الألعاب المتاحة: ${games.map(g => g.name).join(', ')}.`;
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ reply: '⚠️ المفتاح غير موجود في إعدادات السيرفر (Environment).' });
+    }
+
+    // استخدام الرابط التقليدي مع وضع المفتاح في الرابط (الطريقة الأكثر استقراراً)
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        systemInstruction: { parts: [{ text: context }] },
-        contents: [{ parts: [{ text: message }] }]
+        contents: [{ parts: [{ text: context + "\n\nسؤال الزبون: " + message }] }]
       })
     });
 
     const data = await response.json();
-    if (data.candidates && data.candidates[0].content) {
+    
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       res.json({ reply: data.candidates[0].content.parts[0].text });
     } else {
-      res.status(500).json({ error: 'Failed to get response from AI' });
+      // عرض الخطأ الحقيقي من جوجل
+      const googleError = data.error ? data.error.message : JSON.stringify(data);
+      console.error('Google API Error:', googleError);
+      res.status(400).json({ reply: '⚠️ خطأ من جوجل: ' + googleError });
     }
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Server Error' });
+    console.error('Server Error:', e);
+    res.status(500).json({ reply: '⚠️ خطأ في السيرفر: ' + e.message });
   }
 });
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });
+
+
 

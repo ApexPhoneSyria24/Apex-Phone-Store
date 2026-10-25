@@ -163,8 +163,7 @@ app.post('/post-ad', upload.array('images', 8), (req, res) => {
 
 app.get('/policy', (req, res) => { res.render('policy'); });
 
-// ===== Games (Public) =====
-
+// ===== Games (Public) - Old Grouped View =====
 app.get('/games', (req, res) => {
     const packages = db.prepare('SELECT * FROM game_packages WHERE is_active = 1 ORDER BY game_name, price').all();
     const grouped = {};
@@ -175,9 +174,7 @@ app.get('/games', (req, res) => {
     res.render('games', { grouped });
 });
 
-    res.render('games', { games });
-});
-
+// ===== Game Details & Orders =====
 app.get('/games/:gameName', (req, res) => {
     const gameName = req.params.gameName;
     const game = db.prepare("SELECT * FROM games WHERE name = ?").get(gameName) || { name: gameName, image_url: null };

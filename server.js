@@ -143,7 +143,7 @@ app.use((req, res, next) => {
     if (req.headers.cookie) {
       const cookies = req.headers.cookie.split(';');
       for (let c of cookies) {
-        if (c.trim().startsWith('apex_visitor_id=')) {
+        if (c.trim().startsWith('apex_vid=')) {
           visitorId = c.split('=')[1];
           break;
         }
@@ -152,7 +152,7 @@ app.use((req, res, next) => {
     
     if (!visitorId) {
       visitorId = 'VIS-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-      res.setHeader('Set-Cookie', 'apex_visitor_id=' + visitorId + '; Max-Age=31536000; Path=/; HttpOnly');
+      res.setHeader('Set-Cookie', 'apex_vid=' + visitorId + '; Max-Age=31536000; Path=/');
     }
 
     const ua = req.headers['user-agent'] || 'Unknown';

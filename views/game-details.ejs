@@ -8,24 +8,38 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] }, colors: { neon: { blue: '#00f3ff' } } } } }</script>
-  <style>body { background-color: #050505; color: white; background-image: radial-gradient(circle at 50% 0%, rgba(0,243,255,0.1), transparent 50%); } .neon-text { text-shadow: 0 0 8px rgba(0,243,255,0.8), 0 0 15px rgba(0,243,255,0.4); }</style>
+  <style>
+    body { background-color: #050505; color: white; background-image: radial-gradient(circle at 50% 0%, rgba(0,243,255,0.1), transparent 50%); }
+    .neon-text { text-shadow: 0 0 8px rgba(0,243,255,0.8), 0 0 15px rgba(0,243,255,0.4); }
+  </style>
 </head>
 <body class="font-sans antialiased min-h-screen flex flex-col">
   <nav class="bg-black/50 backdrop-blur-md border-b border-cyan-500/20 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
-      <a href="/games" class="flex items-center gap-2 text-sm font-bold text-cyan-300 hover:text-white transition"><i class="fa-solid fa-arrow-right"></i> العودة للألعاب</a>
+      <a href="/games" class="flex items-center gap-2 text-sm font-bold text-cyan-300 hover:text-white transition">
+        <i class="fa-solid fa-arrow-right"></i> العودة للألعاب
+      </a>
       <a href="/" class="text-xs text-slate-400 hover:text-cyan-300 font-bold"><i class="fa-solid fa-store"></i> المتجر</a>
     </div>
   </nav>
+
+  <!-- Banner -->
   <div class="relative h-52 md:h-72 overflow-hidden border-b border-cyan-500/30">
-    <% if (game.banner_url) { %><img src="<%= game.banner_url %>" class="w-full h-full object-cover">
-    <% } else if (game.image_url) { %><img src="<%= game.image_url %>" class="w-full h-full object-cover blur-sm scale-110">
-    <% } else { %><div class="w-full h-full bg-gradient-to-br from-cyan-900 via-blue-900 to-black"></div><% } %>
+    <% if (game.banner_url) { %>
+      <img src="<%= game.banner_url %>" alt="<%= game.name %>" class="w-full h-full object-cover">
+    <% } else if (game.image_url) { %>
+      <img src="<%= game.image_url %>" alt="<%= game.name %>" class="w-full h-full object-cover blur-sm scale-110">
+    <% } else { %>
+      <div class="w-full h-full bg-gradient-to-br from-cyan-900 via-blue-900 to-black"></div>
+    <% } %>
     <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/50 to-transparent"></div>
     <div class="absolute bottom-0 right-0 left-0 p-6 flex items-end gap-4">
       <div class="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-2 border-cyan-400 shadow-[0_0_30px_rgba(0,243,255,0.6)] flex-shrink-0 bg-black">
-        <% if (game.image_url) { %><img src="<%= game.image_url %>" alt="<%= game.name %>" class="w-full h-full object-cover">
-        <% } else { %><div class="w-full h-full flex items-center justify-center"><i class="fa-solid fa-gamepad text-3xl text-cyan-400"></i></div><% } %>
+        <% if (game.image_url) { %>
+          <img src="<%= game.image_url %>" alt="<%= game.name %>" class="w-full h-full object-cover">
+        <% } else { %>
+          <div class="w-full h-full flex items-center justify-center"><i class="fa-solid fa-gamepad text-3xl text-cyan-400"></i></div>
+        <% } %>
       </div>
       <div class="flex-1">
         <h1 class="text-2xl md:text-4xl font-black text-white neon-text"><%= game.name_ar || game.name %></h1>
@@ -33,37 +47,99 @@
       </div>
     </div>
   </div>
+
   <div class="max-w-6xl mx-auto px-4 py-8 flex-1 w-full">
+    <!-- Info Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-      <% if (game.developer) { %><div class="bg-slate-900/70 border border-slate-800 rounded-xl p-3 text-center"><div class="text-cyan-400 text-xs font-bold mb-1"><i class="fa-solid fa-building"></i> المطور</div><div class="text-white text-sm font-bold"><%= game.developer %></div></div><% } %>
-      <% if (game.delivery_time) { %><div class="bg-slate-900/70 border border-slate-800 rounded-xl p-3 text-center"><div class="text-green-400 text-xs font-bold mb-1"><i class="fa-solid fa-bolt"></i> وقت التسليم</div><div class="text-white text-sm font-bold"><%= game.delivery_time %></div></div><% } %>
-      <% if (game.instructions) { %><div class="bg-slate-900/70 border border-slate-800 rounded-xl p-3 text-center col-span-2"><div class="text-yellow-400 text-xs font-bold mb-1"><i class="fa-solid fa-circle-info"></i> طريقة الشحن</div><div class="text-white text-xs font-bold"><%= game.instructions %></div></div><% } %>
+      <% if (game.developer) { %>
+        <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-3 text-center">
+          <div class="text-cyan-400 text-xs font-bold mb-1"><i class="fa-solid fa-building"></i> المطور</div>
+          <div class="text-white text-sm font-bold"><%= game.developer %></div>
+        </div>
+      <% } %>
+      <% if (game.delivery_time) { %>
+        <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-3 text-center">
+          <div class="text-green-400 text-xs font-bold mb-1"><i class="fa-solid fa-bolt"></i> وقت التسليم</div>
+          <div class="text-white text-sm font-bold"><%= game.delivery_time %></div>
+        </div>
+      <% } %>
+      <% if (game.instructions) { %>
+        <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-3 text-center col-span-2">
+          <div class="text-yellow-400 text-xs font-bold mb-1"><i class="fa-solid fa-circle-info"></i> طريقة الشحن</div>
+          <div class="text-white text-xs font-bold"><%= game.instructions %></div>
+        </div>
+      <% } %>
     </div>
-    <% if (game.description) { %><div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 mb-8"><h2 class="text-lg font-black text-white mb-2"><i class="fa-solid fa-align-right text-cyan-400"></i> الوصف</h2><p class="text-slate-300 text-sm leading-relaxed"><%= game.description %></p></div><% } %>
+
+    <% if (game.description) { %>
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 mb-8">
+        <h2 class="text-lg font-black text-white mb-2"><i class="fa-solid fa-align-right text-cyan-400"></i> الوصف</h2>
+        <p class="text-slate-300 text-sm leading-relaxed"><%= game.description %></p>
+      </div>
+    <% } %>
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Order Form -->
       <div>
         <form id="orderForm" class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 shadow-2xl">
           <h2 class="text-2xl font-black text-white mb-6"><i class="fa-solid fa-bolt text-cyan-400"></i> إتمام الشحن</h2>
-          <div class="mb-5"><label class="block text-sm font-bold text-slate-300 mb-2">معرف اللاعب (Player ID)</label><input type="text" name="player_id" required class="w-full bg-black border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none transition" placeholder="أدخل الـ ID الخاص بك"></div>
-          <div class="mb-5"><label class="block text-sm font-bold text-slate-300 mb-2">اختر الباقة</label><select name="package" id="packageSelect" required class="w-full bg-black border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none transition">
-            <% if (packages.length === 0) { %><option value="">لا توجد باقات متاحة حالياً</option>
-            <% } else { %><% packages.forEach(pkg => { %><option value="<%= pkg.id %>" data-name="<%= pkg.package_name %>" data-price="<%= pkg.price %>"><%= pkg.package_name %> - $<%= pkg.price %></option><% }) %><% } %>
-          </select></div>
-          <div class="mb-6"><label class="block text-sm font-bold text-slate-300 mb-2">رقم هاتفك (لمتابعة الطلب)</label><input type="tel" name="user_phone" id="userPhone" required class="w-full bg-black border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none transition" placeholder="09xxxxxxxx" dir="ltr"></div>
-          <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] transition text-lg" <%= packages.length === 0 ? 'disabled' : '' %>><%= packages.length === 0 ? 'غير متاح حالياً' : 'تأكيد الطلب' %></button>
+          <div class="mb-5">
+            <label class="block text-sm font-bold text-slate-300 mb-2">معرف اللاعب (Player ID)</label>
+            <input type="text" name="player_id" required class="w-full bg-black border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none transition" placeholder="أدخل الـ ID الخاص بك">
+          </div>
+          <div class="mb-5">
+            <label class="block text-sm font-bold text-slate-300 mb-2">اختر الباقة</label>
+            <select name="package" id="packageSelect" required class="w-full bg-black border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none transition">
+              <% if (packages.length === 0) { %>
+                <option value="">لا توجد باقات متاحة حالياً</option>
+              <% } else { %>
+                <% packages.forEach(pkg => { %>
+                  <option value="<%= pkg.id %>" data-name="<%= pkg.package_name %>" data-price="<%= pkg.price %>">
+                    <%= pkg.package_name %> - $<%= pkg.price %>
+                  </option>
+                <% }) %>
+              <% } %>
+            </select>
+          </div>
+          <div class="mb-6">
+            <label class="block text-sm font-bold text-slate-300 mb-2">رقم هاتفك (لمتابعة الطلب)</label>
+            <input type="tel" name="user_phone" id="userPhone" required class="w-full bg-black border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none transition" placeholder="09xxxxxxxx" dir="ltr">
+          </div>
+          <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] transition text-lg" <%= packages.length === 0 ? 'disabled' : '' %>>
+            <%= packages.length === 0 ? 'غير متاح حالياً' : 'تأكيد الطلب' %>
+          </button>
         </form>
-        <% if (game.refund_policy) { %><div class="mt-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4"><h3 class="text-sm font-black text-amber-400 mb-1"><i class="fa-solid fa-shield-halved"></i> سياسة الاسترجاع</h3><p class="text-slate-400 text-xs leading-relaxed"><%= game.refund_policy %></p></div><% } %>
+
+        <% if (game.refund_policy) { %>
+          <div class="mt-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4">
+            <h3 class="text-sm font-black text-amber-400 mb-1"><i class="fa-solid fa-shield-halved"></i> سياسة الاسترجاع</h3>
+            <p class="text-slate-400 text-xs leading-relaxed"><%= game.refund_policy %></p>
+          </div>
+        <% } %>
       </div>
+
+      <!-- Order History -->
       <div>
-        <h2 class="text-2xl font-black text-white mb-6 flex items-center gap-3"><i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> سجل طلباتك</h2>
-        <div id="orderHistory" class="space-y-4"><div class="text-center py-10 bg-slate-900/50 rounded-3xl border border-slate-800"><p class="text-slate-500 font-bold">جاري تحميل السجل...</p></div></div>
+        <h2 class="text-2xl font-black text-white mb-6 flex items-center gap-3">
+          <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> سجل طلباتك
+        </h2>
+        <div id="orderHistory" class="space-y-4">
+          <div class="text-center py-10 bg-slate-900/50 rounded-3xl border border-slate-800">
+            <p class="text-slate-500 font-bold">جاري تحميل السجل...</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+
   <script>
   document.addEventListener('DOMContentLoaded', function() {
     const userPhone = localStorage.getItem('apex_user_phone');
-    if (userPhone) { document.getElementById('userPhone').value = userPhone; loadHistory(userPhone); }
+    if (userPhone) {
+      document.getElementById('userPhone').value = userPhone;
+      loadHistory(userPhone);
+    }
+
     const form = document.getElementById('orderForm');
     if (form) {
       form.addEventListener('submit', async function(e) {
@@ -73,24 +149,61 @@
         localStorage.setItem('apex_user_phone', phone);
         const select = document.getElementById('packageSelect');
         const selectedOpt = select.options[select.selectedIndex];
-        const data = { player_id: formData.get('player_id'), package_name: selectedOpt.getAttribute('data-name'), price: selectedOpt.getAttribute('data-price'), user_phone: phone };
+        const data = {
+          player_id: formData.get('player_id'),
+          package_name: selectedOpt.getAttribute('data-name'),
+          price: selectedOpt.getAttribute('data-price'),
+          user_phone: phone
+        };
         const btn = this.querySelector('button[type="submit"]');
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...';
-        const res = await fetch('/games/<%= encodeURIComponent(game.name) %>/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-        if (res.ok) { btn.innerHTML = '✅ تم إرسال الطلب بنجاح'; btn.classList.add('from-green-500', 'to-green-600'); setTimeout(() => { btn.innerHTML = 'تأكيد الطلب'; btn.classList.remove('from-green-500', 'to-green-600'); }, 3000); this.reset(); document.getElementById('userPhone').value = phone; loadHistory(phone); }
+        const res = await fetch('/games/<%= encodeURIComponent(game.name) %>/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (res.ok) {
+          btn.innerHTML = '✅ تم إرسال الطلب بنجاح';
+          btn.classList.add('from-green-500', 'to-green-600');
+          setTimeout(() => { btn.innerHTML = 'تأكيد الطلب'; btn.classList.remove('from-green-500', 'to-green-600'); }, 3000);
+          this.reset();
+          document.getElementById('userPhone').value = phone;
+          loadHistory(phone);
+        }
       });
     }
+
     function loadHistory(phone) {
       const container = document.getElementById('orderHistory');
-      fetch('/api/topup-orders/' + phone).then(r => r.json()).then(orders => {
-        if (orders.length === 0) { container.innerHTML = '<div class="text-center py-10 bg-slate-900/50 rounded-3xl border border-slate-800"><p class="text-slate-500 font-bold">لا توجد طلبات سابقة.</p></div>'; return; }
-        container.innerHTML = '';
-        orders.forEach(o => {
-          let statusColor = o.status === 'approved' ? 'text-green-400 bg-green-400/10 border-green-400/20' : o.status === 'rejected' ? 'text-red-400 bg-red-400/10 border-red-400/20' : 'text-amber-400 bg-amber-400/10 border-amber-400/20';
-          let statusText = o.status === 'approved' ? '✅ تم القبول' : o.status === 'rejected' ? '❌ مرفوض' : '⏳ قيد المراجعة';
-          container.innerHTML += '<div class="bg-slate-900/80 rounded-2xl p-5 border border-slate-800 flex justify-between items-center"><div><h4 class="text-lg font-bold text-white">' + o.package_name + '</h4><p class="text-sm text-slate-400 mt-1">ID: ' + o.player_id + '</p>' + (o.rejection_reason ? '<p class="text-xs text-red-400 mt-2 font-bold">السبب: ' + o.rejection_reason + '</p>' : '') + '</div><div class="text-right"><div class="text-xl font-black text-cyan-400 mb-2">$' + o.price + '</div><span class="px-3 py-1 rounded-full border text-xs font-bold ' + statusColor + '">' + statusText + '</span></div></div>';
+      fetch('/api/topup-orders/' + phone)
+        .then(r => r.json())
+        .then(orders => {
+          if (orders.length === 0) {
+            container.innerHTML = '<div class="text-center py-10 bg-slate-900/50 rounded-3xl border border-slate-800"><p class="text-slate-500 font-bold">لا توجد طلبات سابقة.</p></div>';
+            return;
+          }
+          container.innerHTML = '';
+          orders.forEach(o => {
+            let statusColor = o.status === 'approved' ? 'text-green-400 bg-green-400/10 border-green-400/20' :
+                              o.status === 'rejected' ? 'text-red-400 bg-red-400/10 border-red-400/20' :
+                              'text-amber-400 bg-amber-400/10 border-amber-400/20';
+            let statusText = o.status === 'approved' ? '✅ تم القبول' :
+                             o.status === 'rejected' ? '❌ مرفوض' : '⏳ قيد المراجعة';
+            container.innerHTML += `
+              <div class="bg-slate-900/80 rounded-2xl p-5 border border-slate-800 flex justify-between items-center">
+                <div>
+                  <h4 class="text-lg font-bold text-white">${o.package_name}</h4>
+                  <p class="text-sm text-slate-400 mt-1">ID: ${o.player_id}</p>
+                  ${o.rejection_reason ? `<p class="text-xs text-red-400 mt-2 font-bold">السبب: ${o.rejection_reason}</p>` : ''}
+                </div>
+                <div class="text-right">
+                  <div class="text-xl font-black text-cyan-400 mb-2">$${o.price}</div>
+                  <span class="px-3 py-1 rounded-full border text-xs font-bold ${statusColor}">${statusText}</span>
+                </div>
+              </div>
+            `;
+          });
         });
-      });
     }
   });
   </script>

@@ -160,52 +160,33 @@ app.get('/policy', (req, res) => { res.render('policy'); });
 
 // ===== Games (Public) =====
 app.get('/games', (req, res) => {
-  try {
-    const games = db.prepare(`
-      SELECT g.*, (SELECT COUNT(*) FROM game_packages p WHERE p.game_name = g.name AND p.is_active = 1) as packages_count
-      FROM games g WHERE g.is_active = 1
-      ORDER BY g.sort_order ASC, g.id ASC
-    `).all();
-    res.render('games', { games });
-  } catch (e) {
-    console.error('Games Error:', e.message);
-    res.render('games', { games: [] });
-  }
+  const games = db.prepare(`
+    SELECT g.*, (SELECT COUNT(*) FROM game_packages p WHERE p.game_name = g.name AND p.is_active = 1) as packages_count
+    FROM games g WHERE g.is_active = 1
+    ORDER BY g.sort_order ASC, g.id ASC
+  `).all();
+  res.render('games', { games });
 });
 
 app.get('/games/:gameName', (req, res) => {
-  try {
-    const gameName = req.params.gameName;
-    const game = db.prepare("SELECT * FROM games WHERE name = ? OR slug = ?").get(gameName, gameName);
-    if (!game) return res.redirect('/games');
-    const packages = db.prepare("SELECT * FROM game_packages WHERE game_name = ? AND is_active = 1 ORDER BY sort_order ASC, price ASC").all(game.name);
-    res.render('game-details', { game, packages });
-  } catch (e) {
-    console.error('Game Details Error:', e.message);
-    res.redirect('/games');
-  }
+  const gameName = req.params.gameName;
+  const game = db.prepare("SELECT * FROM games WHERE name = ? OR slug = ?").get(gameName, gameName);
+  if (!game) return res.redirect('/games');
+  const packages = db.prepare("SELECT * FROM game_packages WHERE game_name = ? AND is_active = 1 ORDER BY sort_order ASC, price ASC").all(game.name);
+  res.render('game-details', { game, packages });
 });
 
 app.post('/games/:gameName/order', (req, res) => {
-  try {
-    const { player_id, package_name, price, user_phone } = req.body;
-    const gameName = req.params.gameName;
-    db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone) VALUES (?, ?, ?, ?, ?)`)
-      .run(gameName, package_name, player_id, price, user_phone);
-    res.json({ success: true });
-  } catch (e) {
-    console.error('Order Error:', e.message);
-    res.status(500).json({ success: false });
-  }
+  const { player_id, package_name, price, user_phone } = req.body;
+  const gameName = req.params.gameName;
+  db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone) VALUES (?, ?, ?, ?, ?)`)
+    .run(gameName, package_name, player_id, price, user_phone);
+  res.json({ success: true });
 });
 
 app.get('/api/topup-orders/:phone', (req, res) => {
-  try {
-    const orders = db.prepare("SELECT * FROM topup_orders WHERE user_phone = ? ORDER BY id DESC LIMIT 10").all(req.params.phone);
-    res.json(orders);
-  } catch (e) {
-    res.json([]);
-  }
+  const orders = db.prepare("SELECT * FROM topup_orders WHERE user_phone = ? ORDER BY id DESC LIMIT 10").all(req.params.phone);
+  res.json(orders);
 });
 
 // ===== Admin Login =====
@@ -352,17 +333,12 @@ app.post('/admin/banners/delete/:id', requireAuth, (req, res) => {
 
 // ===== Admin Games (NEW CRUD) =====
 app.get('/admin/games', requireAuth, (req, res) => {
-  try {
-    const games = db.prepare(`
-      SELECT g.*, (SELECT COUNT(*) FROM game_packages p WHERE p.game_name = g.name) as packages_count
-      FROM games g ORDER BY g.sort_order ASC, g.id ASC
-    `).all();
-    const messages = { created: '✅ تم إنشاء اللعبة بنجاح', deleted: '🗑️ تم حذف اللعبة' };
-    res.render('admin-games', { games, message: messages[req.query.msg] || null });
-  } catch (e) {
-    console.error(e);
-    res.render('admin-games', { games: [], message: 'خطأ: ' + e.message });
-  }
+  const games = db.prepare(`
+    SELECT g.*, (SELECT COUNT(*) FROM game_packages p WHERE p.game_name = g.name) as packages_count
+    FROM games g ORDER BY g.sort_order ASC, g.id ASC
+  `).all();
+  const messages = { created: '✅ تم إنشاء اللعبة بنجاح', deleted: '🗑️ تم حذف اللعبة' };
+  res.render('admin-games', { games, message: messages[req.query.msg] || null });
 });
 
 app.get('/admin/games/new', requireAuth, (req, res) => {
@@ -384,27 +360,23 @@ app.post('/admin/games/new', requireAuth, upload.fields([{ name: 'logo', maxCoun
 });
 
 app.get('/admin/games/:id/edit', requireAuth, (req, res) => {
-  try {
-    const game = db.prepare('SELECT * FROM games WHERE id = ?').get(req.params.id);
-    if (!game) return res.redirect('/admin/games');
-    const packages = db.prepare('SELECT * FROM game_packages WHERE game_name = ? ORDER BY sort_order ASC, price ASC').all(game.name);
-    const messages = { saved: '✅ تم حفظ التعديلات' };
-    res.render('admin-game-form', { game, isEdit: true, packages, error: null, message: messages[req.query.msg] || null });
-  } catch (e) {
-    res.redirect('/admin/games');
-  }
+  const game = db.prepare('SELECT * FROM games WHERE id = ?').get(req.params.id);
+  if (!game) return res.redirect('/admin/games');
+  const packages = db.prepare('SELECT * FROM game_packages WHERE game_name = ? ORDER BY sort_order ASC, price ASC').all(game.name);
+  const messages = { saved: '✅ تم حفظ التعديلات' };
+  res.render('admin-game-form', { game, isEdit: true, packages, error: null, message: messages[req.query.msg] || null });
 });
 
 app.post('/admin/games/:id/edit', requireAuth, upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), (req, res) => {
   const b = req.body;
+  const existing = db.prepare('SELECT * FROM games WHERE id = ?').get(req.params.id);
+  if (!existing) return res.redirect('/admin/games');
+  const logoUrl = (req.files && req.files.logo) ? '/uploads/' + req.files.logo[0].filename : existing.image_url;
+  const bannerUrl = (req.files && req.files.banner) ? '/uploads/' + req.files.banner[0].filename : existing.banner_url;
+  const oldName = existing.name;
+  const newName = b.name;
+  const slug = (b.slug && b.slug.trim()) ? b.slug.trim().toLowerCase().replace(/\s+/g, '-') : existing.slug;
   try {
-    const existing = db.prepare('SELECT * FROM games WHERE id = ?').get(req.params.id);
-    if (!existing) return res.redirect('/admin/games');
-    const logoUrl = (req.files && req.files.logo) ? '/uploads/' + req.files.logo[0].filename : existing.image_url;
-    const bannerUrl = (req.files && req.files.banner) ? '/uploads/' + req.files.banner[0].filename : existing.banner_url;
-    const oldName = existing.name;
-    const newName = b.name;
-    const slug = (b.slug && b.slug.trim()) ? b.slug.trim().toLowerCase().replace(/\s+/g, '-') : existing.slug;
     db.prepare(`UPDATE games SET name=?, name_ar=?, slug=?, image_url=?, banner_url=?, developer=?, description=?, instructions=?, delivery_time=?, refund_policy=?, is_active=?, sort_order=? WHERE id=?`)
       .run(newName, b.name_ar || null, slug, logoUrl, bannerUrl, b.developer || null, b.description || null, b.instructions || null, b.delivery_time || null, b.refund_policy || null, b.is_active === 'on' ? 1 : 0, parseInt(b.sort_order) || 0, req.params.id);
     if (oldName !== newName) {
@@ -412,70 +384,57 @@ app.post('/admin/games/:id/edit', requireAuth, upload.fields([{ name: 'logo', ma
     }
     res.redirect('/admin/games/' + req.params.id + '/edit?msg=saved');
   } catch (e) {
-    res.redirect('/admin/games');
+    const packages = db.prepare('SELECT * FROM game_packages WHERE game_name = ? ORDER BY sort_order ASC').all(existing.name);
+    res.render('admin-game-form', { game: existing, isEdit: true, packages, error: 'خطأ: ' + e.message });
   }
 });
 
 app.post('/admin/games/:id/delete', requireAuth, (req, res) => {
-  try {
-    const game = db.prepare('SELECT * FROM games WHERE id = ?').get(req.params.id);
-    if (game) {
-      db.prepare('DELETE FROM game_packages WHERE game_name = ?').run(game.name);
-      db.prepare('DELETE FROM games WHERE id = ?').run(req.params.id);
-    }
-  } catch(e) {}
+  const game = db.prepare('SELECT * FROM games WHERE id = ?').get(req.params.id);
+  if (game) {
+    db.prepare('DELETE FROM game_packages WHERE game_name = ?').run(game.name);
+    db.prepare('DELETE FROM games WHERE id = ?').run(req.params.id);
+  }
   res.redirect('/admin/games?msg=deleted');
 });
 
 app.post('/admin/games/:id/toggle', requireAuth, (req, res) => {
-  try {
-    const game = db.prepare('SELECT * FROM games WHERE id = ?').get(req.params.id);
-    if (game) db.prepare('UPDATE games SET is_active = ? WHERE id = ?').run(game.is_active === 1 ? 0 : 1, req.params.id);
-  } catch(e) {}
+  const game = db.prepare('SELECT * FROM games WHERE id = ?').get(req.params.id);
+  if (game) db.prepare('UPDATE games SET is_active = ? WHERE id = ?').run(game.is_active === 1 ? 0 : 1, req.params.id);
   res.redirect('/admin/games');
 });
 
 app.post('/admin/packages/add', requireAuth, (req, res) => {
-  try {
-    const { game_name, package_name, price, sort_order } = req.body;
-    db.prepare("INSERT INTO game_packages (game_name, package_name, price, sort_order) VALUES (?, ?, ?, ?)").run(game_name, package_name, price, parseInt(sort_order) || 0);
-  } catch(e) {}
+  const { game_name, package_name, price, sort_order } = req.body;
+  db.prepare("INSERT INTO game_packages (game_name, package_name, price, sort_order) VALUES (?, ?, ?, ?)").run(game_name, package_name, price, parseInt(sort_order) || 0);
   res.redirect(req.get('referer') || '/admin/games');
 });
 
 app.post('/admin/packages/delete/:id', requireAuth, (req, res) => {
-  try { db.prepare("DELETE FROM game_packages WHERE id = ?").run(req.params.id); } catch(e) {}
+  db.prepare("DELETE FROM game_packages WHERE id = ?").run(req.params.id);
   res.redirect(req.get('referer') || '/admin/games');
 });
 
 // ===== Admin Topups =====
 app.get('/admin/topups', requireAuth, (req, res) => {
-  try {
-    const orders = db.prepare("SELECT * FROM topup_orders ORDER BY id DESC").all();
-    res.render('admin-topups', { orders });
-  } catch(e) {
-    res.render('admin-topups', { orders: [] });
-  }
+  const orders = db.prepare("SELECT * FROM topup_orders ORDER BY id DESC").all();
+  res.render('admin-topups', { orders });
 });
 app.post('/admin/topups/approve/:id', requireAuth, (req, res) => {
-  try {
-    const order = db.prepare("SELECT * FROM topup_orders WHERE id = ?").get(req.params.id);
-    db.prepare("UPDATE topup_orders SET status = 'approved' WHERE id = ?").run(req.params.id);
-    if (order && order.user_phone) {
-      db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `✅ تمت الموافقة على طلب شحن ${order.package_name} للعبة ${order.game_name}`);
-    }
-  } catch(e) {}
+  const order = db.prepare("SELECT * FROM topup_orders WHERE id = ?").get(req.params.id);
+  db.prepare("UPDATE topup_orders SET status = 'approved' WHERE id = ?").run(req.params.id);
+  if (order && order.user_phone) {
+    db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `✅ تمت الموافقة على طلب شحن ${order.package_name} للعبة ${order.game_name}`);
+  }
   res.redirect('/admin/topups');
 });
 app.post('/admin/topups/reject/:id', requireAuth, (req, res) => {
-  try {
-    const { reason } = req.body;
-    const order = db.prepare("SELECT * FROM topup_orders WHERE id = ?").get(req.params.id);
-    db.prepare("UPDATE topup_orders SET status = 'rejected', rejection_reason = ? WHERE id = ?").run(reason, req.params.id);
-    if (order && order.user_phone) {
-      db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `❌ تم رفض طلب الشحن: ${reason}`);
-    }
-  } catch(e) {}
+  const { reason } = req.body;
+  const order = db.prepare("SELECT * FROM topup_orders WHERE id = ?").get(req.params.id);
+  db.prepare("UPDATE topup_orders SET status = 'rejected', rejection_reason = ? WHERE id = ?").run(reason, req.params.id);
+  if (order && order.user_phone) {
+    db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `❌ تم رفض طلب الشحن: ${reason}`);
+  }
   res.redirect('/admin/topups');
 });
 

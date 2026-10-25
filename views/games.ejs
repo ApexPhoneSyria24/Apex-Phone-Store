@@ -7,7 +7,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] }, colors: { neon: { blue: '#00f3ff', pink: '#ff00e5', green: '#39ff14' } } } } }</script>
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] }, colors: { neon: { blue: '#00f3ff', pink: '#ff00e5', green: '#39ff14' } } } } }
+  </script>
   <style>
     body { background-color: #050505; background-image: radial-gradient(circle at 15% 50%, rgba(0,243,255,0.08) 0%, transparent 40%), radial-gradient(circle at 85% 30%, rgba(255,0,229,0.08) 0%, transparent 40%); color: #fff; overflow-x: hidden; }
     .cyber-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(0,243,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,243,255,0.05) 1px, transparent 1px); background-size: 20px 20px; z-index: -1; pointer-events: none; }
@@ -23,7 +25,7 @@
   <div class="cyber-grid"></div>
   <div class="ticker-wrap py-0.5">
     <div class="ticker text-[9px] font-bold text-neon-green tracking-widest">
-      ⚡ شحن فوري وآمن 100% | 🔥 أفضل الأسعار في السوق السوري | 🎮 جميع الألعاب متوفرة | 🛡️ ضمان استرجاع الأموال
+      ⚡ شحن فوري وآمن 100% | 🔥 أفضل الأسعار في السوق السوري | 🎮 جميع الألعاب متوفرة | 🛡️ ضمان استرجاع الأموال | ⚡ شحن فوري وآمن 100%
     </div>
   </div>
   <nav class="bg-black/50 backdrop-blur-md border-b border-neon-blue/20 sticky top-0 z-50">
@@ -34,13 +36,25 @@
         </div>
         <span class="text-sm font-black text-white tracking-wider">APEX <span class="text-neon-blue">GAMING</span></span>
       </a>
-      <a href="/" class="text-[10px] font-bold text-slate-300 hover:text-neon-blue transition flex items-center gap-1"><i class="fa-solid fa-store"></i> المتجر الرئيسي</a>
+      <a href="/" class="text-[10px] font-bold text-slate-300 hover:text-neon-blue transition flex items-center gap-1">
+        <i class="fa-solid fa-store"></i> المتجر الرئيسي
+      </a>
     </div>
   </nav>
   <div class="relative py-8 px-3 text-center">
     <div class="absolute inset-0 bg-gradient-to-b from-neon-blue/10 to-transparent pointer-events-none"></div>
-    <h1 class="text-3xl md:text-4xl font-black text-white mb-2 tracking-tighter neon-text">اشحن <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-pink">قوتك</span></h1>
-    <p class="text-slate-400 text-xs md:text-sm max-w-lg mx-auto font-bold">وجهتك الأولى لشحن شدات ببجي، جواهر فري فاير، وبطاقات جوجل بلاي بأسعار لا تقبل المنافسة.</p>
+    <h1 class="text-3xl md:text-4xl font-black text-white mb-2 tracking-tighter neon-text">
+      اشحن <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-pink">قوتك</span>
+    </h1>
+    <p class="text-slate-400 text-xs md:text-sm max-w-lg mx-auto font-bold">
+      وجهتك الأولى لشحن شدات ببجي، جواهر فري فاير، وبطاقات جوجل بلاي بأسعار لا تقبل المنافسة.
+    </p>
+    <div class="flex justify-center gap-4 mt-4 text-lg text-neon-blue/50">
+      <i class="fa-brands fa-steam"></i>
+      <i class="fa-brands fa-playstation"></i>
+      <i class="fa-brands fa-xbox"></i>
+      <i class="fa-solid fa-mobile-screen"></i>
+    </div>
   </div>
   <div class="max-w-6xl mx-auto px-3 pb-10 w-full flex-1">
     <% if (!games || games.length === 0) { %>
@@ -54,18 +68,29 @@
         <% games.forEach(game => { %>
           <a href="/games/<%= encodeURIComponent(game.name) %>" class="game-card p-4 flex flex-col items-center text-center group">
             <div class="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden mb-3 border-2 border-neon-blue/30 group-hover:border-neon-blue transition shadow-[0_0_20px_rgba(0,243,255,0.2)] group-hover:shadow-[0_0_30px_rgba(0,243,255,0.5)]">
-              <% if (game.image_url) { %><img src="<%= game.image_url %>" alt="<%= game.name %>" class="w-full h-full object-cover" loading="lazy">
-              <% } else { %><div class="w-full h-full bg-black flex items-center justify-center"><i class="fa-solid fa-gamepad text-2xl text-neon-blue"></i></div><% } %>
+              <% if (game.image_url) { %>
+                <img src="<%= game.image_url %>" alt="<%= game.name %>" class="w-full h-full object-cover" loading="lazy">
+              <% } else { %>
+                <div class="w-full h-full bg-black flex items-center justify-center">
+                  <i class="fa-solid fa-gamepad text-2xl text-neon-blue"></i>
+                </div>
+              <% } %>
             </div>
             <h3 class="text-sm font-black text-white mb-0.5 group-hover:text-neon-blue transition"><%= game.name_ar || game.name %></h3>
             <p class="text-[10px] text-slate-500 font-bold mb-2"><%= game.name %></p>
-            <% if (game.delivery_time) { %><p class="text-[9px] text-neon-green font-bold mb-2"><i class="fa-solid fa-bolt"></i> <%= game.delivery_time %></p><% } %>
-            <span class="text-[10px] bg-neon-blue/10 text-neon-blue border border-neon-blue/30 rounded-full px-3 py-1 font-bold group-hover:bg-neon-blue group-hover:text-black transition"><%= game.packages_count %> باقة</span>
+            <% if (game.delivery_time) { %>
+              <p class="text-[9px] text-neon-green font-bold mb-2"><i class="fa-solid fa-bolt"></i> <%= game.delivery_time %></p>
+            <% } %>
+            <span class="text-[10px] bg-neon-blue/10 text-neon-blue border border-neon-blue/30 rounded-full px-3 py-1 font-bold group-hover:bg-neon-blue group-hover:text-black transition">
+              <%= game.packages_count %> باقة
+            </span>
           </a>
         <% }) %>
       </div>
     <% } %>
   </div>
-  <footer class="border-t border-slate-800 py-3 text-center bg-black/80 mt-auto"><p class="text-slate-500 font-bold text-[10px]">© 2026 APEX GAMING ZONE. جميع الحقوق محفوظة.</p></footer>
+  <footer class="border-t border-slate-800 py-3 text-center bg-black/80 mt-auto">
+    <p class="text-slate-500 font-bold text-[10px]">© 2026 APEX GAMING ZONE. جميع الحقوق محفوظة.</p>
+  </footer>
 </body>
 </html>

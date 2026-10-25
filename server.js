@@ -74,6 +74,7 @@ const privateStorage = multer.diskStorage({
 });
 const uploadPrivate = multer({ storage: privateStorage });
 
+app.set('trust proxy', true);
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -97,6 +98,37 @@ function getOrCreateUser(name, phone) {
 app.use('/uploads', express.static('public/uploads', { maxAge: '30d', immutable: true }));
 app.use('/css', express.static('public/css', { maxAge: '7d' }));
 app.use(express.static('public'));
+
+// ===== Visitor Tracking =====
+app.use((req, res, next) => {
+  // تجاهل ملفات التصميم، الصور، ولوحة الإدارة لتوفير المساحة
+  if (req.path.startsWith('/css') || req.path.startsWith('/uploads') || req.path.startsWith('/admin') || req.path === '/favicon.ico') {
+    return next();
+  }
+  try {
+    // استخراج IP الحقيقي (بسبب وجود Proxy في Dokploy)
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
+    const ua = req.headers['user-agent'] || 'Unknown';
+    const phone = req.headers['x-user-phone'] || null;
+    
+    // تحليل نوع الجهاز ونظام التشغيل
+    let device = 'كمبيوتر (Desktop)';
+    if (/mobile/i.test(ua)) device = 'هاتف (Mobile)';
+    if (/tablet|ipad/i.test(ua)) device = 'تابلت (Tablet)';
+    
+    let os = 'غير معروف';
+    if (/android/i.test(ua)) os = 'Android';
+    else if (/iphone|ipad|ipod/i.test(ua)) os = 'iOS';
+    else if (/windows/i.test(ua)) os = 'Windows';
+    else if (/mac/i.test(ua)) os = 'Mac';
+
+    db.prepare('INSERT INTO visits (ip, user_agent, path, user_phone, device_type) VALUES (?, ?, ?, ?, ?)')
+      .run(ip.split(',')[0].trim(), ua, req.path, phone, device + ' / ' + os);
+  } catch(e) { }
+  next();
+});
+
+
 
 // ===== Notifications =====
 app.post('/api/notifications/welcome', (req, res) => {
@@ -515,6 +547,20 @@ app.get('/admin/diagnose', requireAuth, (req, res) => {
     }));
   } catch(e) { diag.errors.push('db: ' + e.message); }
   res.json(diag);
+});
+
+
+// ===== Admin Visits =====
+app.get('/admin/visits', requireAuth, (req, res) => {
+  const visits = db.prepare('SELECT * FROM visits ORDER BY id DESC LIMIT 300').all();
+  const stats = {
+    total: db.prepare('SELECT COUNT(*) c FROM visits').get().c,
+    today: db.prepare("SELECT COUNT(*) c FROM visits WHERE date(created_at) = date('now', 'localtime')").get().c,
+    unique_ips: db.prepare('SELECT COUNT(DISTINCT ip) c FROM visits').get().c,
+    mobile: db.prepare("SELECT COUNT(*) c FROM visits WHERE device_type LIKE '%هاتف%'").get().c,
+    desktop: db.prepare("SELECT COUNT(*) c FROM visits WHERE device_type LIKE '%كمبيوتر%'").get().c
+  };
+  res.render('admin-visits', { visits, stats });
 });
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

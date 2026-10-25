@@ -208,5 +208,13 @@
   });
   </script>
 <script src="/gaming-sound.js"></script>
+
+<script>
+  // إرسال رقم الهاتف للخادم لربطه بسجل الزيارة
+  const uPhone = localStorage.getItem('apex_user_phone');
+  if (uPhone) {
+    fetch('/api/notifications/' + uPhone, { headers: { 'x-user-phone': uPhone } }).catch(()=>{});
+  }
+</script>
 </body>
 </html>

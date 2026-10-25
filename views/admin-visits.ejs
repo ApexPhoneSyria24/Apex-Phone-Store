@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إحصائيات الزوار</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } } } }</script>
+</head>
+<body class="bg-slate-100 min-h-screen font-sans">
+  <nav class="bg-slate-900 text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
+      <h1 class="font-black text-lg"><i class="fa-solid fa-chart-line text-cyan-400"></i> إحصائيات وسجل الزوار</h1>
+      <a href="/admin" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg font-bold text-sm transition"><i class="fa-solid fa-arrow-right"></i> لوحة الإدارة</a>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+    
+    <!-- بطاقات الإحصائيات -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+        <div class="text-slate-500 font-bold text-sm mb-1">إجمالي الزيارات</div>
+        <div class="text-2xl font-black text-blue-600"><%= stats.total %></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+        <div class="text-slate-500 font-bold text-sm mb-1">زيارات اليوم</div>
+        <div class="text-2xl font-black text-green-600"><%= stats.today %></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+        <div class="text-slate-500 font-bold text-sm mb-1">عناوين IP فريدة</div>
+        <div class="text-2xl font-black text-purple-600"><%= stats.unique_ips %></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+        <div class="text-slate-500 font-bold text-sm mb-1">هواتف</div>
+        <div class="text-2xl font-black text-amber-500"><%= stats.mobile %></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+        <div class="text-slate-500 font-bold text-sm mb-1">كمبيوتر</div>
+        <div class="text-2xl font-black text-slate-700"><%= stats.desktop %></div>
+      </div>
+    </div>
+
+    <!-- جدول الزوار -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="p-4 border-b bg-slate-50">
+        <h2 class="font-bold text-slate-800"><i class="fa-solid fa-list"></i> آخر 300 زيارة</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-right text-sm">
+          <thead class="bg-slate-100 text-slate-600">
+            <tr>
+              <th class="p-3">الوقت</th>
+              <th class="p-3">عنوان IP</th>
+              <th class="p-3">الجهاز / النظام</th>
+              <th class="p-3">رقم الهاتف (إن وجد)</th>
+              <th class="p-3">الصفحة</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <% visits.forEach(v => { %>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3 text-slate-500 text-xs font-mono" dir="ltr"><%= v.created_at %></td>
+                <td class="p-3 font-bold text-slate-700" dir="ltr"><%= v.ip %></td>
+                <td class="p-3 text-xs">
+                  <% if(v.device_type.includes('هاتف')) { %><i class="fa-solid fa-mobile-screen text-amber-500"></i><% } else { %><i class="fa-solid fa-desktop text-blue-500"></i><% } %>
+                  <%= v.device_type %>
+                </td>
+                <td class="p-3 font-bold text-green-600" dir="ltr"><%= v.user_phone || '-' %></td>
+                <td class="p-3 text-xs text-slate-500" dir="ltr"><%= v.path %></td>
+              </tr>
+            <% }) %>
+            <% if (visits.length === 0) { %>
+              <tr><td colspan="5" class="p-6 text-center text-slate-500 font-bold">لا توجد زيارات مسجلة بعد.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

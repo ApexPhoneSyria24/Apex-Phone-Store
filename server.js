@@ -112,18 +112,20 @@ app.use('/css', express.static('public/css', { maxAge: '7d' }));
 app.use(express.static('public'));
 
 
-// ===== Visitor Tracking (Silent & Real IP) =====
+
+// ===== Visitor Tracking (Real IP) =====
 app.use((req, res, next) => {
   if (req.path.startsWith('/css') || req.path.startsWith('/uploads') || req.path.startsWith('/admin') || req.path === '/favicon.ico') return next();
   try {
-    // قراءة الـ IP من req.ip (بعد تفعيل trust proxy) أو من الرؤوس كاحتياط
-    let cleanIp = req.ip || req.headers['x-forwarded-for']?.split(',')[0] || req.headers['x-real-ip'] || req.socket.remoteAddress || '';
-    cleanIp = cleanIp.replace('::ffff:', '').trim();
+    // الأولوية القصوى لرؤوس الشبكة التي يرسلها Dokploy/Traefik
+    let ipHeader = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.headers['cf-connecting-ip'];
+    let cleanIp = ipHeader ? ipHeader.split(',')[0].trim() : req.ip || req.socket.remoteAddress;
+    cleanIp = cleanIp.replace('::ffff:', '');
 
     let isLocal = false;
-    if (cleanIp === '::1' || cleanIp.startsWith('127.') || cleanIp.startsWith('192.168.') || cleanIp.startsWith('10.') || cleanIp.startsWith('172.')) {
+    // إذا كان الـ IP يبدأ بـ 172 أو 127 أو 192، فهذا يعني أنه IP داخلي (محلي)
+    if (cleanIp.startsWith('::1') || cleanIp.startsWith('127.') || cleanIp.startsWith('192.168.') || cleanIp.startsWith('10.') || cleanIp.startsWith('172.')) {
        isLocal = true;
-       cleanIp = '127.0.0.1 (محلي)';
     }
 
     let visitorId = null;
@@ -147,11 +149,13 @@ app.use((req, res, next) => {
     let os = 'غير معروف'; if (/android/i.test(ua)) os = 'Android'; else if (/iphone|ipad|ipod/i.test(ua)) os = 'iOS'; else if (/windows/i.test(ua)) os = 'Windows'; else if (/mac/i.test(ua)) os = 'Mac';
 
     const stmt = db.prepare('INSERT INTO visits (ip, user_agent, path, device_type, visitor_id) VALUES (?, ?, ?, ?, ?)');
-    const info = stmt.run(cleanIp, ua, req.path, device + ' / ' + os, visitorId);
+    // إذا كان محلياً نكتب (محلي) بجانبه لتمييزه، وإلا نكتب الـ IP الحقيقي
+    const displayIp = isLocal ? cleanIp + ' (محلي)' : cleanIp;
+    const info = stmt.run(displayIp, ua, req.path, device + ' / ' + os, visitorId);
     const visitId = info.lastInsertRowid;
 
     if (isLocal) {
-        db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('سوريا (محلي)', 'دمشق', visitId);
+        db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('سوريا', 'شبكة محلية', visitId);
     } else {
         fetch('https://ipwho.is/' + cleanIp)
             .then(r => r.json())
@@ -163,6 +167,7 @@ app.use((req, res, next) => {
   } catch(e) { }
   next();
 });
+
 
 
 // ===== API: Balance & Phone Link =====

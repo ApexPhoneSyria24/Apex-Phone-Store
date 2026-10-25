@@ -84,13 +84,15 @@ const TELEGRAM_CHAT_ID = '5785915708';
 
 async function sendTelegram(message) {
   try {
+    console.log('Sending Telegram notification...');
     const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'HTML' })
     });
     const data = await res.json();
-    if (!data.ok) console.error('Telegram Error:', data.description);
+    if (!data.ok) console.error('Telegram API Error:', data.description);
+    else console.log('Telegram sent successfully');
   } catch(err) { console.error('Telegram Fetch Error:', err.message); }
 }
 
@@ -253,7 +255,7 @@ app.post('/api/human-chat/init', (req, res) => {
       if (!session) db.prepare("INSERT INTO chat_sessions (visitor_id, status) VALUES (?, 'open')").run(visitor_id);
       else {
         db.prepare("UPDATE chat_sessions SET status = 'open' WHERE visitor_id = ?").run(visitor_id);
-        db.prepare("DELETE FROM chat_messages WHERE visitor_id = ?").run(visitor_id); // مسح الرسائل القديمة
+        db.prepare("DELETE FROM chat_messages WHERE visitor_id = ?").run(visitor_id); 
       }
       const welcomeMsg = "مرحباً بك في دعم Apex Phone! 👋\\nتم استلام طلبك بنجاح، ونحن الآن نبحث لك عن أحد المطورين للرد عليك في أسرع وقت. يرجى البقاء معنا... ⏳";
       db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'admin', ?)").run(visitor_id, welcomeMsg);
@@ -267,6 +269,7 @@ app.post('/api/human-chat/send', (req, res) => {
   try {
     const { visitor_id, message } = req.body;
     if (!visitor_id || !message) return res.status(400).json({ error: 'بيانات ناقصة' });
+    
     let session = db.prepare("SELECT status FROM chat_sessions WHERE visitor_id = ?").get(visitor_id);
     if (!session) {
       db.prepare("INSERT INTO chat_sessions (visitor_id, status) VALUES (?, 'open')").run(visitor_id);
@@ -276,8 +279,12 @@ app.post('/api/human-chat/send', (req, res) => {
       db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'admin', ?)").run(visitor_id, welcomeMsg);
       sendTelegram(`🔔 <b>زبون بدأ محادثة جديدة!</b>\\nالزائر: ${visitor_id}`);
     }
+    
     db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'visitor', ?)").run(visitor_id, message);
-    sendTelegram(`💬 <b>رسالة جديدة!</b>\\nالزائر: ${visitor_id}\\nالرسالة: ${message}`);
+    
+    // إرسال الإشعار بقوة
+    sendTelegram(`💬 <b>رسالة جديدة في الدردشة الحية!</b>\\nالزائر: ${visitor_id}\\nالرسالة: ${message}`);
+    
     res.json({ success: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -315,6 +322,15 @@ app.get('/api/admin/chat/messages/:visitorId', requireAuth, (req, res) => {
   res.json({ messages: msgs, session });
 });
 
+app.post('/api/admin/chat/send', requireAuth, (req, res) => {
+  try {
+    const { visitor_id, message } = req.body;
+    db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'admin', ?)").run(visitor_id, message);
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== Admin Chat Routes =====
 app.get('/admin/chats', requireAuth, (req, res) => {
   try {
     const chats = db.prepare(`
@@ -333,14 +349,6 @@ app.get('/admin/chats/:visitorId', requireAuth, (req, res) => {
   db.prepare("UPDATE chat_messages SET is_read = 1 WHERE visitor_id = ? AND sender = 'visitor'").run(req.params.visitorId);
   const session = db.prepare("SELECT * FROM chat_sessions WHERE visitor_id = ?").get(req.params.visitorId) || { status: 'open', rating: 0, feedback: '' };
   res.render('admin-chat-room', { visitorId: req.params.visitorId, session });
-});
-
-app.post('/api/admin/chat/send', requireAuth, (req, res) => {
-  try {
-    const { visitor_id, message } = req.body;
-    db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'admin', ?)").run(visitor_id, message);
-    res.json({ success: true });
-  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // ===== Notifications & Balance API =====

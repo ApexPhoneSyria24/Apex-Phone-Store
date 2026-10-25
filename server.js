@@ -574,8 +574,95 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+
+// ===== Live Chat API =====
+app.post('/api/human-chat/send', (req, res) => {
+  try {
+    const { visitor_id, message } = req.body;
+    if (!visitor_id || !message) return res.status(400).json({ error: 'بيانات ناقصة' });
+    
+    let session = db.prepare("SELECT status FROM chat_sessions WHERE visitor_id = ?").get(visitor_id);
+    if (!session) {
+      db.prepare("INSERT INTO chat_sessions (visitor_id) VALUES (?)").run(visitor_id);
+    } else if (session.status === 'closed') {
+      return res.status(400).json({ error: 'تم إغلاق المحادثة' });
+    }
+    
+    db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'visitor', ?)").run(visitor_id, message);
+    
+    try {
+      if (typeof sendTelegram === 'function') {
+        sendTelegram(`💬 <b>رسالة جديدة في الدردشة!</b>\nالزائر: ${visitor_id}\nالرسالة: ${message}`);
+      }
+    } catch(e) { console.log('Telegram error:', e.message); }
+
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Chat Save Error:', e);
+    res.status(500).json({ error: 'حدث خطأ داخلي' });
+  }
+});
+
+app.get('/api/human-chat/messages/:visitorId', (req, res) => {
+  try {
+    const msgs = db.prepare("SELECT * FROM chat_messages WHERE visitor_id = ? ORDER BY id ASC").all(req.params.visitorId);
+    const session = db.prepare("SELECT status, rating FROM chat_sessions WHERE visitor_id = ?").get(req.params.visitorId) || { status: 'open', rating: 0 };
+    res.json({ messages: msgs, status: session.status, rating: session.rating });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/human-chat/rate', (req, res) => {
+  try {
+    const { visitor_id, rating, feedback } = req.body;
+    db.prepare("UPDATE chat_sessions SET rating = ?, feedback = ? WHERE visitor_id = ?").run(rating, feedback || '', visitor_id);
+    if (typeof sendTelegram === 'function') {
+      sendTelegram(`⭐ <b>تقييم جديد!</b>\nالزائر: ${visitor_id}\nالتقييم: ${'⭐'.repeat(rating)}\nملاحظات: ${feedback || 'لا يوجد'}`);
+    }
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/admin/chat/close/:visitorId', requireAuth, (req, res) => {
+  try {
+    db.prepare("INSERT OR IGNORE INTO chat_sessions (visitor_id) VALUES (?)").run(req.params.visitorId);
+    db.prepare("UPDATE chat_sessions SET status = 'closed' WHERE visitor_id = ?").run(req.params.visitorId);
+    db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'system', 'تم إغلاق المحادثة من قبل الدعم. شكراً لتواصلك معنا!')").run(req.params.visitorId);
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/admin/chat/send', requireAuth, (req, res) => {
+  try {
+    const { visitor_id, message } = req.body;
+    db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'admin', ?)").run(visitor_id, message);
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/admin/chats', requireAuth, (req, res) => {
+  const chats = db.prepare(`
+    SELECT c1.visitor_id, MAX(c1.created_at) as last_time,
+    (SELECT COUNT(*) FROM chat_messages c2 WHERE c2.visitor_id = c1.visitor_id AND c2.sender = 'visitor' AND c2.is_read = 0) as unread,
+    (SELECT message FROM chat_messages c3 WHERE c3.visitor_id = c1.visitor_id ORDER BY id DESC LIMIT 1) as last_msg,
+    COALESCE(s.status, 'open') as status, COALESCE(s.rating, 0) as rating
+    FROM chat_messages c1 LEFT JOIN chat_sessions s ON c1.visitor_id = s.visitor_id
+    GROUP BY c1.visitor_id ORDER BY last_time DESC
+  `).all();
+  res.render('admin-chats', { chats });
+});
+
+app.get('/admin/chats/:visitorId', requireAuth, (req, res) => {
+  db.prepare("UPDATE chat_messages SET is_read = 1 WHERE visitor_id = ? AND sender = 'visitor'").run(req.params.visitorId);
+  const session = db.prepare("SELECT * FROM chat_sessions WHERE visitor_id = ?").get(req.params.visitorId) || { status: 'open', rating: 0, feedback: '' };
+  res.render('admin-chat-room', { visitorId: req.params.visitorId, session });
+});
+
+app.get('/api/admin/chat/messages/:visitorId', requireAuth, (req, res) => {
+  const msgs = db.prepare("SELECT * FROM chat_messages WHERE visitor_id = ? ORDER BY id ASC").all(req.params.visitorId);
+  const session = db.prepare("SELECT * FROM chat_sessions WHERE visitor_id = ?").get(req.params.visitorId) || { status: 'open', rating: 0, feedback: '' };
+  res.json({ messages: msgs, session });
+});
+
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });
-
-
-
-

@@ -205,6 +205,7 @@
       humanChat.innerHTML = '<div style="color:#39ff14; text-align:center; margin-top:20px; font-weight:bold;">شكراً لتقييمك! ⭐</div>';
     };
 
+    
     async function sendMessage() {
       const text = inputEl.value.trim();
       if (!text) return;
@@ -212,8 +213,9 @@
       inputEl.value = '';
 
       if (isHumanMode) {
-        // عرض الرسالة فوراً
-        humanChat.innerHTML += `<div style="background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; padding:12px 16px; border-radius:15px 15px 15px 0; font-size:14px; align-self:flex-end; max-width:85%;">${text}</div>`;
+        const tempId = 'temp-' + Date.now();
+        // إضافة الرسالة مع معرف مؤقت
+        humanChat.innerHTML += `<div id="${tempId}" style="background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; padding:12px 16px; border-radius:15px 15px 0 15px; font-size:14px; align-self:flex-start; max-width:85%; box-shadow:0 2px 5px rgba(0,0,0,0.2);">${text}</div>`;
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
         try {
@@ -221,17 +223,21 @@
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ visitor_id: visitorId, message: text })
           });
+          
           if (!res.ok) {
-             const err = await res.json();
-             humanChat.innerHTML = humanChat.innerHTML.replace(text, ''); // إزالة الرسالة الوهمية
-             alert('عذراً، فشل الإرسال: ' + (err.error || 'خطأ في السيرفر'));
+            const err = await res.json();
+            document.getElementById(tempId)?.remove(); // إزالة الرسالة بالكامل
+            alert('فشل الإرسال: ' + (err.error || 'خطأ في السيرفر'));
           }
-        } catch(e) { humanChat.innerHTML = humanChat.innerHTML.replace(text, ''); alert('تعذر الاتصال بالسيرفر. تأكد من الإنترنت.'); }
+        } catch(e) { 
+          document.getElementById(tempId)?.remove(); // إزالة الرسالة بالكامل
+          alert('تعذر الاتصال بالسيرفر. تأكد من الإنترنت.'); 
+        }
         return;
       }
 
       // AI Mode
-      aiChat.innerHTML += `<div style="background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; padding:12px 16px; border-radius:15px 15px 15px 0; font-size:14px; align-self:flex-end; max-width:85%;">${text}</div>`;
+      aiChat.innerHTML += `<div style="background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; padding:12px 16px; border-radius:15px 15px 0 15px; font-size:14px; align-self:flex-start; max-width:85%;">${text}</div>`;
       chatHistory.push({ role: 'user', text: text });
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
@@ -249,6 +255,7 @@
       } catch(e) {}
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
+
 
     sendBtn.onclick = sendMessage;
     inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });

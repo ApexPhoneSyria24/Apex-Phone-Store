@@ -653,16 +653,30 @@ app.post('/api/admin/chat/send', requireAuth, (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+
 app.get('/admin/chats', requireAuth, (req, res) => {
-  const chats = db.prepare(`
-    SELECT c1.visitor_id, MAX(c1.created_at) as last_time,
-    (SELECT COUNT(*) FROM chat_messages c2 WHERE c2.visitor_id = c1.visitor_id AND c2.sender = 'visitor' AND c2.is_read = 0) as unread,
-    (SELECT message FROM chat_messages c3 WHERE c3.visitor_id = c1.visitor_id ORDER BY id DESC LIMIT 1) as last_msg,
-    COALESCE(s.status, 'open') as status, COALESCE(s.rating, 0) as rating
-    FROM chat_messages c1 LEFT JOIN chat_sessions s ON c1.visitor_id = s.visitor_id
-    GROUP BY c1.visitor_id ORDER BY last_time DESC
-  `).all();
-  res.render('admin-chats', { chats });
+  try {
+    // استعلام مبسط وآمن تماماً
+    const chats = db.prepare(`
+      SELECT 
+        c.visitor_id, 
+        MAX(c.created_at) as last_time,
+        (SELECT COUNT(*) FROM chat_messages c2 WHERE c2.visitor_id = c.visitor_id AND c2.sender = 'visitor' AND c2.is_read = 0) as unread,
+        (SELECT message FROM chat_messages c3 WHERE c3.visitor_id = c.visitor_id ORDER BY id DESC LIMIT 1) as last_msg,
+        COALESCE(s.status, 'open') as status, 
+        COALESCE(s.rating, 0) as rating
+      FROM chat_messages c 
+      LEFT JOIN chat_sessions s ON c.visitor_id = s.visitor_id
+      GROUP BY c.visitor_id 
+      ORDER BY last_time DESC
+    `).all();
+    
+    res.render('admin-chats', { chats });
+  } catch (err) {
+    console.error("Chats Route Error:", err.message);
+    res.send("حدث خطأ في تحميل الدردشات: " + err.message);
+  }
+});
 });
 
 app.get('/admin/chats/:visitorId', requireAuth, (req, res) => {

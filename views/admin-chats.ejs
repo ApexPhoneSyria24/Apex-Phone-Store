@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><title>المحادثات الحية</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } } } }</script>
+</head>
+<body class="bg-slate-100 font-sans p-4">
+  <div class="max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-black text-slate-800"><i class="fa-solid fa-comments text-blue-600"></i> الدردشات الحية</h1>
+      <a href="/admin" class="bg-slate-800 text-white px-4 py-2 rounded-lg font-bold">عودة للإدارة</a>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+      <% if(typeof chats === 'undefined' || chats.length === 0) { %>
+        <div class="p-8 text-center text-slate-500 font-bold">لا توجد محادثات حتى الآن.</div>
+      <% } else { %>
+        <div class="divide-y divide-slate-100">
+          <% chats.forEach(c => { %>
+            <a href="/admin/chats/<%= c.visitor_id || 'unknown' %>" class="flex items-center justify-between p-4 hover:bg-slate-50 transition">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">
+                  <i class="fa-solid fa-user"></i>
+                </div>
+                <div>
+                  <h3 class="font-bold text-slate-800">زائر: <span dir="ltr"><%= c.visitor_id || 'غير معروف' %></span></h3>
+                  <p class="text-sm text-slate-500 truncate w-48 md:w-96"><%= c.last_msg || 'لا توجد رسائل' %></p>
+                </div>
+              </div>
+              <div class="text-left flex flex-col items-end gap-1">
+                <span class="text-xs text-slate-400"><%= c.last_time || '' %></span>
+                <% if(c.unread > 0) { %>
+                  <span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full"><%= c.unread %> جديد</span>
+                <% } %>
+              </div>
+            </a>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

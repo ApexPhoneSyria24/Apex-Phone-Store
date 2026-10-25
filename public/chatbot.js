@@ -119,11 +119,19 @@
       messagesEl.scrollTop = messagesEl.scrollHeight;
 
       try {
+        
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 ثواني
+      
+      try {
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text })
+          body: JSON.stringify({ message: text }),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
+
         const data = await res.json();
         document.getElementById(loadingId).remove();
 
@@ -133,6 +141,11 @@
           messagesEl.innerHTML += `<div style="color:#ef4444; font-size:12px; align-self:flex-start; padding:10px; background:rgba(239,68,68,0.1); border-radius:10px;">حدث خطأ، يرجى المحاولة لاحقاً.</div>`;
         }
       } catch(e) {
+        if (e.name === 'AbortError') {
+           document.getElementById(loadingId).remove();
+           messagesEl.innerHTML += `<div style="color:#ef4444; font-size:12px; align-self:flex-start; padding:10px; background:rgba(239,68,68,0.1); border-radius:10px;">السيرفر استغرق وقتاً طويلاً. يرجى المحاولة لاحقاً.</div>`;
+           return;
+        }
         document.getElementById(loadingId).remove();
         messagesEl.innerHTML += `<div style="color:#ef4444; font-size:12px; align-self:flex-start; padding:10px; background:rgba(239,68,68,0.1); border-radius:10px;">حدث خطأ في الاتصال.</div>`;
       }

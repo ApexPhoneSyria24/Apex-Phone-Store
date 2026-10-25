@@ -193,5 +193,23 @@
     </div>
   </div>
   
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // البحث عن البطاقة التي تحتوي على نص "إحصائيات الزوار"
+      var cards = document.querySelectorAll('div, a, button');
+      cards.forEach(function(card) {
+        if (card.textContent.trim().includes('إحصائيات الزوار') && card.textContent.length < 40) {
+          card.style.cursor = 'pointer';
+          card.style.transition = 'transform 0.2s';
+          card.onmouseover = function() { card.style.transform = 'scale(1.05)'; };
+          card.onmouseout = function() { card.style.transform = 'scale(1)'; };
+          card.onclick = function() { window.location.href = '/admin/visits'; };
+        }
+      });
+    });
+  </script>
+  <!-- admin/visits-click -->
+  
 </body>
 </html>

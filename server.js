@@ -5,6 +5,15 @@ const path = require('path');
 const fs = require('fs');
 const db = require('./database');
 
+try {
+  db.exec(`CREATE TABLE IF NOT EXISTS visits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip TEXT, user_agent TEXT, path TEXT, user_phone TEXT, device_type TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+} catch(e) {}
+
+
 // AUTO_MIGRATE_V1
 try {
   const cols = db.prepare("PRAGMA table_info(games)").all();
@@ -568,5 +577,20 @@ app.get('/admin/diagnose', requireAuth, (req, res) => {
 
 // ===== Admin Visits Route =====
 
+
+
+app.get('/admin/visits', requireAuth, (req, res) => {
+  try {
+    const visits = db.prepare('SELECT * FROM visits ORDER BY id DESC LIMIT 300').all();
+    const stats = {
+      total: db.prepare('SELECT COUNT(*) c FROM visits').get().c,
+      today: db.prepare("SELECT COUNT(*) c FROM visits WHERE date(created_at) = date('now', 'localtime')").get().c,
+      unique_ips: db.prepare('SELECT COUNT(DISTINCT ip) c FROM visits').get().c
+    };
+    res.render('admin-visits', { visits, stats });
+  } catch(e) {
+    res.send('Error loading visits: ' + e.message);
+  }
+});
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

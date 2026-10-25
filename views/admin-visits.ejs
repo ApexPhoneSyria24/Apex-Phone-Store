@@ -11,9 +11,9 @@
   <div class="max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-black text-slate-800">📊 إحصائيات وسجل الزوار</h1>
-      <a href="/admin" class="bg-slate-800 text-white px-4 py-2 rounded-lg font-bold text-sm">عودة</a>
+      <a href="/admin" class="bg-slate-800 text-white px-4 py-2 rounded-lg font-bold text-sm">عودة للوحة الإدارة</a>
     </div>
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
       <div class="bg-white p-4 rounded-xl text-center shadow"><div class="text-sm font-bold text-slate-500">إجمالي الزيارات</div><div class="text-2xl font-black text-blue-600"><%= stats.total %></div></div>
       <div class="bg-white p-4 rounded-xl text-center shadow"><div class="text-sm font-bold text-slate-500">زيارات اليوم</div><div class="text-2xl font-black text-green-600"><%= stats.today %></div></div>
       <div class="bg-white p-4 rounded-xl text-center shadow"><div class="text-sm font-bold text-slate-500">IP فريدة</div><div class="text-2xl font-black text-purple-600"><%= stats.unique_ips %></div></div>
@@ -24,10 +24,10 @@
           <tr><th class="p-3">الوقت</th><th class="p-3">IP</th><th class="p-3">الجهاز</th><th class="p-3">الهاتف</th><th class="p-3">الصفحة</th></tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
-          <% visits.forEach(v => { %>
+          <% if(visits) { visits.forEach(v => { %>
             <tr><td class="p-3 text-xs text-slate-500" dir="ltr"><%= v.created_at %></td><td class="p-3 font-bold" dir="ltr"><%= v.ip %></td><td class="p-3 text-xs"><%= v.device_type %></td><td class="p-3 text-green-600 font-bold" dir="ltr"><%= v.user_phone || '-' %></td><td class="p-3 text-xs text-slate-500" dir="ltr"><%= v.path %></td></tr>
-          <% }) %>
-          <% if (visits.length === 0) { %><tr><td colspan="5" class="p-6 text-center text-slate-500">لا توجد زيارات بعد.</td></tr><% } %>
+          <% }) } %>
+          <% if (!visits || visits.length === 0) { %><tr><td colspan="5" class="p-6 text-center text-slate-500">لا توجد زيارات مسجلة بعد.</td></tr><% } %>
         </tbody>
       </table>
     </div>

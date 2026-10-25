@@ -24,7 +24,7 @@
       </div>
       <div>
         <h3 class="font-black text-lg text-white">الزائر: <span dir="ltr" class="text-[#00f3ff]"><%= visitorId %></span></h3>
-        <p class="text-xs text-[#8892b0]"><%= session.status === 'closed' ? '🔴 مغلقة' : '🟢 نشطة الآن' %></p>
+        <p class="text-xs <%= session.status === 'closed' ? 'text-red-400' : 'text-[#39ff14]' %> font-bold"><%= session.status === 'closed' ? '🔴 مغلقة' : '🟢 نشطة الآن' %></p>
       </div>
     </div>
     <div class="flex gap-2">

@@ -33,7 +33,8 @@
           </div>
           <div>
             <div style="color:#e6f1ff; font-weight:900; font-size:18px;">دعم Apex</div>
-            <div style="color:#00f3ff; font-size:12px; font-weight:bold; display:flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; background:#00f3ff; border-radius:50%;"></span> متصل الآن</div>
+            <!-- تم تغيير اللون إلى الأخضر هنا -->
+            <div style="color:#39ff14; font-size:12px; font-weight:bold; display:flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; background:#39ff14; border-radius:50%;"></span> متصل الآن</div>
           </div>
         </div>
         <button id="chat-close" style="background:none; border:none; color:#a8b2c1; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:20px;"><i class="fa-solid fa-xmark"></i></button>
@@ -60,7 +61,6 @@
         <div id="ai-chat" style="display:none; flex-direction:column; gap:10px; width:100%;"></div>
         <div id="human-chat" style="display:none; flex-direction:column; gap:5px; width:100%;"></div>
         
-        <!-- أزرار نعم / لا -->
         <div id="new-chat-options" style="display:none; flex-direction:column; gap:10px; margin-top:15px; align-items:center;">
           <button id="btn-yes-new" style="background:#00f3ff; color:#000; border:none; padding:10px 30px; border-radius:20px; font-weight:bold; font-size:14px; cursor:pointer; width:80%;">نعم، أريد محادثة جديدة</button>
           <button id="btn-no-new" style="background:#112240; color:#e6f1ff; border:1px solid #334155; padding:10px 30px; border-radius:20px; font-weight:bold; font-size:14px; cursor:pointer; width:80%;">لا، شكراً</button>
@@ -108,6 +108,7 @@
     
     let chatHistory = [];
     let isHumanMode = false;
+    let isClosedDismissed = false; // متغير جديد لمنع تكرار أزرار نعم/لا
 
     if (window.visualViewport) {
       const adjustViewport = () => {
@@ -135,6 +136,7 @@
       humanChat.style.display = 'flex';
       inputArea.style.display = 'flex';
       isHumanMode = true;
+      isClosedDismissed = false;
       inputEl.focus();
       
       try {
@@ -153,8 +155,13 @@
         const data = await res.json();
         
         if (data.status === 'closed') {
-          inputArea.style.display = 'none'; // إخفاء لوحة المفاتيح
-          newChatOptions.style.display = 'flex'; // إظهار أزرار نعم/لا
+          if (!isClosedDismissed) {
+            inputArea.style.display = 'none';
+            newChatOptions.style.display = 'flex';
+          } else {
+            inputArea.style.display = 'flex';
+            newChatOptions.style.display = 'none';
+          }
           if (data.rating > 0) {
             humanChat.innerHTML = '<div style="color:#00f3ff; text-align:center; margin-top:20px; font-weight:bold;">شكراً لتقييمك! ⭐</div>';
           } else {
@@ -163,6 +170,7 @@
         } else {
           inputArea.style.display = 'flex';
           newChatOptions.style.display = 'none';
+          isClosedDismissed = false;
         }
 
         humanChat.innerHTML = data.messages.map(m => {
@@ -186,17 +194,19 @@
     }
     setInterval(checkHumanChat, 3000);
 
-    // أزرار نعم / لا
     document.getElementById('btn-yes-new').onclick = async () => {
+      isClosedDismissed = false;
       newChatOptions.style.display = 'none';
-      humanChat.innerHTML = ''; // مسح الشاشة للبدء من جديد
+      humanChat.innerHTML = ''; // مسح الشاشة
       await fetch('/api/human-chat/init', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ visitor_id: visitorId })
       });
       checkHumanChat();
     };
+    
     document.getElementById('btn-no-new').onclick = () => {
+      isClosedDismissed = true;
       newChatOptions.style.display = 'none';
       inputArea.style.display = 'flex';
     };

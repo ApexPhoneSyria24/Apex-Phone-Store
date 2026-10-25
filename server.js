@@ -6,7 +6,7 @@ const fs = require('fs');
 const db = require('./database');
 const compression = require('compression');
 
-// ===== Safe Auto-Migrate (No Data Loss) =====
+// ===== Auto-Migrate (Safe) =====
 try {
   db.exec(`CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL)`);
   db.exec(`CREATE TABLE IF NOT EXISTS game_packages (id INTEGER PRIMARY KEY AUTOINCREMENT, game_name TEXT NOT NULL)`);
@@ -21,6 +21,36 @@ try {
   const pkgCols = db.prepare("PRAGMA table_info(game_packages)").all().map(c => c.name);
   const addPkgCol = (col, type) => { if (!pkgCols.includes(col)) db.exec(`ALTER TABLE game_packages ADD COLUMN ${col} ${type}`); };
   addPkgCol('package_name', 'TEXT'); addPkgCol('price', 'REAL'); addPkgCol('is_active', 'INTEGER DEFAULT 1'); addPkgCol('sort_order', 'INTEGER DEFAULT 0'); addPkgCol('created_at', 'DATETIME DEFAULT CURRENT_TIMESTAMP');
+
+  try {
+    const orderCols = db.prepare("PRAGMA table_info(topup_orders)").all().map(c => c.name);
+    if (!orderCols.includes('payment_method')) {
+      db.exec("ALTER TABLE topup_orders ADD COLUMN payment_method TEXT DEFAULT 'manual'");
+    }
+  } catch(e) {}
+
+  try {
+    const userCols = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
+    if (!userCols.includes('balance')) {
+      db.exec("ALTER TABLE users ADD COLUMN balance REAL DEFAULT 0");
+    }
+  } catch(e) {}
+
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS wallet_deposits (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, user_phone TEXT NOT NULL,
+      amount_usd REAL NOT NULL, amount_syp REAL NOT NULL,
+      transfer_ref TEXT, receipt_image TEXT, status TEXT DEFAULT 'pending',
+      rejection_reason TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+  } catch(e) {}
+
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS visits (id INTEGER PRIMARY KEY AUTOINCREMENT, ip TEXT, user_agent TEXT, path TEXT, user_phone TEXT, device_type TEXT, country TEXT, city TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
+    const vCols = db.prepare("PRAGMA table_info(visits)").all().map(c => c.name);
+    if (!vCols.includes('country')) db.exec("ALTER TABLE visits ADD COLUMN country TEXT");
+    if (!vCols.includes('city')) db.exec("ALTER TABLE visits ADD COLUMN city TEXT");
+  } catch(e) {}
 
   const gameCount = db.prepare('SELECT COUNT(*) c FROM games').get().c;
   if (gameCount === 0) {
@@ -38,33 +68,6 @@ try {
     seed.forEach(g => ins.run(...g));
   }
 } catch(e) { console.error('Migration Error:', e.message); }
-
-try {
-  db.exec(`CREATE TABLE IF NOT EXISTS visits (id INTEGER PRIMARY KEY AUTOINCREMENT, ip TEXT, user_agent TEXT, path TEXT, user_phone TEXT, device_type TEXT, country TEXT, city TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
-  const vCols = db.prepare("PRAGMA table_info(visits)").all().map(c => c.name);
-  if (!vCols.includes('country')) db.exec("ALTER TABLE visits ADD COLUMN country TEXT");
-  if (!vCols.includes('city')) db.exec("ALTER TABLE visits ADD COLUMN city TEXT");
-} catch(e) { console.error('Visits Table Error:', e.message); }
-
-
-try {
-  const userCols = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
-  if (!userCols.includes('balance')) {
-    db.exec("ALTER TABLE users ADD COLUMN balance REAL DEFAULT 0");
-  }
-  db.exec(`CREATE TABLE IF NOT EXISTS wallet_deposits (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_phone TEXT NOT NULL,
-    amount_usd REAL NOT NULL,
-    amount_syp REAL NOT NULL,
-    transfer_ref TEXT,
-    receipt_image TEXT,
-    status TEXT DEFAULT 'pending',
-    rejection_reason TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
-} catch(e) { console.error('Wallet Migration Error:', e.message); }
-
 
 const app = express();
 const PORT = 3000;
@@ -104,11 +107,8 @@ app.use((req, res, next) => {
   try {
     const ipHeader = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
     let cleanIp = ipHeader.split(',')[0].trim().replace('::ffff:', '');
-    
     let isLocal = false;
-    if (cleanIp === '::1' || cleanIp.startsWith('127.') || cleanIp.startsWith('192.168.') || cleanIp.startsWith('10.') || cleanIp.startsWith('172.')) {
-       isLocal = true;
-    }
+    if (cleanIp === '::1' || cleanIp.startsWith('127.') || cleanIp.startsWith('192.168.') || cleanIp.startsWith('10.') || cleanIp.startsWith('172.')) isLocal = true;
 
     const ua = req.headers['user-agent'] || 'Unknown';
     let device = 'كمبيوتر'; if (/mobile/i.test(ua)) device = 'هاتف'; if (/tablet|ipad/i.test(ua)) device = 'تابلت';
@@ -119,25 +119,25 @@ app.use((req, res, next) => {
     const visitId = info.lastInsertRowid;
 
     if (isLocal) {
-        db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('سوريا (شبكة محلية)', 'دمشق', visitId);
+      db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('سوريا (شبكة محلية)', 'دمشق', visitId);
     } else {
-        fetch('https://ipwho.is/' + cleanIp)
-            .then(r => r.json())
-            .then(data => {
-                if (data && data.success) {
-                    db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run(data.country || 'غير معروف', data.city || 'غير معروف', visitId);
-                } else {
-                    db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('فشل التحديد', 'فشل', visitId);
-                }
-            }).catch((err) => {
-                db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('خطأ بالشبكة', 'خطأ', visitId);
-            });
+      fetch('https://ipwho.is/' + cleanIp).then(r => r.json()).then(data => {
+        if (data && data.success) db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run(data.country || 'غير معروف', data.city || 'غير معروف', visitId);
+        else db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('فشل التحديد', 'فشل', visitId);
+      }).catch(() => { db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('خطأ بالشبكة', 'خطأ', visitId); });
     }
   } catch(e) { }
   next();
 });
 
-// ===== Phone Link API =====
+// ===== API: Balance & Phone Link =====
+app.get('/api/user-balance/:phone', (req, res) => {
+  try {
+    const user = db.prepare('SELECT balance FROM users WHERE phone = ?').get(req.params.phone);
+    res.json({ balance: user ? user.balance : 0 });
+  } catch(e) { res.json({ balance: 0 }); }
+});
+
 app.post('/api/track-phone', (req, res) => {
   try {
     const { phone } = req.body;
@@ -163,7 +163,7 @@ function getOrCreateUser(name, phone) {
   return db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
 }
 
-// ===== Routes =====
+// ===== Notifications =====
 app.post('/api/notifications/welcome', (req, res) => {
   const { phone } = req.body; if (!phone) return res.json({ success: false });
   const existing = db.prepare("SELECT id FROM notifications WHERE phone = ? AND message LIKE '%أهلاً بك%'").get(phone);
@@ -173,6 +173,7 @@ app.post('/api/notifications/welcome', (req, res) => {
 app.get('/api/notifications/:phone', (req, res) => { res.json(db.prepare('SELECT * FROM notifications WHERE phone = ? ORDER BY id DESC').all(req.params.phone)); });
 app.post('/api/notifications/read/:phone', (req, res) => { db.prepare('UPDATE notifications SET is_read = 1 WHERE phone = ?').run(req.params.phone); res.json({ success: true }); });
 
+// ===== Home & SEO =====
 app.get('/', (req, res) => {
   let query = "SELECT * FROM phones WHERE status = 'approved'"; const params = [];
   query += " AND (is_admin = 1 OR seller_phone NOT IN (SELECT phone FROM users WHERE is_banned = 1))";
@@ -198,6 +199,7 @@ app.get('/sitemap.xml', (req, res) => {
 });
 app.get('/robots.txt', (req, res) => { res.type('text/plain'); res.send("User-agent: *\nAllow: /\nSitemap: https://apexphonesyria.online/sitemap.xml"); });
 
+// ===== Phone Details & Review =====
 app.get('/phone/:id', (req, res) => {
   const phone = db.prepare('SELECT * FROM phones WHERE id = ?').get(req.params.id);
   if (!phone || phone.status !== 'approved') return res.redirect('/');
@@ -211,6 +213,7 @@ app.post('/phone/:id/review', (req, res) => {
   res.redirect('/phone/' + req.params.id + '?review=success');
 });
 
+// ===== Verification & Post Ad =====
 app.get('/verify-account', (req, res) => { res.render('verify-account'); });
 app.post('/verify-account', uploadPrivate.fields([{ name: 'id_front', maxCount: 1 }, { name: 'id_back', maxCount: 1 }, { name: 'selfie', maxCount: 1 }]), (req, res) => {
   const b = req.body; const f = req.files;
@@ -233,6 +236,7 @@ app.post('/post-ad', upload.array('images', 8), (req, res) => {
 });
 app.get('/policy', (req, res) => { res.render('policy'); });
 
+// ===== Games =====
 app.get('/games', (req, res) => {
   const games = db.prepare(`SELECT g.*, (SELECT COUNT(*) FROM game_packages p WHERE p.game_name = g.name AND p.is_active = 1) as packages_count FROM games g WHERE g.is_active = 1 ORDER BY g.sort_order ASC, g.id ASC`).all();
   res.render('games', { games });
@@ -244,50 +248,57 @@ app.get('/games/:gameName', (req, res) => {
   const packages = db.prepare("SELECT * FROM game_packages WHERE game_name = ? AND is_active = 1 ORDER BY sort_order ASC, price ASC").all(game.name);
   res.render('game-details', { game, packages });
 });
-
 app.post('/games/:gameName/order', (req, res) => {
   const { player_id, package_name, price, user_phone, payment_method } = req.body;
   const priceNum = parseFloat(price);
   const gameName = req.params.gameName;
-
   try {
     if (payment_method === 'wallet') {
-      // التحقق من المستخدم ورصيده
       const user = db.prepare('SELECT balance FROM users WHERE phone = ?').get(user_phone);
       if (!user) return res.status(400).json({ success: false, message: 'رقم الهاتف غير مسجل. يرجى شحن رصيدك أولاً.' });
       if (user.balance < priceNum) return res.status(400).json({ success: false, message: 'عذراً، رصيدك غير كافٍ لإتمام الطلب.' });
-
-      // خصم الرصيد
       db.prepare('UPDATE users SET balance = balance - ? WHERE phone = ?').run(priceNum, user_phone);
-      
-      // تسجيل الطلب (حالته pending حتى تقوم أنت بشحنه للعبة، لكنه مدفوع)
-      db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone, payment_method, status) VALUES (?, ?, ?, ?, ?, 'wallet', 'pending')`)
-        .run(gameName, package_name, player_id, priceNum, user_phone);
-
-      // إشعار للزبون بالخصم
-      db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(user_phone, `💳 تم خصم ${priceNum} من محفظتك لطلب ${package_name} في ${gameName}`);
-
+      db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone, payment_method, status) VALUES (?, ?, ?, ?, ?, 'wallet', 'pending')`).run(gameName, package_name, player_id, priceNum, user_phone);
+      db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(user_phone, `💳 تم خصم $${priceNum} من محفظتك لطلب ${package_name} في ${gameName}`);
       res.json({ success: true, message: 'تم الدفع من المحفظة بنجاح!' });
     } else {
-      // الدفع اليدوي
-      db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone, payment_method) VALUES (?, ?, ?, ?, ?, 'manual')`)
-        .run(gameName, package_name, player_id, priceNum, user_phone);
+      db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone, payment_method) VALUES (?, ?, ?, ?, ?, 'manual')`).run(gameName, package_name, player_id, priceNum, user_phone);
       res.json({ success: true, message: 'تم إرسال الطلب بنجاح' });
     }
   } catch(e) {
     res.status(500).json({ success: false, message: 'حدث خطأ في السيرفر' });
   }
 });
-
-});
 app.get('/api/topup-orders/:phone', (req, res) => { res.json(db.prepare("SELECT * FROM topup_orders WHERE user_phone = ? ORDER BY id DESC LIMIT 10").all(req.params.phone)); });
 
+// ===== Wallet Topup =====
+app.get('/topup-balance', (req, res) => {
+  let userBalance = 0;
+  if (req.query.phone) {
+    const user = db.prepare('SELECT balance FROM users WHERE phone = ?').get(req.query.phone);
+    if (user) userBalance = user.balance;
+  }
+  res.render('topup-balance', { userBalance, phoneQuery: req.query.phone || '', success: req.query.success });
+});
+
+app.post('/topup-balance', upload.single('receipt'), (req, res) => {
+  const { phone, amount_usd, transfer_ref } = req.body;
+  const amount_syp = parseFloat(amount_usd) * 142;
+  const receipt_image = req.file ? '/uploads/' + req.file.filename : null;
+  let user = db.prepare('SELECT id FROM users WHERE phone = ?').get(phone);
+  if (!user) db.prepare('INSERT INTO users (user_code, name, phone) VALUES (?, ?, ?)').run(generateUserCode(), 'زبون', phone);
+  db.prepare(`INSERT INTO wallet_deposits (user_phone, amount_usd, amount_syp, transfer_ref, receipt_image) VALUES (?, ?, ?, ?, ?)`).run(phone, amount_usd, amount_syp, transfer_ref, receipt_image);
+  res.redirect('/topup-balance?phone=' + phone + '&success=1');
+});
+
+// ===== Admin Login =====
 const ADMIN_PASSWORD = "0962730078@0962";
 app.get('/admin/login', (req, res) => { if (req.session.isAdmin) return res.redirect('/admin'); res.render('admin-login', { error: null }); });
 app.post('/admin/login', (req, res) => { if (req.body.password === ADMIN_PASSWORD) { req.session.isAdmin = true; return res.redirect('/admin'); } res.render('admin-login', { error: '❌ كلمة المرور غير صحيحة.' }); });
 app.get('/admin/logout', (req, res) => { req.session.destroy(); res.redirect('/'); });
 function requireAuth(req, res, next) { if (req.session.isAdmin) return next(); res.redirect('/admin/login'); }
 
+// ===== Admin Dashboard =====
 app.get('/admin', requireAuth, (req, res) => {
   const phones = db.prepare('SELECT * FROM phones ORDER BY id DESC LIMIT 100').all();
   let pendingDeposits = [];
@@ -301,63 +312,60 @@ app.get('/admin', requireAuth, (req, res) => {
     reviewsCount: db.prepare("SELECT COUNT(*) c FROM reviews WHERE status='pending'").get().c,
     usersCount: db.prepare("SELECT COUNT(*) c FROM users").get().c,
     topupsCount: db.prepare("SELECT COUNT(*) c FROM topup_orders WHERE status='pending'").get().c,
-    pendingDepositsCount: db.prepare("SELECT COUNT(*) c FROM wallet_deposits WHERE status='pending'").get().c
+    pendingDepositsCount: pendingDeposits.length
   };
   res.render('admin', { phones, stats, pendingDeposits });
 });
 
+// ===== Admin Visits =====
 app.get('/admin/visits', requireAuth, (req, res) => {
   const visits = db.prepare('SELECT * FROM visits ORDER BY id DESC LIMIT 300').all();
   res.render('admin-visits', { visits });
 });
 
-// ===== Admin Pending Ads =====
-app.get('/admin/pending', requireAuth, (req, res) => { res.render('admin-pending', { ads: db.prepare("SELECT * FROM phones WHERE status='pending' ORDER BY id DESC").all() }); });
-app.post('/admin/approve/:id', requireAuth, (req, res) => {
-  const phone = db.prepare('SELECT seller_phone, name FROM phones WHERE id = ?').get(req.params.id);
-  db.prepare("UPDATE phones SET status = 'approved' WHERE id = ?").run(req.params.id);
-  if (phone && phone.seller_phone) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(phone.seller_phone, `✅ تمت الموافقة على إعلانك: ${phone.name}`);
-  res.redirect('/admin/pending');
+// ===== Admin Deposits =====
+app.get('/admin/deposits', requireAuth, (req, res) => {
+  const deposits = db.prepare('SELECT * FROM wallet_deposits ORDER BY status ASC, id DESC').all();
+  const messages = { approved: '✅ تم الموافقة وإضافة الرصيد', rejected: '❌ تم رفض الطلب' };
+  res.render('admin-deposits', { deposits, message: messages[req.query.msg] || null });
 });
-app.post('/admin/reject/:id', requireAuth, (req, res) => {
-  const phone = db.prepare('SELECT seller_phone, name FROM phones WHERE id = ?').get(req.params.id);
-  if (phone && phone.seller_phone) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(phone.seller_phone, `❌ تم رفض إعلانك: ${phone.name}`);
-  db.prepare("DELETE FROM phones WHERE id = ?").run(req.params.id);
-  res.redirect('/admin/pending');
+app.post('/admin/deposits/approve/:id', requireAuth, (req, res) => {
+  const deposit = db.prepare('SELECT * FROM wallet_deposits WHERE id = ?').get(req.params.id);
+  if (deposit && deposit.status === 'pending') {
+    db.prepare("UPDATE wallet_deposits SET status = 'approved' WHERE id = ?").run(req.params.id);
+    let user = db.prepare('SELECT id FROM users WHERE phone = ?').get(deposit.user_phone);
+    if (!user) db.prepare('INSERT INTO users (user_code, name, phone, balance) VALUES (?, ?, ?, ?)').run(generateUserCode(), 'زبون', deposit.user_phone, deposit.amount_usd);
+    else db.prepare('UPDATE users SET balance = balance + ? WHERE phone = ?').run(deposit.amount_usd, deposit.user_phone);
+    db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(deposit.user_phone, `✅ تمت الموافقة على إيداع رصيد بقيمة $${deposit.amount_usd}. رصيدك جاهز.`);
+  }
+  res.redirect('/admin/deposits?msg=approved');
+});
+app.post('/admin/deposits/reject/:id', requireAuth, (req, res) => {
+  const { reason } = req.body;
+  const deposit = db.prepare('SELECT * FROM wallet_deposits WHERE id = ?').get(req.params.id);
+  if (deposit && deposit.status === 'pending') {
+    db.prepare("UPDATE wallet_deposits SET status = 'rejected', rejection_reason = ? WHERE id = ?").run(reason || 'بدون سبب', req.params.id);
+    db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(deposit.user_phone, `❌ تم رفض طلب الإيداع. السبب: ${reason || 'بدون سبب'}`);
+  }
+  res.redirect('/admin/deposits?msg=rejected');
 });
 
-// ===== Admin Verifications =====
+// ===== Admin Pending & Verifications & Reviews =====
+app.get('/admin/pending', requireAuth, (req, res) => { res.render('admin-pending', { ads: db.prepare("SELECT * FROM phones WHERE status='pending' ORDER BY id DESC").all() }); });
+app.post('/admin/approve/:id', requireAuth, (req, res) => { const phone = db.prepare('SELECT seller_phone, name FROM phones WHERE id = ?').get(req.params.id); db.prepare("UPDATE phones SET status = 'approved' WHERE id = ?").run(req.params.id); if (phone && phone.seller_phone) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(phone.seller_phone, `✅ تمت الموافقة على إعلانك: ${phone.name}`); res.redirect('/admin/pending'); });
+app.post('/admin/reject/:id', requireAuth, (req, res) => { const phone = db.prepare('SELECT seller_phone, name FROM phones WHERE id = ?').get(req.params.id); if (phone && phone.seller_phone) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(phone.seller_phone, `❌ تم رفض إعلانك: ${phone.name}`); db.prepare("DELETE FROM phones WHERE id = ?").run(req.params.id); res.redirect('/admin/pending'); });
+
 app.get('/admin/verifications', requireAuth, (req, res) => { res.render('admin-verifications', { docs: db.prepare("SELECT * FROM verifications ORDER BY status ASC, id DESC").all() }); });
 app.get('/admin/view-doc/:filename', requireAuth, (req, res) => { const p = path.resolve(privateDir, req.params.filename); if (fs.existsSync(p)) res.sendFile(p); else res.status(404).send('Not found'); });
-app.post('/admin/verify/approve/:id', requireAuth, (req, res) => {
-  const doc = db.prepare('SELECT phone, name FROM verifications WHERE id = ?').get(req.params.id);
-  db.prepare("UPDATE verifications SET status='approved' WHERE id=?").run(req.params.id);
-  if (doc && doc.phone) {
-    getOrCreateUser(doc.name, doc.phone);
-    db.prepare('UPDATE users SET is_verified = 1 WHERE phone = ?').run(doc.phone);
-    db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(doc.phone, '✅ تم توثيق حسابك بنجاح!');
-  }
-  res.redirect('/admin/verifications');
-});
-app.post('/admin/verify/reject/:id', requireAuth, (req, res) => {
-  const doc = db.prepare('SELECT phone FROM verifications WHERE id = ?').get(req.params.id);
-  if (doc && doc.phone) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(doc.phone, '❌ تم رفض طلب التوثيق.');
-  db.prepare("DELETE FROM verifications WHERE id=?").run(req.params.id);
-  res.redirect('/admin/verifications');
-});
+app.post('/admin/verify/approve/:id', requireAuth, (req, res) => { const doc = db.prepare('SELECT phone, name FROM verifications WHERE id = ?').get(req.params.id); db.prepare("UPDATE verifications SET status='approved' WHERE id=?").run(req.params.id); if (doc && doc.phone) { getOrCreateUser(doc.name, doc.phone); db.prepare('UPDATE users SET is_verified = 1 WHERE phone = ?').run(doc.phone); db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(doc.phone, '✅ تم توثيق حسابك بنجاح!'); } res.redirect('/admin/verifications'); });
+app.post('/admin/verify/reject/:id', requireAuth, (req, res) => { const doc = db.prepare('SELECT phone FROM verifications WHERE id = ?').get(req.params.id); if (doc && doc.phone) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(doc.phone, '❌ تم رفض طلب التوثيق.'); db.prepare("DELETE FROM verifications WHERE id=?").run(req.params.id); res.redirect('/admin/verifications'); });
 
-// ===== Admin Reviews =====
 app.get('/admin/reviews', requireAuth, (req, res) => { res.render('admin-reviews', { reviews: db.prepare("SELECT reviews.*, phones.name as phone_name FROM reviews LEFT JOIN phones ON reviews.phone_id = phones.id ORDER BY status ASC, id DESC").all() }); });
 app.post('/admin/review/approve/:id', requireAuth, (req, res) => { db.prepare("UPDATE reviews SET status='approved' WHERE id=?").run(req.params.id); res.redirect('/admin/reviews'); });
 app.post('/admin/review/delete/:id', requireAuth, (req, res) => { db.prepare("DELETE FROM reviews WHERE id=?").run(req.params.id); res.redirect('/admin/reviews'); });
 
 // ===== Admin Users =====
-app.get('/admin/users', requireAuth, (req, res) => {
-  const search = req.query.q || ''; let users;
-  if (search) users = db.prepare('SELECT * FROM users WHERE user_code LIKE ? OR phone LIKE ? OR name LIKE ? ORDER BY id DESC').all(`%${search}%`, `%${search}%`, `%${search}%`);
-  else users = db.prepare('SELECT * FROM users ORDER BY id DESC').all();
-  res.render('admin-users', { users, search });
-});
+app.get('/admin/users', requireAuth, (req, res) => { const search = req.query.q || ''; let users; if (search) users = db.prepare('SELECT * FROM users WHERE user_code LIKE ? OR phone LIKE ? OR name LIKE ? ORDER BY id DESC').all(`%${search}%`, `%${search}%`, `%${search}%`); else users = db.prepare('SELECT * FROM users ORDER BY id DESC').all(); res.render('admin-users', { users, search }); });
 app.post('/admin/users/verify/:id', requireAuth, (req, res) => { const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id); if (user) { db.prepare('UPDATE users SET is_verified = 1 WHERE id = ?').run(req.params.id); db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(user.phone, '✅ تم توثيق حسابك بنجاح!'); } res.redirect('/admin/users'); });
 app.post('/admin/users/unverify/:id', requireAuth, (req, res) => { db.prepare('UPDATE users SET is_verified = 0 WHERE id = ?').run(req.params.id); res.redirect('/admin/users'); });
 app.post('/admin/users/ban/:id', requireAuth, (req, res) => { const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id); if (user) { db.prepare('UPDATE users SET is_banned = 1 WHERE id = ?').run(req.params.id); db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(user.phone, '🚫 تم حظر حسابك.'); } res.redirect('/admin/users'); });
@@ -377,7 +385,7 @@ app.post('/admin/banners/add', requireAuth, upload.single('banner_image'), (req,
 app.post('/admin/banners/delete/:id', requireAuth, (req, res) => { const banner = db.prepare('SELECT * FROM banners WHERE id = ?').get(req.params.id); if (banner && banner.image_url) { const p = '.' + banner.image_url; if (fs.existsSync(p)) fs.unlinkSync(p); } db.prepare('DELETE FROM banners WHERE id = ?').run(req.params.id); res.redirect('/admin/banners'); });
 
 // ===== Admin Games =====
-app.get('/admin/games', requireAuth, (req, res) => { const games = db.prepare(`SELECT g.*, (SELECT COUNT(*) FROM game_packages p WHERE p.game_name = g.name) as packages_count FROM games g ORDER BY g.sort_order ASC, g.id ASC LIMIT 50`).all(); const messages = { created: '✅ تم إنشاء اللعبة', deleted: '🗑️ تم حذف اللعبة' }; res.render('admin-games', { games, message: messages[req.query.msg] || null }); });
+app.get('/admin/games', requireAuth, (req, res) => { const games = db.prepare(`SELECT g.*, (SELECT COUNT(*) FROM game_packages p WHERE p.game_name = g.name) as packages_count FROM games g ORDER BY g.sort_order ASC, g.id ASC`).all(); const messages = { created: '✅ تم إنشاء اللعبة', deleted: '🗑️ تم حذف اللعبة' }; res.render('admin-games', { games, message: messages[req.query.msg] || null }); });
 app.get('/admin/games/new', requireAuth, (req, res) => { res.render('admin-game-form', { game: null, isEdit: false, packages: [], error: null }); });
 app.post('/admin/games/new', requireAuth, upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), (req, res) => { const b = req.body; const logoUrl = (req.files && req.files.logo) ? '/uploads/' + req.files.logo[0].filename : null; const bannerUrl = (req.files && req.files.banner) ? '/uploads/' + req.files.banner[0].filename : null; const slug = (b.slug && b.slug.trim()) ? b.slug.trim().toLowerCase().replace(/\s+/g, '-') : null; try { db.prepare(`INSERT INTO games (name, name_ar, slug, image_url, banner_url, developer, description, instructions, delivery_time, refund_policy, is_active, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(b.name, b.name_ar || null, slug, logoUrl, bannerUrl, b.developer || null, b.description || null, b.instructions || null, b.delivery_time || null, b.refund_policy || null, b.is_active === 'on' ? 1 : 0, parseInt(b.sort_order) || 0); res.redirect('/admin/games?msg=created'); } catch (e) { res.render('admin-game-form', { game: b, isEdit: false, packages: [], error: 'خطأ: ' + e.message }); } });
 app.get('/admin/games/:id/edit', requireAuth, (req, res) => { const game = db.prepare('SELECT * FROM games WHERE id = ?').get(req.params.id); if (!game) return res.redirect('/admin/games'); const packages = db.prepare('SELECT * FROM game_packages WHERE game_name = ? ORDER BY sort_order ASC, price ASC').all(game.name); const messages = { saved: '✅ تم حفظ التعديلات' }; res.render('admin-game-form', { game, isEdit: true, packages, error: null, message: messages[req.query.msg] || null }); });
@@ -390,82 +398,19 @@ app.post('/admin/packages/delete/:id', requireAuth, (req, res) => { db.prepare("
 // ===== Admin Topups =====
 app.get('/admin/topups', requireAuth, (req, res) => { const orders = db.prepare("SELECT * FROM topup_orders ORDER BY id DESC").all(); res.render('admin-topups', { orders }); });
 app.post('/admin/topups/approve/:id', requireAuth, (req, res) => { const order = db.prepare("SELECT * FROM topup_orders WHERE id = ?").get(req.params.id); db.prepare("UPDATE topup_orders SET status = 'approved' WHERE id = ?").run(req.params.id); if (order && order.user_phone) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `✅ تمت الموافقة على طلب شحن ${order.package_name}`); res.redirect('/admin/topups'); });
-app.post('/admin/topups/reject/:id', requireAuth, (req, res) => { const { reason } = req.body; const order = db.prepare("SELECT * FROM topup_orders WHERE id = ?").get(req.params.id); db.prepare("UPDATE topup_orders SET status = 'rejected', rejection_reason = ? WHERE id = ?").run(reason, req.params.id);
-    if (order && order.payment_method === 'wallet') {
-      db.prepare('UPDATE users SET balance = balance + ? WHERE phone = ?').run(order.price, order.user_phone);
-      db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `💸 تم إعادة ${order.price} إلى محفظتك بسبب رفض الطلب.`);
-    } if (order && order.user_phone) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `❌ تم رفض طلب الشحن: ${reason}`); res.redirect('/admin/topups'); });
-
-
-// ===== User: Topup Balance =====
-app.get('/topup-balance', (req, res) => {
-  let userBalance = 0;
-  if (req.query.phone) {
-    const user = db.prepare('SELECT balance FROM users WHERE phone = ?').get(req.query.phone);
-    if (user) userBalance = user.balance;
-  }
-  res.render('topup-balance', { userBalance, phoneQuery: req.query.phone || '', success: req.query.success });
-});
-
-app.post('/topup-balance', upload.single('receipt'), (req, res) => {
-  const { phone, amount_usd, transfer_ref } = req.body;
-  const amount_syp = parseFloat(amount_usd) * 142; // New SYP
-  const receipt_image = req.file ? '/uploads/' + req.file.filename : null;
-  
-  let user = db.prepare('SELECT id FROM users WHERE phone = ?').get(phone);
-  if (!user) {
-    db.prepare('INSERT INTO users (user_code, name, phone) VALUES (?, ?, ?)').run(generateUserCode(), 'زبون', phone);
-  }
-
-  db.prepare(`INSERT INTO wallet_deposits (user_phone, amount_usd, amount_syp, transfer_ref, receipt_image) VALUES (?, ?, ?, ?, ?)`)
-    .run(phone, amount_usd, amount_syp, transfer_ref, receipt_image);
-
-  res.redirect('/topup-balance?phone=' + phone + '&success=1');
-});
-
-// ===== Admin: Manage Deposits =====
-app.get('/admin/deposits', requireAuth, (req, res) => {
-  const deposits = db.prepare('SELECT * FROM wallet_deposits ORDER BY status ASC, id DESC').all();
-  const messages = { approved: '✅ تم الموافقة وإضافة الرصيد', rejected: '❌ تم رفض الطلب' };
-  res.render('admin-deposits', { deposits, message: messages[req.query.msg] || null });
-});
-
-app.post('/admin/deposits/approve/:id', requireAuth, (req, res) => {
-  const deposit = db.prepare('SELECT * FROM wallet_deposits WHERE id = ?').get(req.params.id);
-  if (deposit && deposit.status === 'pending') {
-    db.prepare("UPDATE wallet_deposits SET status = 'approved' WHERE id = ?").run(req.params.id);
-    
-    let user = db.prepare('SELECT id FROM users WHERE phone = ?').get(deposit.user_phone);
-    if (!user) {
-      db.prepare('INSERT INTO users (user_code, name, phone, balance) VALUES (?, ?, ?, ?)').run(generateUserCode(), 'زبون', deposit.user_phone, deposit.amount_usd);
-    } else {
-      db.prepare('UPDATE users SET balance = balance + ? WHERE phone = ?').run(deposit.amount_usd, deposit.user_phone);
-    }
-
-    db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(deposit.user_phone, `✅ تمت الموافقة على إيداع رصيد بقيمة ${deposit.amount_usd}. رصيدك جاهز.`);
-  }
-  res.redirect('/admin/deposits?msg=approved');
-});
-
-app.post('/admin/deposits/reject/:id', requireAuth, (req, res) => {
+app.post('/admin/topups/reject/:id', requireAuth, (req, res) => {
   const { reason } = req.body;
-  const deposit = db.prepare('SELECT * FROM wallet_deposits WHERE id = ?').get(req.params.id);
-  if (deposit && deposit.status === 'pending') {
-    db.prepare("UPDATE wallet_deposits SET status = 'rejected', rejection_reason = ? WHERE id = ?").run(reason || 'بدون سبب', req.params.id);
-    db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(deposit.user_phone, `❌ تم رفض طلب الإيداع. السبب: ${reason || 'بدون سبب'}`);
+  const order = db.prepare("SELECT * FROM topup_orders WHERE id = ?").get(req.params.id);
+  db.prepare("UPDATE topup_orders SET status = 'rejected', rejection_reason = ? WHERE id = ?").run(reason, req.params.id);
+  if (order) {
+    if (order.payment_method === 'wallet') {
+      db.prepare('UPDATE users SET balance = balance + ? WHERE phone = ?').run(order.price, order.user_phone);
+      db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `💸 تم إعادة $${order.price} إلى محفظتك بسبب رفض الطلب.`);
+    } else if (order.user_phone) {
+      db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `❌ تم رفض طلب الشحن: ${reason}`);
+    }
   }
-  res.redirect('/admin/deposits?msg=rejected');
+  res.redirect('/admin/topups');
 });
-
-
-
-// ===== API: Get User Balance =====
-app.get('/api/user-balance/:phone', (req, res) => {
-  try {
-    const user = db.prepare('SELECT balance FROM users WHERE phone = ?').get(req.params.phone);
-    res.json({ balance: user ? user.balance : 0 });
-  } catch(e) { res.json({ balance: 0 }); }
-});
-
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

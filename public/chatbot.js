@@ -72,6 +72,7 @@
     const toggleBtn = document.getElementById('chat-toggle');
     const closeBtn = document.getElementById('chat-close');
     const windowEl = document.getElementById('chat-window');
+    let chatHistory = [];
     const inputEl = document.getElementById('chat-input');
     const sendBtn = document.getElementById('chat-send');
     const messagesEl = document.getElementById('chat-messages');
@@ -92,6 +93,7 @@
       // إضافة رسالة الزبون
       messagesEl.innerHTML += `<div style="background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; padding:12px 16px; border-radius:15px 15px 15px 0; font-size:13.5px; align-self:flex-end; max-width:88%; box-shadow:0 4px 10px rgba(0,243,255,0.2); line-height:1.5;">${text}</div>`;
       inputEl.value = '';
+      chatHistory.push({ role: 'user', text: text });
       messagesEl.scrollTop = messagesEl.scrollHeight;
 
       // مؤشر الكتابة
@@ -106,12 +108,12 @@
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000);
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
         
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text }),
+          body: JSON.stringify({ message: text, history: chatHistory }),
           signal: controller.signal
         });
         clearTimeout(timeoutId);
@@ -122,6 +124,7 @@
         if (data.reply) {
           // تشغيل صوت الاستلام
           playSound('receive');
+          chatHistory.push({ role: 'model', text: data.reply });
           messagesEl.innerHTML += `<div style="background:rgba(30,41,59,0.8); color:#e2e8f0; padding:12px 16px; border-radius:15px 15px 0 15px; font-size:13.5px; align-self:flex-start; max-width:88%; border:1px solid rgba(255,255,255,0.05); box-shadow:0 4px 10px rgba(0,0,0,0.2); line-height:1.6;">${data.reply}</div>`;
         } else {
           messagesEl.innerHTML += `<div style="color:#ef4444; font-size:12px; align-self:flex-start; padding:10px; background:rgba(239,68,68,0.1); border-radius:10px;">حدث خطأ، يرجى المحاولة لاحقاً.</div>`;

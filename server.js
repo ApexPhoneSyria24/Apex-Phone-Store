@@ -469,64 +469,84 @@ app.post('/admin/topups/reject/:id', requireAuth, (req, res) => {
 
 
 
+
 // ===== AI Chatbot (Mimo) =====
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, history } = req.body;
     if (!message) return res.status(400).json({ reply: 'الرجاء كتابة رسالة.' });
 
-    const phones = db.prepare("SELECT name, brand, price FROM phones WHERE status = 'approved' LIMIT 5").all();
-    const games = db.prepare("SELECT name FROM games WHERE is_active = 1 LIMIT 5").all();
+    const phones = db.prepare("SELECT name, brand, price FROM phones WHERE status = 'approved' LIMIT 8").all();
+    const games = db.prepare("SELECT name FROM games WHERE is_active = 1 LIMIT 8").all();
 
-    let context = `أنت اسمك "ميمو" (Mimo)، المساعد الذكي اللطيف والمحبوب لمتجر "Apex Phone Syria". 
-أنت تعمل لدى المتجر الأول والموثوق في سوريا لبيع الهواتف الذكية وشحن الألعاب.
-شخصيتك: ودود جداً، تستخدم الإيموجي بذكاء، وتشعر الزبون أنه في أيدٍ أمينة.
-معلومات المتجر:
-- نحن الخيار الأول والموثوق في سوريا.
-- نبيع هواتف أصلية (جديدة ومستعملة) بضمان.
-- نقدم خدمة شحن ألعاب فورية (PUBG, Free Fire, Jawaker, وغيرها).
-- طرق الدفع: سيريتل كاش (1 دولار = 142 ليرة سورية جديدة).
-- يمكن للزبون شحن رصيد محفظته من صفحة "شحن رصيد" في الموقع.
+    // شخصية ميمو الصارمة والذكية
+    let systemPrompt = `أنت "ميمو" (Mimo)، المساعد الذكي لمتجر Apex Phone Syria (المتجر الأول والموثوق في سوريا).
+شخصيتك: لطيف جداً، ذكي، حساس لاحتياجات الزبون، تستخدم الإيموجي باعتدال، وتتحدث بأسلوب راقٍ ومباشر.
 
-قواعد هامة جداً يجب الالتزام بها:
-1. لا تكرر التحية الطويلة (أهلاً وسهلاً بك في المتجر...) في كل رسالة. رحب بالزبون مرة واحدة فقط في أول رسالة.
-2. اجعل إجاباتك مختصرة ومباشرة جداً (سطرين إلى ثلاثة كحد أقصى) إلا إذا طلب الزبون تفاصيل أكثر.
-3. أجب فقط على السؤال المطروح ولا تفتح مواضيع جانبية من تلقاء نفسك.`;
+قواعد صارمة يجب عليك الالتزام بها حرفياً:
+1. ممنوع منعاً باتاً تكرار الترحيب (مثل: أهلاً وسهلاً، مرحباً بك) إذا كانت هذه ليست أول رسالة في المحادثة. اعتبر الزبون صديقاً تتحدث معه.
+2. إجاباتك يجب أن تكون مختصرة (سطر إلى سطرين كحد أقصى) وذكية ومباشرة. لا تكتب فقرات طويلة.
+3. أجب على السؤال المطروح فقط دون فتح مواضيع جانبية.
+4. إذا سأل عن منتج، اذكر له السعر المتاح لدينا بذكاء.
+5. معلومات المتجر: نبيع هواتف أصلية بضمان، ونشحن ألعاب فورية (PUBG, Free Fire)، والدفع عبر سيريتل كاش (1 دولار = 142 ل.س جديدة).
+
+الهواتف المتاحة: ${phones.map(p => `${p.name} (${p.price})`).join(', ')}.
+الألعاب المتاحة: ${games.map(g => g.name).join(', ')}.`;
 
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ reply: '⚠️ المفتاح غير موجود في إعدادات السيرفر (Environment).' });
-    }
+    if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود.' });
 
-    // استخدام الرابط التقليدي مع وضع المفتاح في الرابط (الطريقة الأكثر استقراراً)
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent`;
+    // بناء سجل المحادثة لكي يتذكر ميمو ما سبق
+    let contents = [];
+    if (history && Array.isArray(history)) {
+      history.forEach(msg => {
+        contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] });
+      });
+    }
     
-        const response = await fetch(url, {
+    // إضافة رسالة الزبون الحالية مع تعليمات النظام
+    contents.push({ 
+      role: 'user', 
+      parts: [{ text: systemPrompt + "\n\nرسالة الزبون الآن: " + message }] 
+    });
+
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
+    
+    const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: context + "\n\nسؤال الزبون: " + message }] }]
-      })
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey 
+      },
+      body: JSON.stringify({ contents: contents })
     });
 
     const data = await response.json();
-        
+    
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       res.json({ reply: data.candidates[0].content.parts[0].text });
     } else {
-      // عرض الخطأ الحقيقي من جوجل
       const googleError = data.error ? data.error.message : JSON.stringify(data);
       console.error('Google API Error:', googleError);
+      // في حال فشل النموذج الكامل، نجرب النسخة السريعة
+      if (googleError.includes('not found')) {
+        const fallbackUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent';
+        const fbRes = await fetch(fallbackUrl, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+          body: JSON.stringify({ contents: contents })
+        });
+        const fbData = await fbRes.json();
+        if (fbData.candidates && fbData.candidates[0]) return res.json({ reply: fbData.candidates[0].content.parts[0].text });
+      }
       res.status(400).json({ reply: '⚠️ خطأ من جوجل: ' + googleError });
     }
   } catch (e) {
-    console.error('Server Error:', e);
     res.status(500).json({ reply: '⚠️ خطأ في السيرفر: ' + e.message });
   }
 });
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });
+
 
 
 

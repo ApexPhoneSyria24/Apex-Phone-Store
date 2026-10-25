@@ -334,18 +334,31 @@
       chatHistory.push({ role: 'user', text: text });
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
+      const loadingId = 'ai-loading-' + Date.now();
+      aiChat.innerHTML += `
+        <div id="${loadingId}" style="display:flex; align-items:center; gap:4px; background:#112240; padding:12px 16px; border-radius:8px; border-top-left-radius:0; align-self:flex-start; width:fit-content; box-shadow:0 1px 2px rgba(0,0,0,0.3); margin-bottom:2px;">
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+        </div>`;
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+
       try {
         const res = await fetch('/api/chat', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message: text, history: chatHistory })
         });
         const data = await res.json();
+        if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
         if (data.reply) {
           playSound('receive');
           chatHistory.push({ role: 'model', text: data.reply });
           aiChat.innerHTML += `<div style="background:#112240; color:#e6f1ff; padding:8px 12px; border-radius:8px; border-top-left-radius:0; font-size:13px; align-self:flex-start; max-width:85%; box-shadow:0 1px 2px rgba(0,0,0,0.3); margin-bottom:2px; word-break: break-word;">${data.reply}</div>`;
         }
-      } catch(e) {}
+      } catch(e) {
+        if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
+      }
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
@@ -353,9 +366,21 @@
     inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
   });
 
+  
   const style = document.createElement('style');
   style.innerHTML = `
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+    .typing-dot {
+      width: 8px; height: 8px; background-color: #00f3ff; border-radius: 50%;
+      display: inline-block; animation: bounce 1.4s infinite ease-in-out both;
+    }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
   `;
   document.head.appendChild(style);
+
 })();

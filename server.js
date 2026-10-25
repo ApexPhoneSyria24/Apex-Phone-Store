@@ -90,6 +90,25 @@ try {
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 } catch(e) {}
+
+try {
+  db.exec(`CREATE TABLE IF NOT EXISTS chat_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    visitor_id TEXT NOT NULL,
+    sender TEXT NOT NULL,
+    message TEXT NOT NULL,
+    is_read INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+  db.exec(`CREATE TABLE IF NOT EXISTS chat_sessions (
+    visitor_id TEXT PRIMARY KEY,
+    status TEXT DEFAULT 'open',
+    rating INTEGER DEFAULT 0,
+    feedback TEXT,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+} catch(e) { console.error('Chat Tables Error:', e.message); }
+
 const app = express();
 const PORT = 3000;
 

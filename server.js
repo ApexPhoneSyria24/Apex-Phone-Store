@@ -50,6 +50,7 @@ try {
     const vCols = db.prepare("PRAGMA table_info(visits)").all().map(c => c.name);
     if (!vCols.includes('country')) db.exec("ALTER TABLE visits ADD COLUMN country TEXT");
     if (!vCols.includes('city')) db.exec("ALTER TABLE visits ADD COLUMN city TEXT");
+  if (!vCols.includes('visitor_id')) db.exec("ALTER TABLE visits ADD COLUMN visitor_id TEXT");
   } catch(e) {}
 
   const gameCount = db.prepare('SELECT COUNT(*) c FROM games').get().c;
@@ -101,34 +102,63 @@ app.use('/uploads', express.static('public/uploads', { maxAge: '30d', immutable:
 app.use('/css', express.static('public/css', { maxAge: '7d' }));
 app.use(express.static('public'));
 
+
 // ===== Visitor Tracking (Silent) =====
 app.use((req, res, next) => {
   if (req.path.startsWith('/css') || req.path.startsWith('/uploads') || req.path.startsWith('/admin') || req.path === '/favicon.ico') return next();
   try {
-    const ipHeader = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
+    // استخراج الـ IP الحقيقي (يدعم Cloudflare و Proxy)
+    const ipHeader = req.headers['cf-connecting-ip'] || req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
     let cleanIp = ipHeader.split(',')[0].trim().replace('::ffff:', '');
+    
     let isLocal = false;
-    if (cleanIp === '::1' || cleanIp.startsWith('127.') || cleanIp.startsWith('192.168.') || cleanIp.startsWith('10.') || cleanIp.startsWith('172.')) isLocal = true;
+    if (cleanIp === '::1' || cleanIp.startsWith('127.') || cleanIp.startsWith('192.168.') || cleanIp.startsWith('10.') || cleanIp.startsWith('172.')) {
+       isLocal = true;
+       cleanIp = '127.0.0.1 (محلي)';
+    }
+
+    // إنشاء أو قراءة معرف الزائر (Visitor ID)
+    let visitorId = null;
+    if (req.headers.cookie) {
+      const cookies = req.headers.cookie.split(';');
+      for (let c of cookies) {
+        if (c.trim().startsWith('apex_visitor_id=')) {
+          visitorId = c.split('=')[1];
+          break;
+        }
+      }
+    }
+    
+    if (!visitorId) {
+      visitorId = 'VIS-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      res.setHeader('Set-Cookie', 'apex_visitor_id=' + visitorId + '; Max-Age=31536000; Path=/; HttpOnly');
+    }
 
     const ua = req.headers['user-agent'] || 'Unknown';
     let device = 'كمبيوتر'; if (/mobile/i.test(ua)) device = 'هاتف'; if (/tablet|ipad/i.test(ua)) device = 'تابلت';
     let os = 'غير معروف'; if (/android/i.test(ua)) os = 'Android'; else if (/iphone|ipad|ipod/i.test(ua)) os = 'iOS'; else if (/windows/i.test(ua)) os = 'Windows'; else if (/mac/i.test(ua)) os = 'Mac';
 
-    const stmt = db.prepare('INSERT INTO visits (ip, user_agent, path, device_type) VALUES (?, ?, ?, ?)');
-    const info = stmt.run(cleanIp, ua, req.path, device + ' / ' + os);
+    const stmt = db.prepare('INSERT INTO visits (ip, user_agent, path, device_type, visitor_id) VALUES (?, ?, ?, ?, ?)');
+    const info = stmt.run(cleanIp, ua, req.path, device + ' / ' + os, visitorId);
     const visitId = info.lastInsertRowid;
 
     if (isLocal) {
-      db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('سوريا (شبكة محلية)', 'دمشق', visitId);
+        db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('سوريا (محلي)', 'دمشق', visitId);
     } else {
-      fetch('https://ipwho.is/' + cleanIp).then(r => r.json()).then(data => {
-        if (data && data.success) db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run(data.country || 'غير معروف', data.city || 'غير معروف', visitId);
-        else db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('فشل التحديد', 'فشل', visitId);
-      }).catch(() => { db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('خطأ بالشبكة', 'خطأ', visitId); });
+        fetch('https://ipwho.is/' + cleanIp)
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.success) {
+                    db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run(data.country || 'غير معروف', data.city || 'غير معروف', visitId);
+                } else {
+                    db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('فشل التحديد', 'فشل', visitId);
+                }
+            }).catch(() => {});
     }
   } catch(e) { }
   next();
 });
+
 
 // ===== API: Balance & Phone Link =====
 app.get('/api/user-balance/:phone', (req, res) => {
@@ -318,9 +348,20 @@ app.get('/admin', requireAuth, (req, res) => {
 });
 
 // ===== Admin Visits =====
+
 app.get('/admin/visits', requireAuth, (req, res) => {
-  const visits = db.prepare('SELECT * FROM visits ORDER BY id DESC LIMIT 300').all();
-  res.render('admin-visits', { visits });
+  try {
+    const visits = db.prepare('SELECT * FROM visits ORDER BY id DESC LIMIT 300').all();
+    const stats = {
+      totalVisits: db.prepare('SELECT COUNT(*) c FROM visits').get().c,
+      uniqueVisitors: db.prepare('SELECT COUNT(DISTINCT visitor_id) c FROM visits WHERE visitor_id IS NOT NULL').get().c,
+      todayVisits: db.prepare("SELECT COUNT(*) c FROM visits WHERE date(created_at) = date('now', 'localtime')").get().c,
+      todayUnique: db.prepare("SELECT COUNT(DISTINCT visitor_id) c FROM visits WHERE visitor_id IS NOT NULL AND date(created_at) = date('now', 'localtime')").get().c
+    };
+    res.render('admin-visits', { visits, stats });
+  } catch(e) { res.send('Error: ' + e.message); }
+});
+
 });
 
 // ===== Admin Deposits =====

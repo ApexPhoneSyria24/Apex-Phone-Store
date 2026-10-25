@@ -3,22 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <title>إحصائيات الزوار</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } } } }</script>
 </head>
-<body class="bg-gray-100 p-6 font-sans">
+<body class="bg-gray-100 p-4 md:p-6 font-sans">
   <div class="max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-black">📊 إحصائيات وسجل الزوار</h1>
-      <a href="/admin" class="bg-gray-800 text-white px-4 py-2 rounded-lg font-bold">عودة للإدارة</a>
+      <h1 class="text-2xl font-black text-slate-800">📊 إحصائيات وسجل الزوار</h1>
+      <a href="/admin" class="bg-slate-800 text-white px-4 py-2 rounded-lg font-bold">عودة للإدارة</a>
+    </div>
+
+    <!-- بطاقات الإحصائيات الجديدة -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white p-4 rounded-xl shadow-sm border-r-4 border-blue-500">
+        <div class="text-sm font-bold text-slate-500">إجمالي الزيارات</div>
+        <div class="text-2xl font-black text-blue-600"><%= stats.totalVisits %></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border-r-4 border-green-500">
+        <div class="text-sm font-bold text-slate-500">الزوار الفريدين (كل الوقت)</div>
+        <div class="text-2xl font-black text-green-600"><%= stats.uniqueVisitors %></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border-r-4 border-purple-500">
+        <div class="text-sm font-bold text-slate-500">زيارات اليوم</div>
+        <div class="text-2xl font-black text-purple-600"><%= stats.todayVisits %></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border-r-4 border-amber-500">
+        <div class="text-sm font-bold text-slate-500">زوار جدد اليوم</div>
+        <div class="text-2xl font-black text-amber-500"><%= stats.todayUnique %></div>
+      </div>
     </div>
     
+    <!-- جدول الزوار -->
     <div class="bg-white rounded-xl shadow overflow-x-auto">
       <table class="w-full text-right text-sm">
         <thead class="bg-gray-200 text-gray-700">
           <tr>
+            <th class="p-3">معرف الزائر</th>
             <th class="p-3">الوقت</th>
             <th class="p-3">IP</th>
-            <th class="p-3">الموقع</th>
+            <th class="p-3">الموقع التقريبي</th>
             <th class="p-3">الجهاز</th>
             <th class="p-3">الهاتف</th>
             <th class="p-3">الصفحة</th>
@@ -27,6 +51,7 @@
         <tbody class="divide-y divide-gray-100">
           <% if (visits && visits.length > 0) { visits.forEach(v => { %>
             <tr class="hover:bg-gray-50">
+              <td class="p-3 font-bold text-indigo-600" dir="ltr"><%= v.visitor_id || '---' %></td>
               <td class="p-3 text-xs text-gray-500" dir="ltr"><%= v.created_at %></td>
               <td class="p-3 font-bold" dir="ltr"><%= v.ip %></td>
               <td class="p-3 text-sm font-bold text-blue-600">
@@ -37,7 +62,7 @@
               <td class="p-3 text-xs text-gray-500" dir="ltr"><%= v.path %></td>
             </tr>
           <% }) } else { %>
-            <tr><td colspan="6" class="p-5 text-center text-gray-500">لا توجد زيارات مسجلة بعد.</td></tr>
+            <tr><td colspan="7" class="p-5 text-center text-gray-500">لا توجد زيارات مسجلة بعد.</td></tr>
           <% } %>
         </tbody>
       </table>

@@ -244,10 +244,41 @@ app.get('/games/:gameName', (req, res) => {
   const packages = db.prepare("SELECT * FROM game_packages WHERE game_name = ? AND is_active = 1 ORDER BY sort_order ASC, price ASC").all(game.name);
   res.render('game-details', { game, packages });
 });
+
 app.post('/games/:gameName/order', (req, res) => {
-  const { player_id, package_name, price, user_phone } = req.body;
-  db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone) VALUES (?, ?, ?, ?, ?)`).run(req.params.gameName, package_name, player_id, price, user_phone);
-  res.json({ success: true });
+  const { player_id, package_name, price, user_phone, payment_method } = req.body;
+  const priceNum = parseFloat(price);
+  const gameName = req.params.gameName;
+
+  try {
+    if (payment_method === 'wallet') {
+      // التحقق من المستخدم ورصيده
+      const user = db.prepare('SELECT balance FROM users WHERE phone = ?').get(user_phone);
+      if (!user) return res.status(400).json({ success: false, message: 'رقم الهاتف غير مسجل. يرجى شحن رصيدك أولاً.' });
+      if (user.balance < priceNum) return res.status(400).json({ success: false, message: 'عذراً، رصيدك غير كافٍ لإتمام الطلب.' });
+
+      // خصم الرصيد
+      db.prepare('UPDATE users SET balance = balance - ? WHERE phone = ?').run(priceNum, user_phone);
+      
+      // تسجيل الطلب (حالته pending حتى تقوم أنت بشحنه للعبة، لكنه مدفوع)
+      db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone, payment_method, status) VALUES (?, ?, ?, ?, ?, 'wallet', 'pending')`)
+        .run(gameName, package_name, player_id, priceNum, user_phone);
+
+      // إشعار للزبون بالخصم
+      db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(user_phone, `💳 تم خصم ${priceNum} من محفظتك لطلب ${package_name} في ${gameName}`);
+
+      res.json({ success: true, message: 'تم الدفع من المحفظة بنجاح!' });
+    } else {
+      // الدفع اليدوي
+      db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone, payment_method) VALUES (?, ?, ?, ?, ?, 'manual')`)
+        .run(gameName, package_name, player_id, priceNum, user_phone);
+      res.json({ success: true, message: 'تم إرسال الطلب بنجاح' });
+    }
+  } catch(e) {
+    res.status(500).json({ success: false, message: 'حدث خطأ في السيرفر' });
+  }
+});
+
 });
 app.get('/api/topup-orders/:phone', (req, res) => { res.json(db.prepare("SELECT * FROM topup_orders WHERE user_phone = ? ORDER BY id DESC LIMIT 10").all(req.params.phone)); });
 
@@ -359,7 +390,11 @@ app.post('/admin/packages/delete/:id', requireAuth, (req, res) => { db.prepare("
 // ===== Admin Topups =====
 app.get('/admin/topups', requireAuth, (req, res) => { const orders = db.prepare("SELECT * FROM topup_orders ORDER BY id DESC").all(); res.render('admin-topups', { orders }); });
 app.post('/admin/topups/approve/:id', requireAuth, (req, res) => { const order = db.prepare("SELECT * FROM topup_orders WHERE id = ?").get(req.params.id); db.prepare("UPDATE topup_orders SET status = 'approved' WHERE id = ?").run(req.params.id); if (order && order.user_phone) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `✅ تمت الموافقة على طلب شحن ${order.package_name}`); res.redirect('/admin/topups'); });
-app.post('/admin/topups/reject/:id', requireAuth, (req, res) => { const { reason } = req.body; const order = db.prepare("SELECT * FROM topup_orders WHERE id = ?").get(req.params.id); db.prepare("UPDATE topup_orders SET status = 'rejected', rejection_reason = ? WHERE id = ?").run(reason, req.params.id); if (order && order.user_phone) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `❌ تم رفض طلب الشحن: ${reason}`); res.redirect('/admin/topups'); });
+app.post('/admin/topups/reject/:id', requireAuth, (req, res) => { const { reason } = req.body; const order = db.prepare("SELECT * FROM topup_orders WHERE id = ?").get(req.params.id); db.prepare("UPDATE topup_orders SET status = 'rejected', rejection_reason = ? WHERE id = ?").run(reason, req.params.id);
+    if (order && order.payment_method === 'wallet') {
+      db.prepare('UPDATE users SET balance = balance + ? WHERE phone = ?').run(order.price, order.user_phone);
+      db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `💸 تم إعادة ${order.price} إلى محفظتك بسبب رفض الطلب.`);
+    } if (order && order.user_phone) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `❌ تم رفض طلب الشحن: ${reason}`); res.redirect('/admin/topups'); });
 
 
 // ===== User: Topup Balance =====

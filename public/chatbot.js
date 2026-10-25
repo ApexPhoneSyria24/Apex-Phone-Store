@@ -26,6 +26,7 @@
   const mimoImageUrl = 'https://cdn-icons-png.flaticon.com/512/4712/4712035.png';
 
   const widgetHTML = `
+    <!-- Teaser -->
     <div id="mimo-teaser" style="display:none; position:fixed; bottom:90px; right:25px; z-index:999999; background:rgba(17,34,64,0.95); backdrop-filter:blur(10px); border:1px solid #00f3ff; border-radius:20px 20px 0 20px; padding:15px; width:270px; box-shadow:0 10px 30px rgba(0,243,255,0.3); font-family:'Cairo', sans-serif; transform-origin: bottom right; animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;" dir="rtl">
       <button id="mimo-close-teaser" style="position:absolute; top:-10px; left:-10px; background:#ef4444; color:white; border:none; width:24px; height:24px; border-radius:50%; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3);">✕</button>
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
@@ -47,19 +48,16 @@
     
     <div id="chat-window" style="display:none; position:fixed; top:0; left:0; width:100%; height:100vh; background:#0a192f; z-index:999999; font-family:'Cairo', sans-serif; flex-direction:column; overflow:hidden;" dir="rtl">
       
-      <div style="background:#112240; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; box-shadow:0 2px 5px rgba(0,0,0,0.2);">
-        <div style="display:flex; align-items:center; gap:15px;">
+      <div style="background:#112240; padding:12px 15px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; box-shadow:0 2px 5px rgba(0,0,0,0.2);">
+        <div style="display:flex; align-items:center; gap:12px;">
           <button id="chat-back-btn" style="display:none; background:none; border:none; color:#00f3ff; font-size:20px; cursor:pointer; padding:0 5px;"><i class="fa-solid fa-arrow-right"></i></button>
-          <div style="width:45px; height:45px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:2px solid #00f3ff;">
+          <div style="width:40px; height:40px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:2px solid #00f3ff;">
             <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover;">
           </div>
           <div>
-            <div id="chat-title" style="color:#e6f1ff; font-weight:900; font-size:18px;">دعم Apex</div>
-            <div style="color:#39ff14; font-size:12px; font-weight:bold; display:flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; background:#39ff14; border-radius:50%;"></span> متصل الآن</div>
+            <div id="chat-title" style="color:#e6f1ff; font-weight:900; font-size:16px;">دعم Apex</div>
+            <div style="color:#39ff14; font-size:11px; font-weight:bold; display:flex; align-items:center; gap:5px;"><span style="width:6px; height:6px; background:#39ff14; border-radius:50%;"></span> متصل الآن</div>
           </div>
-        </div>
-        <button id="chat-close" style="background:none; border:none; color:#a8b2c1; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:20px;"><i class="fa-solid fa-xmark"></i></button>
-      </div>
         </div>
         <button id="chat-close" style="background:none; border:none; color:#a8b2c1; width:35px; height:35px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:20px;"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -124,8 +122,9 @@
     const toggleBtn = document.getElementById('chat-toggle');
     const chatWindow = document.getElementById('chat-window');
     const closeBtn = document.getElementById('chat-close');
+    const backBtn = document.getElementById('chat-back-btn');
     const chatTitle = document.getElementById('chat-title');
-    const chatBackBtn = document.getElementById('chat-back-btn');
+    
     const choiceScreen = document.getElementById('choice-screen');
     const aiChat = document.getElementById('ai-chat');
     const humanChat = document.getElementById('human-chat');
@@ -138,30 +137,14 @@
     const messagesContainer = document.getElementById('chat-messages');
     const newChatOptions = document.getElementById('new-chat-options');
     
-    
-    chatBackBtn.onclick = () => {
-      playSound('send');
-      chatTitle.innerText = 'دعم Apex';
-      chatBackBtn.style.display = 'none';
-      choiceScreen.style.display = 'flex';
-      aiChat.style.display = 'none';
-      humanChat.style.display = 'none';
-      inputArea.style.display = 'none';
-      isHumanMode = false;
-      newChatOptions.style.display = 'none';
-      ratingScreen.style.display = 'none';
-    };
-  
     let chatHistory = [];
     let isHumanMode = false;
     let isClosedDismissed = false;
     let chatIsClosed = false;
 
-    // --- حل مشكلة لوحة المفاتيح باحترافية ---
     function handleVisualViewport() {
       if (!window.visualViewport) return;
       const vv = window.visualViewport;
-      
       const adjust = () => {
         if (chatWindow.style.display === 'flex') {
           chatWindow.style.height = vv.height + 'px';
@@ -169,12 +152,10 @@
           if (messagesContainer) messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
       };
-      
       vv.addEventListener('resize', adjust);
       vv.addEventListener('scroll', adjust);
     }
     handleVisualViewport();
-    // ----------------------------------------
 
     setTimeout(() => {
       if (chatWindow.style.display === 'none' && !localStorage.getItem('mimo_teaser_closed_v5')) {
@@ -209,13 +190,26 @@
     
     closeBtn.onclick = () => { chatWindow.style.display = 'none'; document.body.style.overflow = ''; };
 
+    backBtn.onclick = () => {
+      playSound('send');
+      choiceScreen.style.display = 'flex';
+      aiChat.style.display = 'none';
+      humanChat.style.display = 'none';
+      inputArea.style.display = 'none';
+      backBtn.style.display = 'none';
+      chatTitle.innerText = 'دعم Apex';
+      isHumanMode = false;
+      newChatOptions.style.display = 'none';
+      ratingScreen.style.display = 'none';
+    };
+
     btnAI.onclick = () => { 
       playSound('send'); 
       choiceScreen.style.display = 'none'; 
       aiChat.style.display = 'flex'; 
       inputArea.style.display = 'flex'; 
       chatTitle.innerText = 'ميمو ( Mimo ) 🥰';
-      chatBackBtn.style.display = 'block';
+      backBtn.style.display = 'block';
       isHumanMode = false;
       inputEl.focus(); 
     };
@@ -226,7 +220,7 @@
       humanChat.style.display = 'flex';
       inputArea.style.display = 'flex';
       chatTitle.innerText = 'المطور (الدعم البشري)';
-      chatBackBtn.style.display = 'block';
+      backBtn.style.display = 'block';
       isHumanMode = true;
       isClosedDismissed = false;
       inputEl.focus();
@@ -374,7 +368,6 @@
         </div>`;
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-
       try {
         const res = await fetch('/api/chat', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -382,6 +375,7 @@
         });
         const data = await res.json();
         if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
+        
         if (data.reply) {
           playSound('receive');
           chatHistory.push({ role: 'model', text: data.reply });
@@ -397,7 +391,6 @@
     inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
   });
 
-  
   const style = document.createElement('style');
   style.innerHTML = `
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -413,5 +406,4 @@
     .typing-dot:nth-child(2) { animation-delay: -0.16s; }
   `;
   document.head.appendChild(style);
-
 })();

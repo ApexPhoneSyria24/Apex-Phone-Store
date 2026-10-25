@@ -66,5 +66,26 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS games (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    image_url TEXT
+  )
+`);
+db.exec(`
+  CREATE TABLE IF NOT EXISTS topup_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    game_name TEXT NOT NULL,
+    package_name TEXT NOT NULL,
+    player_id TEXT NOT NULL,
+    price REAL NOT NULL,
+    user_phone TEXT NOT NULL,
+    status TEXT DEFAULT 'pending',
+    rejection_reason TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
 console.log('✅ قاعدة البيانات جاهزة - مع نظام المستخدمين الكامل');
 module.exports = db;

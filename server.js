@@ -483,4 +483,38 @@ app.post('/admin/topups/reject/:id', requireAuth, (req, res) => {
   res.redirect('/admin/topups');
 });
 
+// ===== DIAGNOSE (TEMP) =====
+app.get('/admin/diagnose', requireAuth, (req, res) => {
+  const diag = {
+    cwd: process.cwd(),
+    uploads_dir: './public/uploads',
+    uploads_exists: fs.existsSync('./public/uploads'),
+    uploads_files_count: 0,
+    uploads_files_sample: [],
+    games_in_db: 0,
+    image_check: [],
+    db_file: fs.existsSync('./phones.db'),
+    errors: []
+  };
+  try {
+    if (diag.uploads_exists) {
+      const files = fs.readdirSync('./public/uploads');
+      diag.uploads_files_count = files.length;
+      diag.uploads_files_sample = files.slice(0, 15);
+    }
+  } catch(e) { diag.errors.push('readdir: ' + e.message); }
+  try {
+    const games = db.prepare('SELECT id, name, image_url, banner_url FROM games ORDER BY id').all();
+    diag.games_in_db = games.length;
+    diag.image_check = games.map(g => ({
+      name: g.name,
+      image_url: g.image_url || null,
+      image_exists: g.image_url ? fs.existsSync('.' + g.image_url) : false,
+      banner_url: g.banner_url || null,
+      banner_exists: g.banner_url ? fs.existsSync('.' + g.banner_url) : false
+    }));
+  } catch(e) { diag.errors.push('db: ' + e.message); }
+  res.json(diag);
+});
+
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

@@ -102,7 +102,7 @@ const privateStorage = multer.diskStorage({
 });
 const uploadPrivate = multer({ storage: privateStorage });
 
-app.set('trust proxy', true);
+app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -111,13 +111,15 @@ app.use('/uploads', express.static('public/uploads', { maxAge: '30d', immutable:
 app.use('/css', express.static('public/css', { maxAge: '7d' }));
 app.use(express.static('public'));
 
-// ===== Visitor Tracking (Silent) =====
+
+// ===== Visitor Tracking (Silent & Real IP) =====
 app.use((req, res, next) => {
   if (req.path.startsWith('/css') || req.path.startsWith('/uploads') || req.path.startsWith('/admin') || req.path === '/favicon.ico') return next();
   try {
-    const ipHeader = req.headers['cf-connecting-ip'] || req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
-    let cleanIp = ipHeader.split(',')[0].trim().replace('::ffff:', '');
-    
+    // قراءة الـ IP من req.ip (بعد تفعيل trust proxy) أو من الرؤوس كاحتياط
+    let cleanIp = req.ip || req.headers['x-forwarded-for']?.split(',')[0] || req.headers['x-real-ip'] || req.socket.remoteAddress || '';
+    cleanIp = cleanIp.replace('::ffff:', '').trim();
+
     let isLocal = false;
     if (cleanIp === '::1' || cleanIp.startsWith('127.') || cleanIp.startsWith('192.168.') || cleanIp.startsWith('10.') || cleanIp.startsWith('172.')) {
        isLocal = true;
@@ -161,6 +163,7 @@ app.use((req, res, next) => {
   } catch(e) { }
   next();
 });
+
 
 // ===== API: Balance & Phone Link =====
 app.get('/api/user-balance/:phone', (req, res) => {

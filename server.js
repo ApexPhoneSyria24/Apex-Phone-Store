@@ -6,37 +6,45 @@ const fs = require('fs');
 const db = require('./database');
 const compression = require('compression');
 
-// ===== Auto-Migrate (Games & Visits) =====
+// ===== Safe Auto-Migrate (No Data Loss) =====
 try {
-  const cols = db.prepare("PRAGMA table_info(games)").all();
-  if (!cols.some(c => c.name === 'banner_url')) {
-    console.log('Updating games table...');
-    console.log('Updating packages table...');
-    db.exec(`CREATE TABLE games (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, name_ar TEXT, slug TEXT UNIQUE, image_url TEXT, banner_url TEXT, developer TEXT, description TEXT, instructions TEXT, delivery_time TEXT, refund_policy TEXT, is_active INTEGER DEFAULT 1, sort_order INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
-    db.exec(`CREATE TABLE game_packages (id INTEGER PRIMARY KEY AUTOINCREMENT, game_name TEXT NOT NULL, package_name TEXT NOT NULL, price REAL NOT NULL, is_active INTEGER DEFAULT 1, sort_order INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
+  db.exec(`CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL)`);
+  db.exec(`CREATE TABLE IF NOT EXISTS game_packages (id INTEGER PRIMARY KEY AUTOINCREMENT, game_name TEXT NOT NULL)`);
+
+  const gamesCols = db.prepare("PRAGMA table_info(games)").all().map(c => c.name);
+  const addGameCol = (col, type) => { if (!gamesCols.includes(col)) db.exec(`ALTER TABLE games ADD COLUMN ${col} ${type}`); };
+  addGameCol('name_ar', 'TEXT'); addGameCol('slug', 'TEXT'); addGameCol('image_url', 'TEXT'); addGameCol('banner_url', 'TEXT');
+  addGameCol('developer', 'TEXT'); addGameCol('description', 'TEXT'); addGameCol('instructions', 'TEXT');
+  addGameCol('delivery_time', 'TEXT'); addGameCol('refund_policy', 'TEXT'); addGameCol('is_active', 'INTEGER DEFAULT 1');
+  addGameCol('sort_order', 'INTEGER DEFAULT 0'); addGameCol('created_at', 'DATETIME DEFAULT CURRENT_TIMESTAMP');
+
+  const pkgCols = db.prepare("PRAGMA table_info(game_packages)").all().map(c => c.name);
+  const addPkgCol = (col, type) => { if (!pkgCols.includes(col)) db.exec(`ALTER TABLE game_packages ADD COLUMN ${col} ${type}`); };
+  addPkgCol('package_name', 'TEXT'); addPkgCol('price', 'REAL'); addPkgCol('is_active', 'INTEGER DEFAULT 1'); addPkgCol('sort_order', 'INTEGER DEFAULT 0'); addPkgCol('created_at', 'DATETIME DEFAULT CURRENT_TIMESTAMP');
+
+  const gameCount = db.prepare('SELECT COUNT(*) c FROM games').get().c;
+  if (gameCount === 0) {
     const seed = [
-      ['PUBG Mobile','ببجي موبايل','pubg-mobile','Tencent Games','شحن شدات ببجي موبايل (UC) بشكل فوري وآمن.','أدخل Player ID الظاهر في ملفك الشخصي داخل اللعبة.','خلال 5-15 دقيقة','لا يمكن استرداد الطلب بعد الشحن. إن لم يصل الشحن تواصل مع الدعم.',1],
+      ['PUBG Mobile','ببجي موبايل','pubg-mobile','Tencent Games','شحن شدات ببجي موبايل (UC) بشكل فوري وآمن.','أدخل Player ID الظاهر في ملفك الشخصي داخل اللعبة.','خلال 5-15 دقيقة','لا يمكن استرداد الطلب بعد الشحن.',1],
       ['Free Fire','فري فاير','free-fire','Garena','شحن جواهر فري فاير بأفضل الأسعار وأسرع وقت.','أدخل Player ID من داخل اللعبة.','خلال 5-15 دقيقة','استرداد كامل في حال عدم وصول الجواهر.',2],
       ['Call of Duty Mobile','كول أوف ديوتي','cod-mobile','Activision','شحن CP لكول أوف ديوتي موبايل بشكل رسمي وآمن.','أدخل UID الظاهر في إعدادات اللعبة.','خلال 10-30 دقيقة','استرداد في حال عدم وصول الشحن.',3],
       ['Jawaker','جواكر','jawaker','Jawaker','شحن توكنز جواكر لجميع الألعاب.','أدخل رقم هاتفك المسجل في جواكر.','فوري','استرداد في حال عدم وصول التوكنز.',4],
       ['Google Play','جوجل بلاي','google-play','Google','بطاقات جوجل بلاي بفئات متعددة.','سيتم إرسال كود البطاقة عبر الإشعارات بعد الدفع.','فوري','لا يمكن استرداد البطاقات بعد إرسال الكود.',5],
-      ['iTunes','آي تيونز','itunes','Apple','بطاقات iTunes بفئات متعددة.','سيتم إرسال كود البطاقة عبر الإشعارات بعد الدفع.','فوري','لا يمكن استرداد البطاقات بعد إرسال الكود.',6],
+      ['iTunes','آي تيونز','itunes','Apple','بطاقات iTunes بفئات متعددة.','سيتم إرسال الكود عبر الإشعارات.','فوري','لا يمكن استرداد البطاقات بعد إرسال الكود.',6],
       ['Roblox','روبلوكس','roblox','Roblox Corporation','شحن روبوكس (Robux) لحسابك.','أدخل اسم المستخدم (Username).','خلال 30 دقيقة - ساعة','استرداد في حال عدم وصول الروبوكس.',7],
       ['eFootball','إي فوتبول','efootball','Konami','شحن عملات eFootball لحسابك.','أدخل معرف اللعبة (User ID).','خلال 10-30 دقيقة','استرداد في حال عدم وصول العملات.',8]
     ];
     const ins = db.prepare('INSERT INTO games (name, name_ar, slug, developer, description, instructions, delivery_time, refund_policy, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
     seed.forEach(g => ins.run(...g));
   }
-} catch(e) {}
+} catch(e) { console.error('Migration Error:', e.message); }
 
 try {
   db.exec(`CREATE TABLE IF NOT EXISTS visits (id INTEGER PRIMARY KEY AUTOINCREMENT, ip TEXT, user_agent TEXT, path TEXT, user_phone TEXT, device_type TEXT, country TEXT, city TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
-  const vCols = db.prepare("PRAGMA table_info(visits)").all();
-  if (!vCols.some(c => c.name === 'country')) {
-    db.exec("ALTER TABLE visits ADD COLUMN country TEXT");
-    db.exec("ALTER TABLE visits ADD COLUMN city TEXT");
-  }
-} catch(e) {}
+  const vCols = db.prepare("PRAGMA table_info(visits)").all().map(c => c.name);
+  if (!vCols.includes('country')) db.exec("ALTER TABLE visits ADD COLUMN country TEXT");
+  if (!vCols.includes('city')) db.exec("ALTER TABLE visits ADD COLUMN city TEXT");
+} catch(e) { console.error('Visits Table Error:', e.message); }
 
 const app = express();
 const PORT = 3000;
@@ -70,12 +78,11 @@ app.use('/uploads', express.static('public/uploads', { maxAge: '30d', immutable:
 app.use('/css', express.static('public/css', { maxAge: '7d' }));
 app.use(express.static('public'));
 
-
 // ===== Visitor Tracking (Silent) =====
 app.use((req, res, next) => {
   if (req.path.startsWith('/css') || req.path.startsWith('/uploads') || req.path.startsWith('/admin') || req.path === '/favicon.ico') return next();
   try {
-    const ipHeader = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    const ipHeader = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
     let cleanIp = ipHeader.split(',')[0].trim().replace('::ffff:', '');
     
     let isLocal = false;
@@ -110,15 +117,13 @@ app.use((req, res, next) => {
   next();
 });
 
-
 // ===== Phone Link API =====
 app.post('/api/track-phone', (req, res) => {
   try {
     const { phone } = req.body;
     if (phone) {
       const ipHeader = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
-      let cleanIp = ipHeader.split(',')[0].trim();
-      if (cleanIp === '::1' || cleanIp.startsWith('127.')) cleanIp = '8.8.8.8';
+      let cleanIp = ipHeader.split(',')[0].trim().replace('::ffff:', '');
       db.prepare("UPDATE visits SET user_phone = ? WHERE ip = ? AND id = (SELECT MAX(id) FROM visits WHERE ip = ?)").run(phone, cleanIp, cleanIp);
     }
   } catch(e) {}

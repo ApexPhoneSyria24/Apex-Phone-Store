@@ -9,48 +9,44 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } } } }</script>
   <style>
-    body { background-color: #0b1120; color: white; }
+    body { background-color: #0b141a; color: #e9edef; }
     #chat-box::-webkit-scrollbar { width: 5px; }
     #chat-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
   </style>
 </head>
 <body class="font-sans h-screen flex flex-col overflow-hidden">
   
-  <!-- الرأس -->
-  <div class="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center flex-shrink-0 shadow-lg z-10">
+  <div class="bg-[#202c33] border-b border-[#2a3942] p-4 flex justify-between items-center flex-shrink-0 shadow-md z-10">
     <div class="flex items-center gap-3">
-      <a href="/admin/chats" class="bg-slate-800 hover:bg-slate-700 text-slate-300 w-10 h-10 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-arrow-right"></i></a>
-      <div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,243,255,0.3)]">
-        <i class="fa-solid fa-user"></i>
+      <a href="/admin/chats" class="bg-[#2a3942] hover:bg-[#334155] text-[#aebac1] w-10 h-10 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-arrow-right"></i></a>
+      <div class="w-12 h-12 bg-[#00a884] rounded-full flex items-center justify-center text-xl">
+        <i class="fa-solid fa-user text-white"></i>
       </div>
       <div>
-        <h3 class="font-black text-lg text-white">الزائر: <span dir="ltr" class="text-cyan-400"><%= visitorId %></span></h3>
-        <p class="text-xs text-slate-400"><%= session.status === 'closed' ? '🔴 مغلقة' : '🟢 نشطة الآن' %></p>
+        <h3 class="font-black text-lg text-white">الزائر: <span dir="ltr" class="text-[#00a884]"><%= visitorId %></span></h3>
+        <p class="text-xs text-[#8696a0]"><%= session.status === 'closed' ? '🔴 مغلقة' : '🟢 نشطة الآن' %></p>
       </div>
     </div>
     <div class="flex gap-2">
       <% if(session.status !== 'closed') { %>
         <button id="close-chat-btn" class="bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2">
-          <i class="fa-solid fa-lock"></i> إغلاق المحادثة
+          <i class="fa-solid fa-lock"></i> إغلاق
         </button>
       <% } %>
     </div>
   </div>
 
-  <!-- تقييم الزبون -->
   <% if(session.rating > 0) { %>
-    <div class="bg-amber-500/10 border-b border-amber-500/30 text-amber-400 p-3 text-center font-bold text-sm">
-      تقييم الزبون: <%= '⭐'.repeat(session.rating) %> | ملاحظات: <%= session.feedback || 'لا يوجد' %>
+    <div class="bg-[#202c33] border-b border-[#2a3942] text-amber-400 p-2 text-center font-bold text-sm">
+      تقييم الزبون: <%= '⭐'.repeat(session.rating) %>
     </div>
   <% } %>
 
-  <!-- صندوق الرسائل -->
-  <div id="chat-box" class="flex-1 p-5 overflow-y-auto flex flex-col gap-4 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed" style="background-color: #0b1120;"></div>
+  <div id="chat-box" class="flex-1 p-5 overflow-y-auto flex flex-col gap-1 bg-[#0b141a]"></div>
 
-  <!-- حقل الإدخال (ثابت) -->
-  <div class="bg-slate-900 border-t border-slate-800 p-4 flex gap-3 flex-shrink-0">
-    <input id="msg-input" type="text" placeholder="اكتب ردك هنا..." class="flex-1 bg-slate-950 border border-slate-700 rounded-full px-6 py-4 text-white focus:border-cyan-500 outline-none transition" <%= session.status === 'closed' ? 'disabled' : '' %>>
-    <button id="send-btn" class="bg-gradient-to-br from-cyan-500 to-blue-600 text-white w-14 h-14 rounded-full flex items-center justify-center text-xl shadow-[0_0_20px_rgba(0,243,255,0.3)] hover:scale-105 transition disabled:opacity-50 disabled:scale-100" <%= session.status === 'closed' ? 'disabled' : '' %>>
+  <div class="bg-[#202c33] border-t border-[#2a3942] p-3 flex gap-3 flex-shrink-0">
+    <input id="msg-input" type="text" placeholder="اكتب رسالة..." class="flex-1 bg-[#2a3942] border-none rounded-full px-5 py-3 text-[#e9edef] focus:outline-none" <%= session.status === 'closed' ? 'disabled' : '' %>>
+    <button id="send-btn" class="bg-[#00a884] text-white w-12 h-12 rounded-full flex items-center justify-center text-xl hover:opacity-90 transition disabled:opacity-50" <%= session.status === 'closed' ? 'disabled' : '' %>>
       <i class="fa-solid fa-paper-plane"></i>
     </button>
   </div>
@@ -73,15 +69,17 @@
             const isSystem = m.sender === 'system';
             
             if (isSystem) {
-              chatBox.innerHTML += `<div class="text-center text-red-400 bg-red-500/10 p-2 rounded-lg text-xs font-bold w-fit mx-auto my-2 border border-red-500/20">${m.message}</div>`;
+              chatBox.innerHTML += `<div class="text-center text-[#ef4444] bg-[#ef4444]/10 p-2 rounded text-xs font-bold w-fit mx-auto my-2 border border-[#ef4444]/20">${m.message}</div>`;
               return;
             }
 
+            const tick = m.sender === 'visitor' ? (m.is_read ? '<i class="fa-solid fa-check-double text-[#53bdeb]"></i>' : '<i class="fa-solid fa-check"></i>') : '';
+
             chatBox.innerHTML += `
-              <div class="max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed ${isAdmin ? 'bg-gradient-to-br from-cyan-600 to-blue-700 text-white self-start rounded-tr-none shadow-lg' : 'bg-slate-800 border border-slate-700 text-slate-200 self-end rounded-tl-none shadow-md'}">
+              <div class="max-w-[80%] p-2 px-3 rounded-lg text-sm leading-relaxed ${isAdmin ? 'bg-[#005c4b] text-white self-start rounded-tr-none shadow-sm' : 'bg-[#202c33] text-[#e9edef] self-end rounded-tl-none shadow-sm'} mb-1">
                 ${m.message}
-                <div class="text-[10px] mt-2 opacity-60 text-left" dir="ltr">
-                  <i class="fa-regular fa-clock"></i> ${m.created_at.split(' ')[1]}
+                <div class="text-[10px] text-[#8696a0] text-left mt-1 flex justify-end items-center gap-1" dir="ltr">
+                  ${m.created_at.split(' ')[1].substring(0,5)} ${tick}
                 </div>
               </div>`;
           });

@@ -230,7 +230,8 @@ app.post('/api/human-chat/init', (req, res) => {
       db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'admin', ?)").run(visitor_id, welcomeMsg);
       sendTelegram(`🔔 <b>زبون جديد دخل الدردشة الحية!</b>\nالزائر: ${visitor_id}`);
     }
-    res.json({ success: true });
+    const msgs = db.prepare("SELECT * FROM chat_messages WHERE visitor_id = ? ORDER BY id ASC").all(visitor_id);
+    res.json({ success: true, messages: msgs });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -289,6 +290,7 @@ app.get('/admin/chats/:visitorId', requireAuth, (req, res) => {
 });
 
 app.get('/api/admin/chat/messages/:visitorId', requireAuth, (req, res) => {
+  db.prepare("UPDATE chat_messages SET is_read = 1 WHERE visitor_id = ? AND sender = 'visitor'").run(req.params.visitorId);
   const msgs = db.prepare("SELECT * FROM chat_messages WHERE visitor_id = ? ORDER BY id ASC").all(req.params.visitorId);
   const session = db.prepare("SELECT * FROM chat_sessions WHERE visitor_id = ?").get(req.params.visitorId) || { status: 'open', rating: 0, feedback: '' };
   res.json({ messages: msgs, session });

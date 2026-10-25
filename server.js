@@ -108,34 +108,58 @@ app.use('/uploads', express.static('public/uploads', { maxAge: '30d', immutable:
 app.use('/css', express.static('public/css', { maxAge: '7d' }));
 app.use(express.static('public'));
 
+
 // ===== Visitor Tracking =====
 app.use((req, res, next) => {
-  // تجاهل ملفات التصميم، الصور، ولوحة الإدارة لتوفير المساحة
-  if (req.path.startsWith('/css') || req.path.startsWith('/uploads') || req.path.startsWith('/admin') || req.path === '/favicon.ico') {
-    return next();
-  }
+  if (req.path.startsWith('/css') || req.path.startsWith('/uploads') || req.path.startsWith('/admin') || req.path === '/favicon.ico') return next();
   try {
-    // استخراج IP الحقيقي (بسبب وجود Proxy في Dokploy)
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
+    const cleanIp = ip.split(',')[0].trim();
     const ua = req.headers['user-agent'] || 'Unknown';
     const phone = req.headers['x-user-phone'] || null;
     
-    // تحليل نوع الجهاز ونظام التشغيل
-    let device = 'كمبيوتر (Desktop)';
-    if (/mobile/i.test(ua)) device = 'هاتف (Mobile)';
-    if (/tablet|ipad/i.test(ua)) device = 'تابلت (Tablet)';
-    
+    let device = 'كمبيوتر';
+    if (/mobile/i.test(ua)) device = 'هاتف';
+    if (/tablet|ipad/i.test(ua)) device = 'تابلت';
     let os = 'غير معروف';
     if (/android/i.test(ua)) os = 'Android';
     else if (/iphone|ipad|ipod/i.test(ua)) os = 'iOS';
     else if (/windows/i.test(ua)) os = 'Windows';
     else if (/mac/i.test(ua)) os = 'Mac';
 
-    db.prepare('INSERT INTO visits (ip, user_agent, path, user_phone, device_type) VALUES (?, ?, ?, ?, ?)')
-      .run(ip.split(',')[0].trim(), ua, req.path, phone, device + ' / ' + os);
+    // حفظ الزيارة مبدئياً
+    const stmt = db.prepare('INSERT INTO visits (ip, user_agent, path, user_phone, device_type) VALUES (?, ?, ?, ?, ?)');
+    const info = stmt.run(cleanIp, ua, req.path, phone, device + ' / ' + os);
+    const visitId = info.lastInsertRowid;
+
+    // جلب الموقع التقريبي في الخلفية (بدون إبطاء الموقع)
+    if (cleanIp && cleanIp !== 'Unknown' && cleanIp !== '::1' && !cleanIp.startsWith('127.')) {
+      fetch('http://ip-api.com/json/' + cleanIp)
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.status === 'success') {
+            db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run(data.country, data.city, visitId);
+          }
+        }).catch(() => {});
+    }
   } catch(e) { }
   next();
 });
+
+// ===== API لربط الهاتف بالزيارة الحالية بصمت =====
+app.post('/api/track-phone', (req, res) => {
+  try {
+    const { phone } = req.body;
+    if (phone) {
+      const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
+      const cleanIp = ip.split(',')[0].trim();
+      // تحديث آخر زيارة لهذا الـ IP برقم الهاتف
+      db.prepare("UPDATE visits SET user_phone = ? WHERE ip = ? AND id = (SELECT MAX(id) FROM visits WHERE ip = ?)").run(phone, cleanIp, cleanIp);
+    }
+  } catch(e) {}
+  res.json({ success: true });
+});
+
 
 
 

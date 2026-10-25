@@ -286,7 +286,19 @@ app.get('/admin', requireAuth, (req, res) => {
     usersCount: db.prepare("SELECT COUNT(*) c FROM users").get().c,
     topupsCount: db.prepare("SELECT COUNT(*) c FROM topup_orders WHERE status='pending'").get().c
   };
-  res.render('admin', { phones, stats });
+  
+  let visits = [];
+  let visitStats = { total: 0, today: 0, unique_ips: 0 };
+  try {
+    visits = db.prepare('SELECT * FROM visits ORDER BY id DESC LIMIT 100').all();
+    visitStats = {
+      total: db.prepare('SELECT COUNT(*) c FROM visits').get().c,
+      today: db.prepare("SELECT COUNT(*) c FROM visits WHERE date(created_at) = date('now', 'localtime')").get().c,
+      unique_ips: db.prepare('SELECT COUNT(DISTINCT ip) c FROM visits').get().c
+    };
+  } catch(e) { console.log('Visits table error:', e.message); }
+  res.render('admin', { phones, stats, visits, visitStats });
+  
 });
 
 // ===== Admin Pending Ads =====
@@ -555,18 +567,6 @@ app.get('/admin/diagnose', requireAuth, (req, res) => {
 
 
 // ===== Admin Visits Route =====
-app.get('/admin/visits', requireAuth, (req, res) => {
-  try {
-    const visits = db.prepare('SELECT * FROM visits ORDER BY id DESC LIMIT 300').all();
-    const stats = {
-      total: db.prepare('SELECT COUNT(*) c FROM visits').get().c,
-      today: db.prepare("SELECT COUNT(*) c FROM visits WHERE date(created_at) = date('now', 'localtime')").get().c,
-      unique_ips: db.prepare('SELECT COUNT(DISTINCT ip) c FROM visits').get().c
-    };
-    res.render('admin-visits', { visits, stats });
-  } catch(e) {
-    res.send('Error in visits route: ' + e.message);
-  }
-});
+
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

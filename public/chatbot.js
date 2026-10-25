@@ -107,6 +107,7 @@
     
     let chatHistory = [];
     let isHumanMode = false;
+    let chatIsClosed = false;
     let isClosedDismissed = false;
 
     if (window.visualViewport) {
@@ -154,6 +155,7 @@
         const data = await res.json();
         
         if (data.status === 'closed') {
+          chatIsClosed = true;
           if (!isClosedDismissed) {
             inputArea.style.display = 'none';
             newChatOptions.style.display = 'flex';
@@ -167,9 +169,10 @@
             ratingScreen.style.display = 'flex';
           }
         } else {
+          chatIsClosed = false;
           inputArea.style.display = 'flex';
           newChatOptions.style.display = 'none';
-          ratingScreen.style.display = 'none'; // إخفاء شاشة التقييم عند بدء محادثة جديدة
+          ratingScreen.style.display = 'none';
           isClosedDismissed = false;
         }
 
@@ -233,6 +236,12 @@
     };
 
     async function sendMessage() {
+      if (chatIsClosed) {
+        inputArea.style.display = 'none';
+        newChatOptions.style.display = 'flex';
+        return; // يمنع الإرسال ويعيد إظهار الأزرار
+      }
+
       const text = inputEl.value.trim();
       if (!text) return;
       playSound('send');

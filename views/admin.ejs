@@ -17,29 +17,7 @@
   <!-- admin/visits-click -->
   
 
-<script>
-  document.addEventListener('click', function(e) {
-    // إذا تم النقر على أي عنصر يحتوي على كلمة "إحصائيات الزوار"
-    if (e.target && e.target.textContent && e.target.textContent.includes('إحصائيات الزوار')) {
-      window.location.href = '/admin/visits';
-    }
-  });
-</script>
 
-
-  <script>
-  // CLICK_JS
-  document.addEventListener('click', function(e) {
-    let el = e.target;
-    while (el) {
-      if (el.textContent && el.textContent.trim().includes('إحصائيات الزوار')) {
-        window.location.href = '/admin/visits';
-        return;
-      }
-      el = el.parentElement;
-    }
-  });
-  </script>
   
 </body>
 </html>

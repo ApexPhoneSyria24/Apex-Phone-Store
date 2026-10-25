@@ -10,44 +10,7 @@
 
     
 
-  <!-- قسم إحصائيات الزوار المدمج -->
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-8 mb-8 mx-4">
-    <div class="p-4 border-b bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-2">
-      <h2 class="font-bold text-slate-800">📊 إحصائيات الزوار (آخر 100 زيارة)</h2>
-      <div class="flex gap-4 text-sm font-bold">
-        <span class="text-blue-600">إجمالي: <%= typeof visitStats !== 'undefined' ? visitStats.total : 0 %></span>
-        <span class="text-green-600">اليوم: <%= typeof visitStats !== 'undefined' ? visitStats.today : 0 %></span>
-        <span class="text-purple-600">IP فريد: <%= typeof visitStats !== 'undefined' ? visitStats.unique_ips : 0 %></span>
-      </div>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-right text-sm">
-        <thead class="bg-slate-100 text-slate-600">
-          <tr>
-            <th class="p-3">الوقت</th>
-            <th class="p-3">عنوان IP</th>
-            <th class="p-3">الجهاز / النظام</th>
-            <th class="p-3">رقم الهاتف</th>
-            <th class="p-3">الصفحة</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100">
-          <% if (typeof visits !== 'undefined') { visits.forEach(v => { %>
-            <tr class="hover:bg-slate-50">
-              <td class="p-3 text-xs text-slate-500 font-mono" dir="ltr"><%= v.created_at %></td>
-              <td class="p-3 font-bold text-slate-700" dir="ltr"><%= v.ip %></td>
-              <td class="p-3 text-xs"><%= v.device_type %></td>
-              <td class="p-3 font-bold text-green-600" dir="ltr"><%= v.user_phone || '-' %></td>
-              <td class="p-3 text-xs text-slate-500" dir="ltr"><%= v.path %></td>
-            </tr>
-          <% }) } %>
-          <% if (typeof visits === 'undefined' || visits.length === 0) { %>
-            <tr><td colspan="5" class="p-6 text-center text-slate-500 font-bold">لا توجد زيارات مسجلة بعد. (تصفح الموقع ثم حدث الصفحة)</td></tr>
-          <% } %>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  
   
 
   
@@ -63,5 +26,20 @@
   });
 </script>
 
+
+  <script>
+  // CLICK_JS
+  document.addEventListener('click', function(e) {
+    let el = e.target;
+    while (el) {
+      if (el.textContent && el.textContent.trim().includes('إحصائيات الزوار')) {
+        window.location.href = '/admin/visits';
+        return;
+      }
+      el = el.parentElement;
+    }
+  });
+  </script>
+  
 </body>
 </html>

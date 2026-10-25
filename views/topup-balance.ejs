@@ -87,5 +87,26 @@
       }
     }
   </script>
+
+  <script>
+    // autoLoadBalance
+    document.addEventListener('DOMContentLoaded', function() {
+      const savedPhone = localStorage.getItem('apex_user_phone');
+      const phoneInput = document.querySelector('input[name="phone"][type="tel"]');
+      
+      // إذا كان الرقم محفوظاً ولم يكن هناك رقم ممرر في الرابط
+      if (savedPhone && phoneInput && !phoneInput.value) {
+        phoneInput.value = savedPhone;
+        // محاكاة الضغط على بحث لجلب الرصيد
+        const searchForm = document.querySelector('form[method="GET"]');
+        if (searchForm) {
+           const url = new URL(window.location);
+           url.searchParams.set('phone', savedPhone);
+           window.location.href = url.toString();
+        }
+      }
+    });
+  </script>
+  
 </body>
 </html>

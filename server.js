@@ -420,4 +420,14 @@ app.post('/admin/deposits/reject/:id', requireAuth, (req, res) => {
 });
 
 
+
+// ===== API: Get User Balance =====
+app.get('/api/user-balance/:phone', (req, res) => {
+  try {
+    const user = db.prepare('SELECT balance FROM users WHERE phone = ?').get(req.params.phone);
+    res.json({ balance: user ? user.balance : 0 });
+  } catch(e) { res.json({ balance: 0 }); }
+});
+
+
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

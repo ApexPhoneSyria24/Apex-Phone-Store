@@ -105,5 +105,25 @@
   }
 </script>
 <script src="/tracker.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const userPhone = localStorage.getItem('apex_user_phone');
+      if (userPhone) {
+        fetch('/api/user-balance/' + userPhone)
+          .then(r => r.json())
+          .then(data => {
+            const badge = document.getElementById('balanceBadge');
+            if (badge && data.balance > 0) {
+              badge.innerText = '
+</html>
+ + data.balance.toFixed(2);
+              badge.classList.remove('hidden');
+            }
+          }).catch(() => {});
+      }
+    });
+  </script>
+  
 </body>
 </html>

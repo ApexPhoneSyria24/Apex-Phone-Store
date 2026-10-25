@@ -109,12 +109,16 @@ app.use('/css', express.static('public/css', { maxAge: '7d' }));
 app.use(express.static('public'));
 
 
+
 // ===== Visitor Tracking =====
 app.use((req, res, next) => {
   if (req.path.startsWith('/css') || req.path.startsWith('/uploads') || req.path.startsWith('/admin') || req.path === '/favicon.ico') return next();
   try {
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
-    const cleanIp = ip.split(',')[0].trim();
+    const ipHeader = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
+    let cleanIp = ipHeader.split(',')[0].trim();
+    // إذا كان محلياً، نضع IP وهمي للتجربة
+    if (cleanIp === '::1' || cleanIp.startsWith('127.') || cleanIp === '::ffff:127.0.0.1') cleanIp = '8.8.8.8';
+    
     const ua = req.headers['user-agent'] || 'Unknown';
     const phone = req.headers['x-user-phone'] || null;
     
@@ -127,20 +131,26 @@ app.use((req, res, next) => {
     else if (/windows/i.test(ua)) os = 'Windows';
     else if (/mac/i.test(ua)) os = 'Mac';
 
-    // حفظ الزيارة مبدئياً
+    // حفظ الزيارة
     const stmt = db.prepare('INSERT INTO visits (ip, user_agent, path, user_phone, device_type) VALUES (?, ?, ?, ?, ?)');
     const info = stmt.run(cleanIp, ua, req.path, phone, device + ' / ' + os);
     const visitId = info.lastInsertRowid;
 
-    // جلب الموقع التقريبي في الخلفية (بدون إبطاء الموقع)
-    if (cleanIp && cleanIp !== 'Unknown' && cleanIp !== '::1' && !cleanIp.startsWith('127.')) {
-      fetch('http://ip-api.com/json/' + cleanIp)
+    // جلب الموقع باستخدام ipwho.is (يدعم HTTPS ولا يغلق)
+    if (cleanIp !== '8.8.8.8') {
+      fetch('https://ipwho.is/' + cleanIp)
         .then(r => r.json())
         .then(data => {
-          if (data && data.status === 'success') {
+          if (data && data.success) {
             db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run(data.country, data.city, visitId);
+          } else {
+             db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('غير معروف', 'غير معروف', visitId);
           }
-        }).catch(() => {});
+        }).catch(() => {
+             db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('غير معروف', 'غير معروف', visitId);
+        });
+    } else {
+      db.prepare('UPDATE visits SET country = ?, city = ? WHERE id = ?').run('Syria', 'Damascus (Local)', visitId);
     }
   } catch(e) { }
   next();
@@ -151,16 +161,15 @@ app.post('/api/track-phone', (req, res) => {
   try {
     const { phone } = req.body;
     if (phone) {
-      const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
-      const cleanIp = ip.split(',')[0].trim();
+      const ipHeader = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
+      let cleanIp = ipHeader.split(',')[0].trim();
+      if (cleanIp === '::1' || cleanIp.startsWith('127.')) cleanIp = '8.8.8.8';
       // تحديث آخر زيارة لهذا الـ IP برقم الهاتف
       db.prepare("UPDATE visits SET user_phone = ? WHERE ip = ? AND id = (SELECT MAX(id) FROM visits WHERE ip = ?)").run(phone, cleanIp, cleanIp);
     }
   } catch(e) {}
   res.json({ success: true });
 });
-
-
 
 
 // ===== Notifications =====

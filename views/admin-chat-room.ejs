@@ -9,23 +9,22 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } } } }</script>
   <style>
-    body { background-color: #0b141a; color: #e9edef; margin: 0; padding: 0; overflow: hidden; position: fixed; width: 100%; height: 100%; }
+    body { background-color: #0a192f; color: #e6f1ff; margin: 0; padding: 0; overflow: hidden; position: fixed; width: 100%; height: 100%; }
     #chat-box::-webkit-scrollbar { width: 5px; }
     #chat-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
   </style>
 </head>
 <body class="font-sans flex flex-col">
   
-  <!-- الرأس -->
-  <div class="bg-[#202c33] border-b border-[#2a3942] p-4 flex justify-between items-center flex-shrink-0 shadow-md z-10">
+  <div class="bg-[#112240] border-b border-[#233554] p-4 flex justify-between items-center flex-shrink-0 shadow-md z-10">
     <div class="flex items-center gap-3">
-      <a href="/admin/chats" class="bg-[#2a3942] hover:bg-[#334155] text-[#aebac1] w-10 h-10 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-arrow-right"></i></a>
-      <div class="w-12 h-12 bg-[#00a884] rounded-full flex items-center justify-center text-xl">
-        <i class="fa-solid fa-user text-white"></i>
+      <a href="/admin/chats" class="bg-[#0a192f] hover:bg-[#233554] text-[#8892b0] w-10 h-10 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-arrow-right"></i></a>
+      <div class="w-12 h-12 bg-[#00f3ff] rounded-full flex items-center justify-center text-xl">
+        <i class="fa-solid fa-user text-black"></i>
       </div>
       <div>
-        <h3 class="font-black text-lg text-white">الزائر: <span dir="ltr" class="text-[#00a884]"><%= visitorId %></span></h3>
-        <p class="text-xs text-[#8696a0]"><%= session.status === 'closed' ? '🔴 مغلقة' : '🟢 نشطة الآن' %></p>
+        <h3 class="font-black text-lg text-white">الزائر: <span dir="ltr" class="text-[#00f3ff]"><%= visitorId %></span></h3>
+        <p class="text-xs text-[#8892b0]"><%= session.status === 'closed' ? '🔴 مغلقة' : '🟢 نشطة الآن' %></p>
       </div>
     </div>
     <div class="flex gap-2">
@@ -37,26 +36,22 @@
     </div>
   </div>
 
-  <!-- التقييم -->
   <% if(session.rating > 0) { %>
-    <div class="bg-[#202c33] border-b border-[#2a3942] text-amber-400 p-2 text-center font-bold text-sm flex-shrink-0">
+    <div class="bg-[#112240] border-b border-[#233554] text-amber-400 p-2 text-center font-bold text-sm flex-shrink-0">
       تقييم الزبون: <%= '⭐'.repeat(session.rating) %>
     </div>
   <% } %>
 
-  <!-- صندوق الرسائل -->
-  <div id="chat-box" class="flex-1 p-5 overflow-y-auto flex flex-col gap-1 bg-[#0b141a]" style="min-height: 0;"></div>
+  <div id="chat-box" class="flex-1 p-5 overflow-y-auto flex flex-col gap-1 bg-[#0a192f]" style="min-height: 0;"></div>
 
-  <!-- حقل الإدخال -->
-  <div class="bg-[#202c33] border-t border-[#2a3942] p-3 flex gap-3 flex-shrink-0">
-    <input id="msg-input" type="text" placeholder="اكتب رسالة..." class="flex-1 bg-[#2a3942] border-none rounded-full px-5 py-3 text-[#e9edef] focus:outline-none" <%= session.status === 'closed' ? 'disabled' : '' %>>
-    <button id="send-btn" class="bg-[#00a884] text-white w-12 h-12 rounded-full flex items-center justify-center text-xl hover:opacity-90 transition disabled:opacity-50" <%= session.status === 'closed' ? 'disabled' : '' %>>
+  <div class="bg-[#112240] border-t border-[#233554] p-3 flex gap-3 flex-shrink-0">
+    <input id="msg-input" type="text" placeholder="اكتب رسالة..." class="flex-1 bg-[#0a192f] border-none rounded-full px-5 py-3 text-[#e6f1ff] focus:outline-none" <%= session.status === 'closed' ? 'disabled' : '' %>>
+    <button id="send-btn" class="bg-[#00f3ff] text-black w-12 h-12 rounded-full flex items-center justify-center text-xl hover:opacity-90 transition disabled:opacity-50" <%= session.status === 'closed' ? 'disabled' : '' %>>
       <i class="fa-solid fa-paper-plane"></i>
     </button>
   </div>
 
   <script>
-    // حل مشكلة لوحة المفاتيح
     if (window.visualViewport) {
       const adjustViewport = () => {
         document.body.style.height = window.visualViewport.height + 'px';
@@ -86,16 +81,16 @@
             const isSystem = m.sender === 'system';
             
             if (isSystem) {
-              chatBox.innerHTML += `<div class="text-center text-[#ef4444] bg-[#ef4444]/10 p-2 rounded text-xs font-bold w-fit mx-auto my-2 border border-[#ef4444]/20">${m.message}</div>`;
+              chatBox.innerHTML += `<div class="text-center text-[#ef4444] bg-[#ef4444]/10 p-2 rounded text-xs font-bold w-fit mx-auto my-2 border border-[#ef4444]/20 whitespace-pre-wrap">${m.message}</div>`;
               return;
             }
 
-            const tick = m.sender === 'visitor' ? (m.is_read ? '<i class="fa-solid fa-check-double text-[#53bdeb]"></i>' : '<i class="fa-solid fa-check"></i>') : '';
+            const tick = m.sender === 'visitor' ? (m.is_read ? '<i class="fa-solid fa-check-double text-[#00f3ff]"></i>' : '<i class="fa-solid fa-check text-[#8892b0]"></i>') : '';
 
             chatBox.innerHTML += `
-              <div class="max-w-[80%] p-2 px-3 rounded-lg text-sm leading-relaxed ${isAdmin ? 'bg-[#005c4b] text-white self-start rounded-tr-none shadow-sm' : 'bg-[#202c33] text-[#e9edef] self-end rounded-tl-none shadow-sm'} mb-1">
+              <div class="max-w-[80%] p-2 px-3 rounded-lg text-sm leading-relaxed ${isAdmin ? 'bg-[#0055ff] text-white self-start rounded-tr-none shadow-sm' : 'bg-[#112240] text-[#e6f1ff] self-end rounded-tl-none shadow-sm'} mb-1">
                 ${m.message}
-                <div class="text-[10px] text-[#8696a0] text-left mt-1 flex justify-end items-center gap-1" dir="ltr">
+                <div class="text-[10px] text-[#8892b0] text-left mt-1 flex justify-end items-center gap-1" dir="ltr">
                   ${m.created_at.split(' ')[1].substring(0,5)} ${tick}
                 </div>
               </div>`;
@@ -123,7 +118,7 @@
     const closeBtn = document.getElementById('close-chat-btn');
     if (closeBtn) {
       closeBtn.onclick = async () => {
-        if (confirm('هل أنت متأكد من إغلاق المحادثة؟ سيتمكن الزبون من تقييمها.')) {
+        if (confirm('هل أنت متأكد من إغلاق المحادثة؟ سيتمكن الزبون من تقييمها أو بدء محادثة جديدة.')) {
           await fetch('/api/admin/chat/close/' + visitorId, { method: 'POST' });
           window.location.reload();
         }

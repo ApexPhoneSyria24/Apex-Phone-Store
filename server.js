@@ -579,17 +579,19 @@ app.get('/admin/diagnose', requireAuth, (req, res) => {
 
 
 
+
+
+
 app.get('/admin/visits', requireAuth, (req, res) => {
   try {
     const visits = db.prepare('SELECT * FROM visits ORDER BY id DESC LIMIT 300').all();
     const stats = {
       total: db.prepare('SELECT COUNT(*) c FROM visits').get().c,
-      today: db.prepare("SELECT COUNT(*) c FROM visits WHERE date(created_at) = date('now', 'localtime')").get().c,
-      unique_ips: db.prepare('SELECT COUNT(DISTINCT ip) c FROM visits').get().c
+      today: db.prepare("SELECT COUNT(*) c FROM visits WHERE date(created_at) = date('now', 'localtime')").get().c
     };
     res.render('admin-visits', { visits, stats });
-  } catch(e) {
-    res.send('Error loading visits: ' + e.message);
+  } catch (e) {
+    res.status(500).send('حدث خطأ: ' + e.message);
   }
 });
 

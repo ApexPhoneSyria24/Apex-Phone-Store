@@ -7,27 +7,37 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 font-sans p-4">
-  <div class="max-w-7xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-black text-slate-800">📊 إحصائيات وسجل الزوار</h1>
-      <a href="/admin" class="bg-slate-800 text-white px-4 py-2 rounded-lg font-bold text-sm">عودة للوحة الإدارة</a>
+<body class="bg-gray-100 font-sans p-5">
+  <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6">
+    <div class="flex justify-between items-center mb-6 border-b pb-4">
+      <h1 class="text-2xl font-bold text-gray-800">📊 إحصائيات وسجل الزوار</h1>
+      <a href="/admin" class="bg-gray-800 text-white px-4 py-2 rounded text-sm hover:bg-gray-700">عودة للوحة الإدارة</a>
     </div>
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-      <div class="bg-white p-4 rounded-xl text-center shadow"><div class="text-sm font-bold text-slate-500">إجمالي الزيارات</div><div class="text-2xl font-black text-blue-600"><%= stats.total %></div></div>
-      <div class="bg-white p-4 rounded-xl text-center shadow"><div class="text-sm font-bold text-slate-500">زيارات اليوم</div><div class="text-2xl font-black text-green-600"><%= stats.today %></div></div>
-      <div class="bg-white p-4 rounded-xl text-center shadow"><div class="text-sm font-bold text-slate-500">IP فريدة</div><div class="text-2xl font-black text-purple-600"><%= stats.unique_ips %></div></div>
-    </div>
-    <div class="bg-white rounded-xl shadow overflow-hidden">
-      <table class="w-full text-right text-sm">
-        <thead class="bg-slate-100 text-slate-600">
-          <tr><th class="p-3">الوقت</th><th class="p-3">IP</th><th class="p-3">الجهاز</th><th class="p-3">الهاتف</th><th class="p-3">الصفحة</th></tr>
+    <div class="overflow-x-auto">
+      <table class="w-full text-right border-collapse">
+        <thead>
+          <tr class="bg-gray-200 text-gray-700">
+            <th class="p-3 border">الوقت</th>
+            <th class="p-3 border">عنوان IP</th>
+            <th class="p-3 border">الجهاز</th>
+            <th class="p-3 border">رقم الهاتف</th>
+            <th class="p-3 border">الصفحة</th>
+          </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100">
-          <% if(visits) { visits.forEach(v => { %>
-            <tr><td class="p-3 text-xs text-slate-500" dir="ltr"><%= v.created_at %></td><td class="p-3 font-bold" dir="ltr"><%= v.ip %></td><td class="p-3 text-xs"><%= v.device_type %></td><td class="p-3 text-green-600 font-bold" dir="ltr"><%= v.user_phone || '-' %></td><td class="p-3 text-xs text-slate-500" dir="ltr"><%= v.path %></td></tr>
-          <% }) } %>
-          <% if (!visits || visits.length === 0) { %><tr><td colspan="5" class="p-6 text-center text-slate-500">لا توجد زيارات مسجلة بعد.</td></tr><% } %>
+        <tbody>
+          <% if (typeof visits !== 'undefined' && visits.length > 0) { %>
+            <% visits.forEach(v => { %>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="p-3 text-sm text-gray-500" dir="ltr"><%= v.created_at %></td>
+                <td class="p-3 font-bold text-gray-800" dir="ltr"><%= v.ip %></td>
+                <td class="p-3 text-sm text-gray-600"><%= v.device_type %></td>
+                <td class="p-3 font-bold text-green-600" dir="ltr"><%= v.user_phone || '-' %></td>
+                <td class="p-3 text-sm text-gray-500" dir="ltr"><%= v.path %></td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr><td colspan="5" class="p-5 text-center text-gray-500">لا توجد زيارات مسجلة بعد.</td></tr>
+          <% } %>
         </tbody>
       </table>
     </div>

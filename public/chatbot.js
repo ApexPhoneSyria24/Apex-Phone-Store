@@ -157,13 +157,13 @@
     // ----------------------------------------
 
     setTimeout(() => {
-      if (chatWindow.style.display === 'none' && !localStorage.getItem('mimo_teaser_closed_v4')) {
+      if (chatWindow.style.display === 'none' && !localStorage.getItem('mimo_teaser_closed_v5')) {
         teaser.style.display = 'block';
         playSound('pop');
       }
-    }, 4000);
+    }, 2000);
 
-    closeTeaser.onclick = () => { teaser.style.display = 'none'; localStorage.setItem('mimo_teaser_closed_v4', 'true'); };
+    closeTeaser.onclick = () => { teaser.style.display = 'none'; localStorage.setItem('mimo_teaser_closed_v5', 'true'); };
 
     teaserBtn.onclick = () => {
       playSound('send');

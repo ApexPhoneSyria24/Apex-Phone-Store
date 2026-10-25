@@ -4,6 +4,51 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const db = require('./database');
+
+// AUTO_MIGRATE_V1
+try {
+  const cols = db.prepare("PRAGMA table_info(games)").all();
+  if (!cols.some(c => c.name === 'banner_url')) {
+    console.log('🔄 Auto-migrating games schema...');
+    try { fs.copyFileSync('./phones.db', './phones.db.backup-auto-' + Date.now()); } catch(e) {}
+    db.exec('DROP TABLE IF EXISTS games');
+    db.exec('DROP TABLE IF EXISTS game_packages');
+    db.exec(`CREATE TABLE games (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT UNIQUE NOT NULL, name_ar TEXT, slug TEXT UNIQUE,
+      image_url TEXT, banner_url TEXT, developer TEXT, description TEXT,
+      instructions TEXT, delivery_time TEXT, refund_policy TEXT,
+      is_active INTEGER DEFAULT 1, sort_order INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+    db.exec(`CREATE TABLE game_packages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      game_name TEXT NOT NULL, package_name TEXT NOT NULL,
+      price REAL NOT NULL, is_active INTEGER DEFAULT 1,
+      sort_order INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+    const seed = [
+      ['PUBG Mobile','ببجي موبايل','pubg-mobile','Tencent Games','شحن شدات ببجي موبايل (UC) بشكل فوري وآمن.','أدخل Player ID الظاهر في ملفك الشخصي داخل اللعبة.','خلال 5-15 دقيقة','لا يمكن استرداد الطلب بعد الشحن. إن لم يصل الشحن تواصل مع الدعم.',1],
+      ['Free Fire','فري فاير','free-fire','Garena','شحن جواهر فري فاير بأفضل الأسعار وأسرع وقت.','أدخل Player ID من داخل اللعبة.','خلال 5-15 دقيقة','استرداد كامل في حال عدم وصول الجواهر.',2],
+      ['Call of Duty Mobile','كول أوف ديوتي','cod-mobile','Activision','شحن CP لكول أوف ديوتي موبايل بشكل رسمي وآمن.','أدخل UID الظاهر في إعدادات اللعبة.','خلال 10-30 دقيقة','استرداد في حال عدم وصول الشحن.',3],
+      ['Jawaker','جواكر','jawaker','Jawaker','شحن توكنز جواكر لجميع الألعاب.','أدخل رقم هاتفك المسجل في جواكر.','فوري','استرداد في حال عدم وصول التوكنز.',4],
+      ['Google Play','جوجل بلاي','google-play','Google','بطاقات جوجل بلاي بفئات متعددة.','سيتم إرسال كود البطاقة عبر الإشعارات بعد الدفع.','فوري','لا يمكن استرداد البطاقات بعد إرسال الكود.',5],
+      ['iTunes','آي تيونز','itunes','Apple','بطاقات iTunes بفئات متعددة.','سيتم إرسال كود البطاقة عبر الإشعارات بعد الدفع.','فوري','لا يمكن استرداد البطاقات بعد إرسال الكود.',6],
+      ['Roblox','روبلوكس','roblox','Roblox Corporation','شحن روبوكس (Robux) لحسابك.','أدخل اسم المستخدم (Username).','خلال 30 دقيقة - ساعة','استرداد في حال عدم وصول الروبوكس.',7],
+      ['eFootball','إي فوتبول','efootball','Konami','شحن عملات eFootball لحسابك.','أدخل معرف اللعبة (User ID).','خلال 10-30 دقيقة','استرداد في حال عدم وصول العملات.',8]
+    ];
+    const ins = db.prepare('INSERT INTO games (name, name_ar, slug, developer, description, instructions, delivery_time, refund_policy, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    seed.forEach(g => ins.run(...g));
+    console.log('✅ Games migrated & seeded: ' + seed.length);
+  } else {
+    console.log('✅ Games schema already OK');
+  }
+} catch(e) {
+  console.error('❌ Auto-migration error:', e.message);
+}
+
+
 const compression = require('compression');
 
 const app = express();

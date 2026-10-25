@@ -136,5 +136,22 @@
     <i class="fa-solid fa-chart-pie"></i> إحصائيات الزوار
   </a>
 
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        // البحث عن البطاقة التي تحتوي على نص "إحصائيات الزوار" وجعلها قابلة للنقر
+        const elements = document.querySelectorAll('div, a');
+        elements.forEach(el => {
+          if (el.textContent.includes('إحصائيات الزوار') && el.textContent.length < 40) {
+            el.style.cursor = 'pointer';
+            el.style.transition = 'transform 0.2s';
+            el.onmouseenter = () => el.style.transform = 'scale(1.02)';
+            el.onmouseleave = () => el.style.transform = 'scale(1)';
+            el.onclick = () => { window.location.href = '/admin/visits'; };
+          }
+        });
+      });
+    </script>
+    
 </body>
 </html>

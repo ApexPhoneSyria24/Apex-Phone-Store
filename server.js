@@ -46,6 +46,26 @@ try {
   if (!vCols.includes('city')) db.exec("ALTER TABLE visits ADD COLUMN city TEXT");
 } catch(e) { console.error('Visits Table Error:', e.message); }
 
+
+try {
+  const userCols = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
+  if (!userCols.includes('balance')) {
+    db.exec("ALTER TABLE users ADD COLUMN balance REAL DEFAULT 0");
+  }
+  db.exec(`CREATE TABLE IF NOT EXISTS wallet_deposits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_phone TEXT NOT NULL,
+    amount_usd REAL NOT NULL,
+    amount_syp REAL NOT NULL,
+    transfer_ref TEXT,
+    receipt_image TEXT,
+    status TEXT DEFAULT 'pending',
+    rejection_reason TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+} catch(e) { console.error('Wallet Migration Error:', e.message); }
+
+
 const app = express();
 const PORT = 3000;
 
@@ -337,5 +357,67 @@ app.post('/admin/packages/delete/:id', requireAuth, (req, res) => { db.prepare("
 app.get('/admin/topups', requireAuth, (req, res) => { const orders = db.prepare("SELECT * FROM topup_orders ORDER BY id DESC").all(); res.render('admin-topups', { orders }); });
 app.post('/admin/topups/approve/:id', requireAuth, (req, res) => { const order = db.prepare("SELECT * FROM topup_orders WHERE id = ?").get(req.params.id); db.prepare("UPDATE topup_orders SET status = 'approved' WHERE id = ?").run(req.params.id); if (order && order.user_phone) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `✅ تمت الموافقة على طلب شحن ${order.package_name}`); res.redirect('/admin/topups'); });
 app.post('/admin/topups/reject/:id', requireAuth, (req, res) => { const { reason } = req.body; const order = db.prepare("SELECT * FROM topup_orders WHERE id = ?").get(req.params.id); db.prepare("UPDATE topup_orders SET status = 'rejected', rejection_reason = ? WHERE id = ?").run(reason, req.params.id); if (order && order.user_phone) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(order.user_phone, `❌ تم رفض طلب الشحن: ${reason}`); res.redirect('/admin/topups'); });
+
+
+// ===== User: Topup Balance =====
+app.get('/topup-balance', (req, res) => {
+  let userBalance = 0;
+  if (req.query.phone) {
+    const user = db.prepare('SELECT balance FROM users WHERE phone = ?').get(req.query.phone);
+    if (user) userBalance = user.balance;
+  }
+  res.render('topup-balance', { userBalance, phoneQuery: req.query.phone || '' });
+});
+
+app.post('/topup-balance', upload.single('receipt'), (req, res) => {
+  const { phone, amount_usd, transfer_ref } = req.body;
+  const amount_syp = parseFloat(amount_usd) * 142; // New SYP
+  const receipt_image = req.file ? '/uploads/' + req.file.filename : null;
+  
+  let user = db.prepare('SELECT id FROM users WHERE phone = ?').get(phone);
+  if (!user) {
+    db.prepare('INSERT INTO users (user_code, name, phone) VALUES (?, ?, ?)').run(generateUserCode(), 'زبون', phone);
+  }
+
+  db.prepare(`INSERT INTO wallet_deposits (user_phone, amount_usd, amount_syp, transfer_ref, receipt_image) VALUES (?, ?, ?, ?, ?)`)
+    .run(phone, amount_usd, amount_syp, transfer_ref, receipt_image);
+
+  res.redirect('/topup-balance?phone=' + phone + '&success=1');
+});
+
+// ===== Admin: Manage Deposits =====
+app.get('/admin/deposits', requireAuth, (req, res) => {
+  const deposits = db.prepare('SELECT * FROM wallet_deposits ORDER BY status ASC, id DESC').all();
+  const messages = { approved: '✅ تم الموافقة وإضافة الرصيد', rejected: '❌ تم رفض الطلب' };
+  res.render('admin-deposits', { deposits, message: messages[req.query.msg] || null });
+});
+
+app.post('/admin/deposits/approve/:id', requireAuth, (req, res) => {
+  const deposit = db.prepare('SELECT * FROM wallet_deposits WHERE id = ?').get(req.params.id);
+  if (deposit && deposit.status === 'pending') {
+    db.prepare("UPDATE wallet_deposits SET status = 'approved' WHERE id = ?").run(req.params.id);
+    
+    let user = db.prepare('SELECT id FROM users WHERE phone = ?').get(deposit.user_phone);
+    if (!user) {
+      db.prepare('INSERT INTO users (user_code, name, phone, balance) VALUES (?, ?, ?, ?)').run(generateUserCode(), 'زبون', deposit.user_phone, deposit.amount_usd);
+    } else {
+      db.prepare('UPDATE users SET balance = balance + ? WHERE phone = ?').run(deposit.amount_usd, deposit.user_phone);
+    }
+
+    db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(deposit.user_phone, `✅ تمت الموافقة على إيداع رصيد بقيمة ${deposit.amount_usd}. رصيدك جاهز.`);
+  }
+  res.redirect('/admin/deposits?msg=approved');
+});
+
+app.post('/admin/deposits/reject/:id', requireAuth, (req, res) => {
+  const { reason } = req.body;
+  const deposit = db.prepare('SELECT * FROM wallet_deposits WHERE id = ?').get(req.params.id);
+  if (deposit && deposit.status === 'pending') {
+    db.prepare("UPDATE wallet_deposits SET status = 'rejected', rejection_reason = ? WHERE id = ?").run(reason || 'بدون سبب', req.params.id);
+    db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(deposit.user_phone, `❌ تم رفض طلب الإيداع. السبب: ${reason || 'بدون سبب'}`);
+  }
+  res.redirect('/admin/deposits?msg=rejected');
+});
+
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

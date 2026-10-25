@@ -81,7 +81,15 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Order Form -->
       <div>
-        <form id="orderForm" class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 shadow-2xl">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex justify-between items-center mb-6">
+  <div>
+    <h3 class="text-white font-bold text-sm"><i class="fa-solid fa-wallet text-cyan-400"></i> تريد الشراء من رصيد محفظتك؟</h3>
+    <p class="text-xs text-slate-400">اشحن رصيدك الآن عبر سيريتل كاش</p>
+  </div>
+  <a href="/topup-balance" class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg font-bold text-xs transition">شحن الرصيد</a>
+</div>
+
+<form id="orderForm" class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 shadow-2xl">
           <h2 class="text-2xl font-black text-white mb-6"><i class="fa-solid fa-bolt text-cyan-400"></i> إتمام الشحن</h2>
           <div class="mb-5">
             <label class="block text-sm font-bold text-slate-300 mb-2">معرف اللاعب (Player ID)</label>

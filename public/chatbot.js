@@ -15,7 +15,6 @@
     } catch(e) {}
   }
 
-  // محاولة تفعيل الصوت عند أول تفاعل للمستخدم
   document.addEventListener('click', () => { if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} } }, { once: true });
 
   let visitorId = localStorage.getItem('apex_visitor_id');
@@ -24,11 +23,9 @@
     localStorage.setItem('apex_visitor_id', visitorId);
   }
 
-  // رابط صورة ميمو (يمكنك تغييره لصورة من ChatGPT لاحقاً)
   const mimoImageUrl = 'https://cdn-icons-png.flaticon.com/512/4712/4712035.png';
 
   const widgetHTML = `
-    <!-- النافذة الترحيبية (Teaser) -->
     <div id="mimo-teaser" style="display:none; position:fixed; bottom:90px; right:25px; z-index:999999; background:rgba(17,34,64,0.95); backdrop-filter:blur(10px); border:1px solid #00f3ff; border-radius:20px 20px 0 20px; padding:15px; width:270px; box-shadow:0 10px 30px rgba(0,243,255,0.3); font-family:'Cairo', sans-serif; transform-origin: bottom right; animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;" dir="rtl">
       <button id="mimo-close-teaser" style="position:absolute; top:-10px; left:-10px; background:#ef4444; color:white; border:none; width:24px; height:24px; border-radius:50%; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3);">✕</button>
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
@@ -44,50 +41,47 @@
       <button id="mimo-teaser-btn" style="width:100%; background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer; font-size:14px; box-shadow:0 4px 10px rgba(0,243,255,0.3);">تحدث معي الآن 💬</button>
     </div>
 
-    <!-- زر أيقونة ميمو -->
-    <button id="chat-toggle" style="position:fixed; bottom:25px; right:25px; width:55px; height:55px; border-radius:50%; background:#112240; color:white; border:3px solid #00f3ff; box-shadow:0 6px 25px rgba(0,243,255,0.6); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:22px; z-index:999998; transition:transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow:hidden;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    <button id="chat-toggle" style="position:fixed; bottom:25px; right:25px; width:55px; height:55px; border-radius:50%; background:#112240; color:white; border:3px solid #00f3ff; box-shadow:0 6px 25px rgba(0,243,255,0.6); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:22px; z-index:999998; transition:transform 0.3s; overflow:hidden;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
       <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover; background:#fff;">
     </button>
     
-    <div id="chat-window" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; background:#0a192f; z-index:999999; font-family:'Cairo', sans-serif; flex-direction:column; overflow:hidden;" dir="rtl">
+    <div id="chat-window" style="display:none; position:fixed; top:0; left:0; width:100%; height:100vh; background:#0a192f; z-index:999999; font-family:'Cairo', sans-serif; flex-direction:column; overflow:hidden;" dir="rtl">
       
-      <div style="background:#112240; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; box-shadow:0 2px 5px rgba(0,0,0,0.2);">
-        <div style="display:flex; align-items:center; gap:15px;">
-          <div style="width:45px; height:45px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:2px solid #00f3ff;">
+      <div style="background:#112240; padding:12px 15px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; box-shadow:0 2px 5px rgba(0,0,0,0.2);">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:40px; height:40px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:2px solid #00f3ff;">
             <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover;">
           </div>
           <div>
-            <div style="color:#e6f1ff; font-weight:900; font-size:18px;">ميمو ( Mimo ) 🥰</div>
-            <div style="color:#39ff14; font-size:12px; font-weight:bold; display:flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; background:#39ff14; border-radius:50%;"></span> متصل الآن</div>
+            <div style="color:#e6f1ff; font-weight:900; font-size:16px;">ميمو ( Mimo ) 🥰</div>
+            <div style="color:#39ff14; font-size:11px; font-weight:bold; display:flex; align-items:center; gap:5px;"><span style="width:6px; height:6px; background:#39ff14; border-radius:50%;"></span> متصل الآن</div>
           </div>
         </div>
-        <button id="chat-close" style="background:none; border:none; color:#a8b2c1; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:20px;"><i class="fa-solid fa-xmark"></i></button>
+        <button id="chat-close" style="background:none; border:none; color:#a8b2c1; width:35px; height:35px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:20px;"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div id="chat-messages" style="flex:1; min-height:0; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:5px; background-color:#0a192f;">
+      <div id="chat-messages" style="flex:1; min-height:0; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:5px; background-color:#0a192f;">
         
-        <div id="choice-screen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:25px; text-align:center;">
-          <div style="width:100px; height:100px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:3px solid #00f3ff; box-shadow:0 0 30px rgba(0,243,255,0.4);">
+        <div id="choice-screen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:20px; text-align:center;">
+          <div style="width:80px; height:80px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:3px solid #00f3ff; box-shadow:0 0 30px rgba(0,243,255,0.4);">
              <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover;">
           </div>
-          
-          <h3 style="color:#e6f1ff; font-size:22px; font-weight:900; margin:0; text-align:center; line-height:1.5;">أهلاً بك في <span style="color:#00f3ff;">Apex Phone</span>! 👑</h3>
-          <p style="color:#8892b0; font-size:14px; margin:0; max-width:300px; line-height:1.8; text-align:center;">
+          <h3 style="color:#e6f1ff; font-size:20px; font-weight:900; margin:0; line-height:1.5;">أهلاً بك في <span style="color:#00f3ff;">Apex Phone</span>! 👑</h3>
+          <p style="color:#8892b0; font-size:13px; margin:0; max-width:280px; line-height:1.8;">
             المتجر الأول والموثوق في سوريا لبيع الهواتف الذكية الأصلية وشحن الألعاب.<br>
             أنا <b>ميمو</b>، مساعدك الشخصي الذكي. كيف يمكنني أن أخدمك اليوم؟ ✨
           </p>
-
           
-          <button id="btn-ai" style="width:100%; max-width:320px; background:#112240; border:2px solid #00f3ff; color:#e6f1ff; padding:18px; border-radius:15px; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:15px;">
-            <i class="fa-solid fa-robot text-2xl text-[#00f3ff]"></i> التحدث مع ميمو (ذكاء اصطناعي)
+          <button id="btn-ai" style="width:100%; max-width:300px; background:#112240; border:2px solid #00f3ff; color:#e6f1ff; padding:15px; border-radius:12px; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
+            <i class="fa-solid fa-robot text-xl text-[#00f3ff]"></i> التحدث مع ميمو (ذكاء اصطناعي)
           </button>
           
-          <button id="btn-human" style="width:100%; max-width:320px; background:#112240; border:1px solid #334155; color:#e6f1ff; padding:18px; border-radius:15px; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:15px;">
-            <i class="fa-solid fa-user-headset text-2xl text-[#8892b0]"></i> التحدث مع الدعم البشري
+          <button id="btn-human" style="width:100%; max-width:300px; background:#112240; border:1px solid #334155; color:#e6f1ff; padding:15px; border-radius:12px; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
+            <i class="fa-solid fa-user-headset text-xl text-[#8892b0]"></i> التحدث مع الدعم البشري
           </button>
         </div>
 
-        <div id="ai-chat" style="display:none; flex-direction:column; gap:10px; width:100%;"></div>
+        <div id="ai-chat" style="display:none; flex-direction:column; gap:8px; width:100%;"></div>
         <div id="human-chat" style="display:none; flex-direction:column; gap:5px; width:100%;"></div>
         
         <div id="new-chat-options" style="display:none; flex-direction:column; gap:10px; margin-top:15px; align-items:center;">
@@ -96,21 +90,21 @@
         </div>
       </div>
 
-      <div id="input-area" style="display:none; padding:10px 15px; background:#112240; gap:10px; align-items:center; flex-shrink:0;">
-        <input id="chat-input" type="text" placeholder="اكتب رسالة..." style="flex:1; background:#0a192f; border:none; border-radius:20px; padding:14px 20px; color:#e6f1ff; font-size:15px; outline:none;">
-        <button id="chat-send" style="background:#00f3ff; color:#000; border:none; width:48px; height:48px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:20px;"><i class="fa-solid fa-paper-plane"></i></button>
+      <div id="input-area" style="display:none; padding:10px 12px; background:#112240; gap:10px; align-items:center; flex-shrink:0;">
+        <input id="chat-input" type="text" placeholder="اكتب رسالة..." style="flex:1; background:#0a192f; border:none; border-radius:20px; padding:12px 15px; color:#e6f1ff; font-size:14px; outline:none;">
+        <button id="chat-send" style="background:#00f3ff; color:#000; border:none; width:42px; height:42px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px;"><i class="fa-solid fa-paper-plane"></i></button>
       </div>
 
-      <div id="rating-screen" style="display:none; padding:30px; background:#0a192f; text-align:center; flex-direction:column; justify-content:center; align-items:center; height:100%; position:absolute; inset:0; z-index:10;">
-        <h3 style="color:#e6f1ff; font-size:22px; font-weight:900; margin-bottom:10px;">تم إغلاق المحادثة</h3>
-        <div style="display:flex; gap:10px; margin:20px 0;" id="stars-container">
-          <i class="fa-solid fa-star star-btn text-4xl text-slate-600 cursor-pointer transition" data-val="1"></i>
-          <i class="fa-solid fa-star star-btn text-4xl text-slate-600 cursor-pointer transition" data-val="2"></i>
-          <i class="fa-solid fa-star star-btn text-4xl text-slate-600 cursor-pointer transition" data-val="3"></i>
-          <i class="fa-solid fa-star star-btn text-4xl text-slate-600 cursor-pointer transition" data-val="4"></i>
-          <i class="fa-solid fa-star star-btn text-4xl text-slate-600 cursor-pointer transition" data-val="5"></i>
+      <div id="rating-screen" style="display:none; padding:20px; background:#0a192f; text-align:center; flex-direction:column; justify-content:center; align-items:center; height:100%; position:absolute; inset:0; z-index:10;">
+        <h3 style="color:#e6f1ff; font-size:20px; font-weight:900; margin-bottom:10px;">تم إغلاق المحادثة</h3>
+        <div style="display:flex; gap:8px; margin:15px 0;" id="stars-container">
+          <i class="fa-solid fa-star star-btn text-3xl text-slate-600 cursor-pointer transition" data-val="1"></i>
+          <i class="fa-solid fa-star star-btn text-3xl text-slate-600 cursor-pointer transition" data-val="2"></i>
+          <i class="fa-solid fa-star star-btn text-3xl text-slate-600 cursor-pointer transition" data-val="3"></i>
+          <i class="fa-solid fa-star star-btn text-3xl text-slate-600 cursor-pointer transition" data-val="4"></i>
+          <i class="fa-solid fa-star star-btn text-3xl text-slate-600 cursor-pointer transition" data-val="5"></i>
         </div>
-        <button id="submit-rating" style="background:#00f3ff; color:#000; border:none; padding:12px 40px; border-radius:30px; font-weight:bold;">إرسال التقييم</button>
+        <button id="submit-rating" style="background:#00f3ff; color:#000; border:none; padding:10px 30px; border-radius:30px; font-weight:bold;">إرسال التقييم</button>
       </div>
     </div>
   `;
@@ -143,25 +137,43 @@
     let isClosedDismissed = false;
     let chatIsClosed = false;
 
-    // إظهار النافذة الترحيبية بعد 4 ثواني
+    // --- حل مشكلة لوحة المفاتيح باحترافية ---
+    function handleVisualViewport() {
+      if (!window.visualViewport) return;
+      const vv = window.visualViewport;
+      
+      const adjust = () => {
+        if (chatWindow.style.display === 'flex') {
+          chatWindow.style.height = vv.height + 'px';
+          chatWindow.style.top = vv.offsetTop + 'px';
+          if (messagesContainer) messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+      };
+      
+      vv.addEventListener('resize', adjust);
+      vv.addEventListener('scroll', adjust);
+    }
+    handleVisualViewport();
+    // ----------------------------------------
+
     setTimeout(() => {
-      if (chatWindow.style.display === 'none' && !localStorage.getItem('mimo_teaser_closed_v3')) {
+      if (chatWindow.style.display === 'none' && !localStorage.getItem('mimo_teaser_closed_v4')) {
         teaser.style.display = 'block';
-        playSound('pop'); // صوت النافذة
+        playSound('pop');
       }
     }, 4000);
 
-    closeTeaser.onclick = () => { 
-      teaser.style.display = 'none'; 
-      localStorage.setItem('mimo_teaser_closed_v3', 'true'); 
-    };
+    closeTeaser.onclick = () => { teaser.style.display = 'none'; localStorage.setItem('mimo_teaser_closed_v4', 'true'); };
 
     teaserBtn.onclick = () => {
       playSound('send');
       teaser.style.display = 'none';
       chatWindow.style.display = 'flex';
       document.body.style.overflow = 'hidden';
-      if (window.visualViewport) chatWindow.style.height = window.visualViewport.height + 'px';
+      if (window.visualViewport) {
+        chatWindow.style.height = window.visualViewport.height + 'px';
+        chatWindow.style.top = window.visualViewport.offsetTop + 'px';
+      }
     };
 
     toggleBtn.onclick = () => { 
@@ -169,7 +181,10 @@
       chatWindow.style.display = 'flex'; 
       teaser.style.display = 'none';
       document.body.style.overflow = 'hidden';
-      if (window.visualViewport) chatWindow.style.height = window.visualViewport.height + 'px';
+      if (window.visualViewport) {
+        chatWindow.style.height = window.visualViewport.height + 'px';
+        chatWindow.style.top = window.visualViewport.offsetTop + 'px';
+      }
     };
     
     closeBtn.onclick = () => { chatWindow.style.display = 'none'; document.body.style.overflow = ''; };
@@ -227,14 +242,14 @@
           const isSystem = m.sender === 'system';
           
           if (isSystem) {
-            return `<div style="text-align:center; color:#ef4444; font-size:12px; margin:10px 0; background:rgba(239,68,68,0.1); padding:5px; border-radius:5px; white-space: pre-wrap;">${m.message}</div>`;
+            return `<div style="text-align:center; color:#ef4444; font-size:11px; margin:8px 0; background:rgba(239,68,68,0.1); padding:5px; border-radius:5px; white-space: pre-wrap;">${m.message}</div>`;
           }
           
           const tick = m.sender === 'visitor' ? (m.is_read ? '<i class="fa-solid fa-check-double" style="color:#00f3ff; font-size:10px; margin-right:4px;"></i>' : '<i class="fa-solid fa-check" style="color:#8892b0; font-size:10px; margin-right:4px;"></i>') : '';
           
-          return `<div style="background:${isAdmin ? '#112240' : '#0055ff'}; color:#e6f1ff; padding:8px 12px; border-radius:8px; border-top-${isAdmin ? 'left' : 'right'}-radius:0; font-size:14px; align-self:${isAdmin ? 'flex-start' : 'flex-end'}; max-width:80%; box-shadow:0 1px 2px rgba(0,0,0,0.3); position:relative; margin-bottom:2px;">
+          return `<div style="background:${isAdmin ? '#112240' : '#0055ff'}; color:#e6f1ff; padding:8px 12px; border-radius:8px; border-top-${isAdmin ? 'left' : 'right'}-radius:0; font-size:13px; align-self:${isAdmin ? 'flex-start' : 'flex-end'}; max-width:85%; box-shadow:0 1px 2px rgba(0,0,0,0.3); position:relative; margin-bottom:2px; word-break: break-word;">
             ${m.message}
-            <div style="font-size:10px; color:#8892b0; text-align:left; margin-top:3px;">${tick} ${m.created_at.split(' ')[1].substring(0,5)}</div>
+            <div style="font-size:9px; color:#8892b0; text-align:left; margin-top:3px;">${tick} ${m.created_at.split(' ')[1].substring(0,5)}</div>
           </div>`;
         }).join('');
         
@@ -299,9 +314,9 @@
       inputEl.value = '';
 
       if (isHumanMode) {
-        humanChat.innerHTML += `<div style="background:#0055ff; color:#e6f1ff; padding:8px 12px; border-radius:8px; border-top-right-radius:0; font-size:14px; align-self:flex-end; max-width:80%; box-shadow:0 1px 2px rgba(0,0,0,0.3); margin-bottom:2px;">
+        humanChat.innerHTML += `<div style="background:#0055ff; color:#e6f1ff; padding:8px 12px; border-radius:8px; border-top-right-radius:0; font-size:13px; align-self:flex-end; max-width:85%; box-shadow:0 1px 2px rgba(0,0,0,0.3); margin-bottom:2px; word-break: break-word;">
           ${text}
-          <div style="font-size:10px; color:#8892b0; text-align:left; margin-top:3px;"><i class="fa-solid fa-check" style="color:#8892b0; font-size:10px; margin-right:4px;"></i> الآن</div>
+          <div style="font-size:9px; color:#8892b0; text-align:left; margin-top:3px;"><i class="fa-solid fa-check" style="color:#8892b0; font-size:10px; margin-right:4px;"></i> الآن</div>
         </div>`;
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
@@ -315,7 +330,7 @@
       }
 
       // AI Mode
-      aiChat.innerHTML += `<div style="background:#0055ff; color:#e6f1ff; padding:8px 12px; border-radius:8px; border-top-right-radius:0; font-size:14px; align-self:flex-end; max-width:80%; box-shadow:0 1px 2px rgba(0,0,0,0.3); margin-bottom:2px;">${text}</div>`;
+      aiChat.innerHTML += `<div style="background:#0055ff; color:#e6f1ff; padding:8px 12px; border-radius:8px; border-top-right-radius:0; font-size:13px; align-self:flex-end; max-width:85%; box-shadow:0 1px 2px rgba(0,0,0,0.3); margin-bottom:2px; word-break: break-word;">${text}</div>`;
       chatHistory.push({ role: 'user', text: text });
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
@@ -328,7 +343,7 @@
         if (data.reply) {
           playSound('receive');
           chatHistory.push({ role: 'model', text: data.reply });
-          aiChat.innerHTML += `<div style="background:#112240; color:#e6f1ff; padding:8px 12px; border-radius:8px; border-top-left-radius:0; font-size:14px; align-self:flex-start; max-width:80%; box-shadow:0 1px 2px rgba(0,0,0,0.3); margin-bottom:2px;">${data.reply}</div>`;
+          aiChat.innerHTML += `<div style="background:#112240; color:#e6f1ff; padding:8px 12px; border-radius:8px; border-top-left-radius:0; font-size:13px; align-self:flex-start; max-width:85%; box-shadow:0 1px 2px rgba(0,0,0,0.3); margin-bottom:2px; word-break: break-word;">${data.reply}</div>`;
         }
       } catch(e) {}
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -338,7 +353,6 @@
     inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
   });
 
-  // إضافة حركات الأنيميشن
   const style = document.createElement('style');
   style.innerHTML = `
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }

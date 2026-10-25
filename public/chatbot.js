@@ -3,15 +3,20 @@
   function playSound(type) {
     try {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
       const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
       osc.connect(gain); gain.connect(audioCtx.destination);
       const now = audioCtx.currentTime;
       if (type === 'send') { osc.type = 'sine'; osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(800, now + 0.1); }
-      else { osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(600, now + 0.1); }
-      gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-      osc.start(now); osc.stop(now + 0.1);
+      else if (type === 'receive') { osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(600, now + 0.1); }
+      else if (type === 'pop') { osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(1000, now + 0.15); }
+      gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+      osc.start(now); osc.stop(now + 0.15);
     } catch(e) {}
   }
+
+  // محاولة تفعيل الصوت عند أول تفاعل للمستخدم
+  document.addEventListener('click', () => { if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} } }, { once: true });
 
   let visitorId = localStorage.getItem('apex_visitor_id');
   if (!visitorId) {
@@ -19,17 +24,37 @@
     localStorage.setItem('apex_visitor_id', visitorId);
   }
 
+  // رابط صورة ميمو (يمكنك تغييره لصورة من ChatGPT لاحقاً)
+  const mimoImageUrl = 'https://cdn-icons-png.flaticon.com/512/4712/4712035.png';
+
   const widgetHTML = `
-    <button id="chat-toggle" style="position:fixed; bottom:25px; right:25px; width:65px; height:65px; border-radius:50%; background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; border:3px solid rgba(255,255,255,0.15); box-shadow:0 6px 25px rgba(0,243,255,0.6); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:28px; z-index:99999; transition:transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-      <i class="fa-solid fa-comment-dots" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"></i>
+    <!-- النافذة الترحيبية (Teaser) -->
+    <div id="mimo-teaser" style="display:none; position:fixed; bottom:105px; right:25px; z-index:99998; background:rgba(17,34,64,0.95); backdrop-filter:blur(10px); border:1px solid #00f3ff; border-radius:20px 20px 0 20px; padding:15px; width:270px; box-shadow:0 10px 30px rgba(0,243,255,0.3); font-family:'Cairo', sans-serif; transform-origin: bottom right; animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;" dir="rtl">
+      <button id="mimo-close-teaser" style="position:absolute; top:-10px; left:-10px; background:#ef4444; color:white; border:none; width:24px; height:24px; border-radius:50%; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3);">✕</button>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+        <div style="width:45px; height:45px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:2px solid #00f3ff; box-shadow:0 0 15px rgba(0,243,255,0.5);">
+          <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover;">
+        </div>
+        <div>
+          <h4 style="color:#e6f1ff; margin:0; font-size:16px; font-weight:900;">ميمو (Mimo)</h4>
+          <span style="color:#39ff14; font-size:11px; font-weight:bold;">مساعدك الذكي</span>
+        </div>
+      </div>
+      <p style="color:#a8b2c1; font-size:13px; margin:0 0 12px 0; line-height:1.6;">أهلاً بك في <b>Apex Phone</b>! 🥰<br>هل تحتاج مساعدة في اختيار جهازك أو شحن ألعابك؟</p>
+      <button id="mimo-teaser-btn" style="width:100%; background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer; font-size:14px; box-shadow:0 4px 10px rgba(0,243,255,0.3);">تحدث معي الآن 💬</button>
+    </div>
+
+    <!-- زر أيقونة ميمو -->
+    <button id="chat-toggle" style="position:fixed; bottom:25px; right:25px; width:70px; height:70px; border-radius:50%; background:#112240; color:white; border:3px solid #00f3ff; box-shadow:0 6px 25px rgba(0,243,255,0.6); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:28px; z-index:99999; transition:transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow:hidden;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+      <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover; background:#fff;">
     </button>
     
     <div id="chat-window" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; background:#0a192f; z-index:100000; font-family:'Cairo', sans-serif; flex-direction:column; overflow:hidden;" dir="rtl">
       
       <div style="background:#112240; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; box-shadow:0 2px 5px rgba(0,0,0,0.2);">
         <div style="display:flex; align-items:center; gap:15px;">
-          <div style="width:45px; height:45px; background:#00f3ff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px;">
-            <i class="fa-solid fa-robot text-black"></i>
+          <div style="width:45px; height:45px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:2px solid #00f3ff;">
+            <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover;">
           </div>
           <div>
             <div style="color:#e6f1ff; font-weight:900; font-size:18px;">دعم Apex</div>
@@ -42,8 +67,8 @@
       <div id="chat-messages" style="flex:1; min-height:0; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:5px; background-color:#0a192f;">
         
         <div id="choice-screen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:25px; text-align:center;">
-          <div style="width:100px; height:100px; background:#00f3ff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:50px;">
-            <i class="fa-solid fa-headset text-black"></i>
+          <div style="width:100px; height:100px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:3px solid #00f3ff; box-shadow:0 0 30px rgba(0,243,255,0.4);">
+             <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover;">
           </div>
           <h3 style="color:#e6f1ff; font-size:22px; font-weight:900; margin:0;">مرحباً بك! 🥰</h3>
           <p style="color:#8892b0; font-size:15px; margin:0; max-width:300px;">كيف تفضل أن نخدمك اليوم؟</p>
@@ -90,6 +115,9 @@
     div.innerHTML = widgetHTML;
     document.body.appendChild(div);
 
+    const teaser = document.getElementById('mimo-teaser');
+    const closeTeaser = document.getElementById('mimo-close-teaser');
+    const teaserBtn = document.getElementById('mimo-teaser-btn');
     const toggleBtn = document.getElementById('chat-toggle');
     const chatWindow = document.getElementById('chat-window');
     const closeBtn = document.getElementById('chat-close');
@@ -107,31 +135,44 @@
     
     let chatHistory = [];
     let isHumanMode = false;
-    let chatIsClosed = false;
     let isClosedDismissed = false;
+    let chatIsClosed = false;
 
-    if (window.visualViewport) {
-      const adjustViewport = () => {
-        if (chatWindow.style.display === 'flex') {
-          chatWindow.style.height = window.visualViewport.height + 'px';
-          chatWindow.style.top = window.visualViewport.offsetTop + 'px';
-          if(messagesContainer) messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-      };
-      window.visualViewport.addEventListener('resize', adjustViewport);
-      window.visualViewport.addEventListener('scroll', adjustViewport);
-    }
+    // إظهار النافذة الترحيبية بعد 4 ثواني
+    setTimeout(() => {
+      if (chatWindow.style.display === 'none' && !localStorage.getItem('mimo_teaser_closed')) {
+        teaser.style.display = 'block';
+        playSound('pop'); // صوت النافذة
+      }
+    }, 4000);
 
-    toggleBtn.onclick = () => { 
-      chatWindow.style.display = 'flex'; 
+    closeTeaser.onclick = () => { 
+      teaser.style.display = 'none'; 
+      localStorage.setItem('mimo_teaser_closed', 'true'); 
+    };
+
+    teaserBtn.onclick = () => {
+      playSound('send');
+      teaser.style.display = 'none';
+      chatWindow.style.display = 'flex';
       document.body.style.overflow = 'hidden';
       if (window.visualViewport) chatWindow.style.height = window.visualViewport.height + 'px';
     };
+
+    toggleBtn.onclick = () => { 
+      playSound('send');
+      chatWindow.style.display = 'flex'; 
+      teaser.style.display = 'none';
+      document.body.style.overflow = 'hidden';
+      if (window.visualViewport) chatWindow.style.height = window.visualViewport.height + 'px';
+    };
+    
     closeBtn.onclick = () => { chatWindow.style.display = 'none'; document.body.style.overflow = ''; };
 
-    btnAI.onclick = () => { choiceScreen.style.display = 'none'; aiChat.style.display = 'flex'; inputArea.style.display = 'flex'; inputEl.focus(); };
+    btnAI.onclick = () => { playSound('send'); choiceScreen.style.display = 'none'; aiChat.style.display = 'flex'; inputArea.style.display = 'flex'; inputEl.focus(); };
 
     btnHuman.onclick = async () => {
+      playSound('send');
       choiceScreen.style.display = 'none';
       humanChat.style.display = 'flex';
       inputArea.style.display = 'flex';
@@ -198,9 +239,10 @@
     setInterval(checkHumanChat, 3000);
 
     document.getElementById('btn-yes-new').onclick = async () => {
+      playSound('send');
       isClosedDismissed = false;
       newChatOptions.style.display = 'none';
-      ratingScreen.style.display = 'none'; // إخفاء شاشة التقييم
+      ratingScreen.style.display = 'none';
       humanChat.innerHTML = ''; 
       await fetch('/api/human-chat/init', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -210,6 +252,7 @@
     };
     
     document.getElementById('btn-no-new').onclick = () => {
+      playSound('send');
       isClosedDismissed = true;
       newChatOptions.style.display = 'none';
       inputArea.style.display = 'flex';
@@ -218,6 +261,7 @@
     let selectedRating = 0;
     document.querySelectorAll('.star-btn').forEach(star => {
       star.onclick = function() {
+        playSound('pop');
         selectedRating = parseInt(this.getAttribute('data-val'));
         document.querySelectorAll('.star-btn').forEach(s => {
           s.style.color = parseInt(s.getAttribute('data-val')) <= selectedRating ? '#fbbf24' : '#475569';
@@ -227,6 +271,7 @@
 
     document.getElementById('submit-rating').onclick = async () => {
       if (selectedRating === 0) return alert('يرجى اختيار النجوم أولاً');
+      playSound('send');
       await fetch('/api/human-chat/rate', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ visitor_id: visitorId, rating: selectedRating, feedback: '' })
@@ -237,9 +282,10 @@
 
     async function sendMessage() {
       if (chatIsClosed) {
+        playSound('pop');
         inputArea.style.display = 'none';
         newChatOptions.style.display = 'flex';
-        return; // يمنع الإرسال ويعيد إظهار الأزرار
+        return; 
       }
 
       const text = inputEl.value.trim();
@@ -286,4 +332,11 @@
     sendBtn.onclick = sendMessage;
     inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
   });
+
+  // إضافة حركات الأنيميشن
+  const style = document.createElement('style');
+  style.innerHTML = `
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  `;
+  document.head.appendChild(style);
 })();

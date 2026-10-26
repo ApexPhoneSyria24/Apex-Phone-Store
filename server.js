@@ -167,37 +167,56 @@ app.use((req, res, next) => {
 });
 
 // ===== AI Chatbot (Mimo) - Robust Version =====
+
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, history } = req.body;
+    const { message, history, user_phone } = req.body;
     if (!message) return res.status(400).json({ reply: 'الرجاء كتابة رسالة.' });
 
-    const phones = db.prepare("SELECT name, brand, price FROM phones WHERE status = 'approved' LIMIT 8").all();
-    const games = db.prepare("SELECT name FROM games WHERE is_active = 1 LIMIT 8").all();
+    const phones = db.prepare("SELECT name, brand, price, description FROM phones WHERE status = 'approved' LIMIT 10").all();
+    const games = db.prepare("SELECT name FROM games WHERE is_active = 1").all();
 
-    let systemPrompt = `أنت "ميمو" (Mimo)، مساعد خدمة العملاء والذكاء الاصطناعي لمتجر Apex Phone Syria (المتجر الأول والموثوق في سوريا).
-شخصيتك: خبير محترف، ودود، سريع البديهة، وتتحدث بأسلوب راقٍ ومقنع.
+    // جلب طلبات الزبون السابقة إن وجدت
+    let userOrdersText = "لا توجد طلبات سابقة مسجلة لهذا الرقم.";
+    if (user_phone) {
+      const topupOrders = db.prepare("SELECT id, game_name, package_name, status FROM topup_orders WHERE user_phone = ? ORDER BY id DESC LIMIT 3").all(user_phone);
+      const phoneOrders = db.prepare("SELECT id, name, price, status FROM phones WHERE seller_phone = ? ORDER BY id DESC LIMIT 3").all(user_phone);
+      
+      let orders = [];
+      topupOrders.forEach(o => orders.push(`طلب شحن #${o.id} (${o.game_name} - ${o.package_name}) - الحالة: ${o.status === 'approved' ? 'مقبول' : o.status === 'rejected' ? 'مرفوض' : 'قيد المراجعة'}`));
+      phoneOrders.forEach(o => orders.push(`إعلان هاتف #${o.id} (${o.name}) - الحالة: ${o.status === 'approved' ? 'مقبول' : o.status === 'pending' ? 'قيد المراجعة' : 'مرفوض'}`));
 
-⚠️ قواعد صارمة جداً يجب الالتزام بها حرفياً (ممنوع كسرها):
-1. ممنوع منعاً باتاً أن تقول "أنا ذكاء اصطناعي"، أنت مستشار مبيعات في المتجر.
+      if (orders.length > 0) {
+        userOrdersText = orders.join('\n');
+      }
+    }
+
+    let systemPrompt = `أنت "ميمو" (Mimo)، خبير المبيعات ومساعد خدمة العملاء الذكي لمتجر Apex Phone Syria.
+شخصيتك: خبير محترف، ودود جداً، مقنع، وتتحدث بأسلوب راقٍ.
+
+⚠️ تعليمات هامة:
+1. لا تقل أبداً "أنا ذكاء اصطناعي". أنت مستشار مبيعات في المتجر.
 2. إجاباتك مختصرة (سطرين إلى ثلاثة كحد أقصى).
-3. **لا تقم أبداً بتأكيد أي عملية دفع أو شحن أو تحويل.** أنت لا تملك صلاحيات لتنفيذ ذلك. (مثال: إذا قال الزبون "تم التحويل"، قل له: "يرجى إرسال صورة الإشعار للدعم البشري ليتأكدوا من العملية").
-4. **الخدمة الوحيدة المتاحة حالياً في المتجر هي:** بطاقات App Store (آي تيونز) بقيمة 2$ فقط.
-5. **جميع خدمات شحن الألعاب الأخرى (مثل Free Fire, PUBG, Google Play, وغيرها) متوقفة حالياً تحت الصيانة.** إذا سأل الزبون عن أي لعبة، اعتذر له بلطف وقل له أن القسم تحت الصيانة حالياً.
-6. لا تخترع منتجات أو أسعاراً غير موجودة. إذا لم تعرف الإجابة، اقترح التحدث مع الدعم البشري.
-7. ممنوع تكرار الترحيب إذا لم تكن أول رسالة.
+3. لا تؤكد أي عملية دفع أو تحويل. إذا قال "تم التحويل"، قل له: "يرجى إرسال الإثبات للدعم البشري".
+4. **الخدمة المتاحة حالياً:** فقط بطاقات App Store بـ 2$. باقي الألعاب (Free Fire, PUBG) تحت الصيانة.
+5. **مهمتك كمستشار مبيعات:** إذا سأل الزبون عن هاتف، اسأله عن ميزانيته واستخدامه (ألعاب، تصوير)، ثم رشح له هاتفاً من القائمة أدناه واذكر سعره وميزته.
+6. **مهمتك كمتتبع للطلبات:** إذا سأل الزبون "أين طلبي؟"، استخدم البيانات التالية لترد عليه (إذا كانت فارغة، اطلب منه رقم هاتفه أو توجيهه للدعم البشري).
+7. ممنوع تكرار الترحيب.
 
-معلومات إضافية: نبيع هواتف أصلية بضمان، والدفع عبر سيريتل كاش.`;
+📱 الهواتف المتاحة للترشيح: 
+${phones.map(p => `- ${p.name} (${p.brand}) بسعر $${p.price}: ${p.description ? p.description.substring(0, 30) + '...' : ''}`).join('\n')}
+
+📦 طلبات الزبون الحالي (إذا كان رقمه مسجلاً):
+${userOrdersText}`;
 
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود في السيرفر.' });
     if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود في السيرفر.' });
 
     let contents = [];
     if (history && Array.isArray(history)) {
       history.forEach(msg => { contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }); });
     }
-    contents.push({ role: 'user', parts: [{ text: systemPrompt + "\n\nرسالة الزبون: " + message }] });
+    contents.push({ role: 'user', parts: [{ text: systemPrompt + "\n\nرسالة الزبون الآن: " + message }] });
 
     async function fetchGemini(modelName) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
@@ -211,19 +230,14 @@ app.post('/api/chat', async (req, res) => {
     let reply = null;
     let googleError = '';
 
-    // المحاولة 1: النموذج الأساسي السريع
     try {
       let response = await fetchGemini('gemini-2.0-flash');
       let data = await response.json();
-      
       if (data.candidates && data.candidates[0] && data.candidates[0].content) {
         reply = data.candidates[0].content.parts[0].text;
-      } else if (data.error) {
-        googleError = data.error.message;
-      }
+      } else if (data.error) { googleError = data.error.message; }
     } catch(e) { googleError = e.message; }
 
-    // المحاولة 2: النموذج الاحتياطي
     if (!reply) {
       try {
         let fbResponse = await fetchGemini('gemini-3.5-flash-lite');
@@ -236,9 +250,8 @@ app.post('/api/chat', async (req, res) => {
 
     if (reply) return res.json({ reply: reply });
     
-    // ردود احتياطية في حال فشل كل شيء
     if (googleError.includes('high demand') || googleError.includes('quota')) {
-      return res.json({ reply: 'أعتذر منك جداً، يبدو أن هناك ضغطاً كبيراً على الخوادم حالياً. يرجى المحاولة بعد قليل أو التحدث مع الدعم البشري. 🙏' });
+      return res.json({ reply: 'أعتذر منك جداً، هناك ضغط كبير على الخوادم حالياً. يرجى المحاولة بعد قليل. 🙏' });
     }
     res.json({ reply: 'عذراً، أواجه صعوبة في الاتصال بالشبكة. يرجى إعادة المحاولة لاحقاً. 🌸' });
 

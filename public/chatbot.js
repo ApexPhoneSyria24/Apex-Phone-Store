@@ -372,7 +372,7 @@
       try {
         const res = await fetch('/api/chat', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text, history: chatHistory })
+          body: JSON.stringify({ message: text, history: chatHistory, user_phone: localStorage.getItem('apex_user_phone') })
         });
         const data = await res.json();
         if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();

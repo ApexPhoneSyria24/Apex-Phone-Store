@@ -183,6 +183,7 @@ app.use((req, res, next) => {
 
 
 
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
@@ -191,47 +192,57 @@ app.post('/api/chat', async (req, res) => {
     const phones = db.prepare("SELECT name, price FROM phones WHERE status = 'approved' ORDER BY id DESC LIMIT 5").all();
     
     let systemPrompt = `أنت "ميمو"، مساعد متجر Apex Phone Syria. أجب باختصار شديد (سطرين كحد أقصى) وبإيموجي واحدة.
-قواعد: 1. إذا أراد الشراء اطلب (الاسم، الهاتف، المكان) وأضف [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
-2. إذا كتب بالإنجليزية رد "تمت برمجتي بالعربية فقط 🌸".
+قواعد هامة جداً:
+1. إذا أراد الزبون الشراء، اسأله عن (الاسم، الهاتف، المكان، **ونوع الهاتف بالتحديد وميزانيته**). إذا كان أي حقل ناقصاً، لا تسجل الطلب واسأله عنه.
+2. عندما تكتمل البيانات، قل: "تم تسجيل طلبك بنجاح يا [الاسم]! بخصوص [نوع الهاتف]، سنتواصل معك قريباً." ثم أضف الوسم المخفي: [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
+3. إذا كتب بالإنجليزية رد "تمت برمجتي بالعربية فقط 🌸".
 قائمة أسعار الهواتف المتاحة: ${phones.map(p => `${p.name} ($${p.price})`).join(', ')}`;
 
     const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
-      sendTelegram('⚠️ ميمو: المفتاح GROQ_API_KEY غير موجود!');
-      return res.json({ reply: 'أهلاً بك! يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
-    }
+    if (!apiKey) return res.json({ reply: 'أهلاً بك! يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
 
     let messages = [{ role: 'system', content: systemPrompt }];
     if (history && Array.isArray(history)) {
-      history.slice(-2).forEach(msg => { messages.push({ role: msg.role === 'user' ? 'user' : 'assistant', content: msg.text }); });
+      history.slice(-3).forEach(msg => { messages.push({ role: msg.role === 'user' ? 'user' : 'assistant', content: msg.text }); });
     }
     messages.push({ role: 'user', content: message });
 
-    // إضافة مؤقت 10 ثواني لمنع التعليق
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    let finalReply = null;
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Authorization': `Bearer ${apiKey}` 
-      },
-      body: JSON.stringify({ 
-        model: 'openai/gpt-oss-20b', // النموذج الأقوى والأكثر استقراراً
-        messages: messages,
-        max_tokens: 150,
-        temperature: 0.7
-      }),
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
+    // محاولة 1: النموذج الأساسي
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 ثواني
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({ model: 'openai/gpt-oss-20b', messages: messages, max_tokens: 200, temperature: 0.7 }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      const data = await response.json();
+      if (data.choices && data.choices[0] && data.choices[0].message) {
+        finalReply = data.choices[0].message.content;
+      }
+    } catch (e) { }
 
-    const data = await response.json();
+    // محاولة 2: نموذج احتياطي إذا فشل الأول
+    if (!finalReply) {
+      try {
+        const fbResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+          body: JSON.stringify({ model: 'openai/gpt-oss-120b', messages: messages, max_tokens: 200, temperature: 0.7 })
+        });
+        const fbData = await fbResponse.json();
+        if (fbData.choices && fbData.choices[0] && fbData.choices[0].message) {
+          finalReply = fbData.choices[0].message.content;
+        }
+      } catch (e) { }
+    }
 
-    if (data.choices && data.choices[0] && data.choices[0].message) {
-      let cleanReply = data.choices[0].message.content;
-
+    if (finalReply) {
+      let cleanReply = finalReply;
       const orderRegex = /\[\[NEW_ORDER\|Name:\s*(.*?)\|Phone:\s*(.*?)\|Address:\s*(.*?)\|Product:\s*(.*?)\]\]/;
       const match = cleanReply.match(orderRegex);
       if (match) {
@@ -242,16 +253,10 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ reply: cleanReply });
     }
 
-    const errMsg = data.error ? data.error.message : 'استجابة غير متوقعة';
-    sendTelegram('⚠️ خطأ من Groq: ' + errMsg);
+    sendTelegram('⚠️ خطأ: جميع نماذج Groq فشلت في الرد.');
     return res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
 
   } catch (e) {
-    if (e.name === 'AbortError') {
-      sendTelegram('⚠️ خطأ: Groq استغرق وقتاً طويلاً (Timeout)');
-    } else {
-      sendTelegram('⚠️ خطأ اتصال: ' + e.message);
-    }
     res.json({ reply: 'أهلاً بك! يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
   }
 });

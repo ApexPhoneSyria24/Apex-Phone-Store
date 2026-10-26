@@ -26,27 +26,26 @@
   const mimoImageUrl = 'https://cdn-icons-png.flaticon.com/512/4712/4712035.png';
 
   const widgetHTML = `
-    <!-- Teaser -->
-    <div id="mimo-teaser" style="display:none; position:fixed; bottom:75px; right:25px; z-index:999999; background:rgba(17,34,64,0.95); backdrop-filter:blur(10px); border:1px solid #00f3ff; border-radius:20px 20px 0 20px; padding:12px; width:220px; box-shadow:0 10px 30px rgba(0,243,255,0.3); font-family:'Cairo', sans-serif; transform-origin: bottom right; opacity: 0; transition: opacity 0.5s ease, transform 0.5s ease; transform: translateY(20px);" dir="rtl">
+    <div id="mimo-teaser" style="display:none; position:fixed; bottom:75px; right:20px; z-index:999999; background:rgba(17,34,64,0.95); backdrop-filter:blur(10px); border:1px solid #00f3ff; border-radius:20px 20px 0 20px; padding:12px; width:220px; box-shadow:0 10px 30px rgba(0,243,255,0.3); font-family:'Cairo', sans-serif; transform-origin: bottom right; animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;" dir="rtl">
       <button id="mimo-close-teaser" style="position:absolute; top:-10px; left:-10px; background:#ef4444; color:white; border:none; width:24px; height:24px; border-radius:50%; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3);">✕</button>
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
         <div style="width:32px; height:32px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1.5px solid #00f3ff; box-shadow:0 0 10px rgba(0,243,255,0.5);">
           <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover;">
         </div>
         <div>
           <h4 style="color:#e6f1ff; margin:0; font-size:13px; font-weight:900;">ميمو (Mimo)</h4>
-          <span style="color:#39ff14; font-size:11px; font-weight:bold;">مساعدك الذكي</span>
+          <span style="color:#39ff14; font-size:10px; font-weight:bold;">مساعدك الذكي</span>
         </div>
       </div>
-      <p style="color:#a8b2c1; font-size:11px; margin:0 0 10px 0; line-height:1.4;">أهلاً بك في <b>Apex Phone</b>! 🥰<br>هل تحتاج مساعدة في اختيار جهازك أو شحن ألعابك؟</p>
+      <p style="color:#a8b2c1; font-size:11px; margin:0 0 10px 0; line-height:1.4;">أهلاً بك في <b>Apex Phone</b>! 🥰<br>هل تحتاج مساعدة؟</p>
       <button id="mimo-teaser-btn" style="width:100%; background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; border:none; padding:8px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:12px; box-shadow:0 4px 10px rgba(0,243,255,0.3);">تحدث معي الآن 💬</button>
     </div>
 
-    <button id="chat-toggle" style="position:fixed; bottom:25px; right:25px; width:45px; height:45px; border-radius:50%; background:#112240; color:white; border:3px solid #00f3ff; box-shadow:0 6px 25px rgba(0,243,255,0.6); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; z-index:999998; transition:transform 0.3s; overflow:hidden;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    <button id="chat-toggle" style="position:fixed; bottom:20px; right:20px; width:45px; height:45px; border-radius:50%; background:#112240; color:white; border:2.5px solid #00f3ff; box-shadow:0 6px 20px rgba(0,243,255,0.6); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; z-index:999998; transition:transform 0.3s; overflow:hidden;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
       <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover; background:#fff;">
     </button>
     
-    <div id="chat-window" style="display:none; position:fixed; top:0; left:0; width:100%; height:100vh; background:#0a192f; z-index:999999; font-family:'Cairo', sans-serif; flex-direction:column; overflow:hidden;" dir="rtl">
+    <div id="chat-window" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; background:#0a192f; z-index:999999; font-family:'Cairo', sans-serif; flex-direction:column; overflow:hidden;" dir="rtl">
       
       <div style="background:#112240; padding:12px 15px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; box-shadow:0 2px 5px rgba(0,0,0,0.2);">
         <div style="display:flex; align-items:center; gap:12px;">
@@ -62,7 +61,7 @@
         <button id="chat-close" style="background:none; border:none; color:#a8b2c1; width:35px; height:35px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:20px;"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div id="chat-messages" style="flex:1; min-height:0; padding:12px; overflow-y:auto; display:flex; flex-direction:column; gap:5px; background-color:#0a192f;">
+      <div id="chat-messages" style="flex:1; min-height:0; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:5px; background-color:#0a192f;">
         
         <div id="choice-screen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:20px; text-align:center;">
           <div style="width:80px; height:80px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:3px solid #00f3ff; box-shadow:0 0 30px rgba(0,243,255,0.4);">
@@ -74,11 +73,11 @@
             أنا <b>ميمو</b>، مساعدك الشخصي الذكي. كيف يمكنني أن أخدمك اليوم؟ ✨
           </p>
           
-          <button id="btn-ai" style="width:100%; max-width:300px; background:#112240; border:2px solid #00f3ff; color:#e6f1ff; padding:12px; border-radius:12px; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
+          <button id="btn-ai" style="width:100%; max-width:300px; background:#112240; border:2px solid #00f3ff; color:#e6f1ff; padding:15px; border-radius:12px; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
             <i class="fa-solid fa-robot text-xl text-[#00f3ff]"></i> التحدث مع ميمو (ذكاء اصطناعي)
           </button>
           
-          <button id="btn-human" style="width:100%; max-width:300px; background:#112240; border:1px solid #334155; color:#e6f1ff; padding:12px; border-radius:12px; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
+          <button id="btn-human" style="width:100%; max-width:300px; background:#112240; border:1px solid #334155; color:#e6f1ff; padding:15px; border-radius:12px; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
             <i class="fa-solid fa-user-headset text-xl text-[#8892b0]"></i> التحدث مع الدعم البشري
           </button>
         </div>
@@ -142,8 +141,8 @@
     let isClosedDismissed = false;
     let chatIsClosed = false;
 
-    function handleVisualViewport() {
-      if (!window.visualViewport) return;
+    // --- حل مشكلة لوحة المفاتيح ---
+    if (window.visualViewport) {
       const vv = window.visualViewport;
       const adjust = () => {
         if (chatWindow.style.display === 'flex') {
@@ -155,44 +154,29 @@
       vv.addEventListener('resize', adjust);
       vv.addEventListener('scroll', adjust);
     }
-    handleVisualViewport();
+
+    // --- منطق ظهور ميمو (يظهر عند التحديث أو الدخول الجديد فقط) ---
+    // التحقق مما إذا كانت الصفحة قد تم تحديثها (Reload)
+    const isReload = performance.getEntriesByType("navigation")[0]?.type === "reload";
+    
+    if (isReload) {
+        // إذا كان تحديثاً، نمسح الذاكرة المؤقتة لكي تظهر النافذة
+        sessionStorage.removeItem('mimo_teaser_shown_once');
+    }
 
     setTimeout(() => {
-      // استخدام sessionStorage لمنع التكرار أثناء التنقل
+      // نتحقق من عدم ظهورها مسبقاً في هذه الجلسة
       if (chatWindow.style.display === 'none' && !sessionStorage.getItem('mimo_teaser_shown_once')) {
         teaser.style.display = 'block';
         sessionStorage.setItem('mimo_teaser_shown_once', 'true');
         playSound('pop');
       }
     }, 2000);
-        playSound('pop');
-      }
-    }, 2000);
+    // -----------------------------------------------------
 
-    closeTeaser.onclick = () => { teaser.style.display = 'none'; sessionStorage.setItem('mimo_teaser_shown_once', 'true'); };
-
-    teaserBtn.onclick = () => { localStorage.setItem('mimo_teaser_seen_v11_v11_v10_v9_v8', 'true');
-      playSound('send');
-      teaser.style.display = 'none';
-      chatWindow.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-      if (window.visualViewport) {
-        chatWindow.style.height = window.visualViewport.height + 'px';
-        chatWindow.style.top = window.visualViewport.offsetTop + 'px';
-      }
-    };
-
-    toggleBtn.onclick = () => { 
-      playSound('send');
-      chatWindow.style.display = 'flex'; 
-      teaser.style.display = 'none';
-      document.body.style.overflow = 'hidden';
-      if (window.visualViewport) {
-        chatWindow.style.height = window.visualViewport.height + 'px';
-        chatWindow.style.top = window.visualViewport.offsetTop + 'px';
-      }
-    };
-    
+    closeTeaser.onclick = () => { teaser.style.display = 'none'; };
+    teaserBtn.onclick = () => { playSound('send'); teaser.style.display = 'none'; chatWindow.style.display = 'flex'; document.body.style.overflow = 'hidden'; if(window.visualViewport) chatWindow.style.height = window.visualViewport.height + 'px'; };
+    toggleBtn.onclick = () => { playSound('send'); chatWindow.style.display = 'flex'; teaser.style.display = 'none'; document.body.style.overflow = 'hidden'; if(window.visualViewport) chatWindow.style.height = window.visualViewport.height + 'px'; };
     closeBtn.onclick = () => { chatWindow.style.display = 'none'; document.body.style.overflow = ''; };
 
     backBtn.onclick = () => {
@@ -208,16 +192,7 @@
       ratingScreen.style.display = 'none';
     };
 
-    btnAI.onclick = () => { 
-      playSound('send'); 
-      choiceScreen.style.display = 'none'; 
-      aiChat.style.display = 'flex'; 
-      inputArea.style.display = 'flex'; 
-      chatTitle.innerText = 'ميمو ( Mimo ) 🥰';
-      backBtn.style.display = 'block';
-      isHumanMode = false;
-      inputEl.focus(); 
-    };
+    btnAI.onclick = () => { playSound('send'); choiceScreen.style.display = 'none'; aiChat.style.display = 'flex'; inputArea.style.display = 'flex'; chatTitle.innerText = 'ميمو ( Mimo ) 🥰'; backBtn.style.display = 'block'; isHumanMode = false; inputEl.focus(); };
 
     btnHuman.onclick = async () => {
       playSound('send');
@@ -231,10 +206,7 @@
       inputEl.focus();
       
       try {
-        await fetch('/api/human-chat/init', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ visitor_id: visitorId })
-        });
+        await fetch('/api/human-chat/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ visitor_id: visitorId }) });
       } catch(e) {}
       checkHumanChat();
     };
@@ -270,19 +242,13 @@
         humanChat.innerHTML = data.messages.map(m => {
           const isAdmin = m.sender === 'admin';
           const isSystem = m.sender === 'system';
-          
-          if (isSystem) {
-            return `<div style="text-align:center; color:#ef4444; font-size:11px; margin:8px 0; background:rgba(239,68,68,0.1); padding:5px; border-radius:5px; white-space: pre-wrap;">${m.message}</div>`;
-          }
-          
+          if (isSystem) return `<div style="text-align:center; color:#ef4444; font-size:11px; margin:8px 0; background:rgba(239,68,68,0.1); padding:5px; border-radius:5px; white-space: pre-wrap;">${m.message}</div>`;
           const tick = m.sender === 'visitor' ? (m.is_read ? '<i class="fa-solid fa-check-double" style="color:#00f3ff; font-size:10px; margin-right:4px;"></i>' : '<i class="fa-solid fa-check" style="color:#8892b0; font-size:10px; margin-right:4px;"></i>') : '';
-          
           return `<div style="background:${isAdmin ? '#112240' : '#0055ff'}; color:#e6f1ff; padding:8px 12px; border-radius:8px; border-top-${isAdmin ? 'left' : 'right'}-radius:0; font-size:13px; align-self:${isAdmin ? 'flex-start' : 'flex-end'}; max-width:85%; box-shadow:0 1px 2px rgba(0,0,0,0.3); position:relative; margin-bottom:2px; word-break: break-word;">
             ${m.message}
             <div style="font-size:9px; color:#8892b0; text-align:left; margin-top:3px;">${tick} ${m.created_at.split(' ')[1].substring(0,5)}</div>
           </div>`;
         }).join('');
-        
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       } catch(e) {}
     }
@@ -294,10 +260,7 @@
       newChatOptions.style.display = 'none';
       ratingScreen.style.display = 'none';
       humanChat.innerHTML = ''; 
-      await fetch('/api/human-chat/init', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ visitor_id: visitorId })
-      });
+      await fetch('/api/human-chat/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ visitor_id: visitorId }) });
       checkHumanChat();
     };
     
@@ -313,19 +276,14 @@
       star.onclick = function() {
         playSound('pop');
         selectedRating = parseInt(this.getAttribute('data-val'));
-        document.querySelectorAll('.star-btn').forEach(s => {
-          s.style.color = parseInt(s.getAttribute('data-val')) <= selectedRating ? '#fbbf24' : '#475569';
-        });
+        document.querySelectorAll('.star-btn').forEach(s => { s.style.color = parseInt(s.getAttribute('data-val')) <= selectedRating ? '#fbbf24' : '#475569'; });
       };
     });
 
     document.getElementById('submit-rating').onclick = async () => {
       if (selectedRating === 0) return alert('يرجى اختيار النجوم أولاً');
       playSound('send');
-      await fetch('/api/human-chat/rate', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ visitor_id: visitorId, rating: selectedRating, feedback: '' })
-      });
+      await fetch('/api/human-chat/rate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ visitor_id: visitorId, rating: selectedRating, feedback: '' }) });
       ratingScreen.style.display = 'none';
       humanChat.innerHTML = '<div style="color:#00f3ff; text-align:center; margin-top:20px; font-weight:bold;">شكراً لتقييمك! ⭐</div>';
     };
@@ -349,13 +307,7 @@
           <div style="font-size:9px; color:#8892b0; text-align:left; margin-top:3px;"><i class="fa-solid fa-check" style="color:#8892b0; font-size:10px; margin-right:4px;"></i> الآن</div>
         </div>`;
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-        try {
-          await fetch('/api/human-chat/send', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ visitor_id: visitorId, message: text })
-          });
-        } catch(e) {}
+        try { await fetch('/api/human-chat/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ visitor_id: visitorId, message: text }) }); } catch(e) {}
         return;
       }
 
@@ -365,30 +317,19 @@
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
       const loadingId = 'ai-loading-' + Date.now();
-      aiChat.innerHTML += `
-        <div id="${loadingId}" style="display:flex; align-items:center; gap:4px; background:#112240; padding:12px 16px; border-radius:8px; border-top-left-radius:0; align-self:flex-start; width:fit-content; box-shadow:0 1px 2px rgba(0,0,0,0.3); margin-bottom:2px;">
-          <span class="typing-dot"></span>
-          <span class="typing-dot"></span>
-          <span class="typing-dot"></span>
-        </div>`;
+      aiChat.innerHTML += `<div id="${loadingId}" style="display:flex; align-items:center; gap:4px; background:#112240; padding:12px 16px; border-radius:8px; border-top-left-radius:0; align-self:flex-start; width:fit-content; box-shadow:0 1px 2px rgba(0,0,0,0.3); margin-bottom:2px;"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`;
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
       try {
-        const res = await fetch('/api/chat', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text, history: chatHistory, user_phone: localStorage.getItem('apex_user_phone'), visitor_id: visitorId })
-        });
+        const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, history: chatHistory }) });
         const data = await res.json();
         if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
-        
         if (data.reply) {
           playSound('receive');
           chatHistory.push({ role: 'model', text: data.reply });
           aiChat.innerHTML += `<div style="background:#112240; color:#e6f1ff; padding:8px 12px; border-radius:8px; border-top-left-radius:0; font-size:13px; align-self:flex-start; max-width:85%; box-shadow:0 1px 2px rgba(0,0,0,0.3); margin-bottom:2px; word-break: break-word;">${data.reply}</div>`;
         }
-      } catch(e) {
-        if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
-      }
+      } catch(e) { if (document.getElementById(loadingId)) document.getElementById(loadingId).remove(); }
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
@@ -399,14 +340,8 @@
   const style = document.createElement('style');
   style.innerHTML = `
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes bounce {
-      0%, 80%, 100% { transform: scale(0); }
-      40% { transform: scale(1); }
-    }
-    .typing-dot {
-      width: 8px; height: 8px; background-color: #00f3ff; border-radius: 50%;
-      display: inline-block; animation: bounce 1.4s infinite ease-in-out both;
-    }
+    @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+    .typing-dot { width: 8px; height: 8px; background-color: #00f3ff; border-radius: 50%; display: inline-block; animation: bounce 1.4s infinite ease-in-out both; }
     .typing-dot:nth-child(1) { animation-delay: -0.32s; }
     .typing-dot:nth-child(2) { animation-delay: -0.16s; }
   `;

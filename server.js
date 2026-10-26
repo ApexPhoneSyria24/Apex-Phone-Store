@@ -204,7 +204,7 @@ app.post('/api/chat', async (req, res) => {
     contents.push({ role: 'user', parts: [{ text: systemPrompt + "\nالزبون: " + message }] });
 
     // استخدام نموذج Pro المستقر
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },

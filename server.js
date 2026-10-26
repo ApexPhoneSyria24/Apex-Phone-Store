@@ -200,7 +200,7 @@ app.post('/api/chat', async (req, res) => {
     contents.push({ role: 'user', parts: [{ text: systemPrompt + "\nالزبون: " + message }] });
 
     // النموذج الأكثر استقراراً وسرعة
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent';
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },

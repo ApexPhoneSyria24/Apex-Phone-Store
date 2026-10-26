@@ -169,95 +169,81 @@ app.use((req, res, next) => {
 // ===== AI Chatbot (Mimo) - Robust Version =====
 
 
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history, user_phone, visitor_id } = req.body;
     if (!message) return res.status(400).json({ reply: 'الرجاء كتابة رسالة.' });
 
-    const phones = db.prepare("SELECT name, brand, price, description FROM phones WHERE status = 'approved' ORDER BY id DESC").all();
+    const phones = db.prepare("SELECT name, brand, price FROM phones WHERE status = 'approved' ORDER BY id DESC").all();
     
     let systemPrompt = `أنت "ميمو" (Mimo)، مساعد خدمة العملاء في متجر Apex Phone Syria.
-شخصيتك: مهذب، لطيف، هادئ، ومحترف. تتحدث كإنسان طبيعي وليس كآلة.
+شخصيتك: مهذب، لطيف، مختصر جداً، وتتحدث كإنسان طبيعي.
+قواعد صارمة:
+1. أجب في سطرين كحد أقصى. لا تكتب فقرات طويلة.
+2. استخدم إيموجي واحد أو اثنين فقط.
+3. ممنوع استخدام علامات النجمة (**).
+4. لا تلح على الزبون بالشراء.
+5. لا تخترع أسعاراً، استخدم السعر الحقيقي من القائمة.
+6. إذا أراد الشراء، اطلب (الاسم الثلاثي، الهاتف، مكان التسليم). وبعدها قل "تم تسجيل طلبك." وأضف الوسم: [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
 
-⚠️ قواعد صارمة جداً (ممنوع كسرها):
-1. **الإيجاز:** إجابتك يجب أن تكون في سطرين كحد أقصى. لا تكتب فقرات طويلة أو تكرر الكلام.
-2. **الإيموجي:** استخدم إيموجي واحد أو اثنين كحد أقصى في الرسالة (مثل 🌸 أو 🙏). لا تبالغ.
-3. **التنسيق:** ممنوع منعاً باتاً استخدام علامات النجمة (**) أو أي رموز تنسيقية. اكتب نصاً عادياً فقط.
-4. **الهدوء:** لا تبالغ في المشاعر أو الترحيب. كن لطيفاً لكن مختصراً.
-5. **الترشيح:** عند طلب هاتف، اقترح خياراً واحداً أو خيارين فقط مع السعر الحقيقي من القائمة أدناه. لا تذكر القائمة كلها.
-6. **الأسعار:** لا تخترع أسعاراً، انسخها حرفياً.
-7. **استلام الطلبات:** إذا أراد الزبون الشراء، اطلب منه باختصار (الاسم الثلاثي، رقم الهاتف، مكان التسليم). بعد استلامها قل: "تم تسجيل طلبك بنجاح، سنتواصل معك قريباً." وأضف الوسم المخفي: [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
-
-قائمة الهواتف:
-${phones.map(p => `- ${p.name} بسعر $${p.price}`).join('\n')}`;
+الهواتف:
+${phones.map(p => `${p.name} ($${p.price})`).join(', ')}`;
 
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود في السيرفر.' });if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود في السيرفر.' });if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود في السيرفر.' });if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود في السيرفر.' });if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود في السيرفر.' });if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود في السيرفر.' });if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود في السيرفر.' });
+    if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود.' });
 
+    // جلب آخر 6 رسائل فقط لتسريع الرد
     let contents = [];
     if (history && Array.isArray(history)) {
-      history.forEach(msg => { contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }); });
+      const recentHistory = history.slice(-6);
+      recentHistory.forEach(msg => { contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }); });
     }
-    contents.push({ role: 'user', parts: [{ text: systemPrompt + "\n\nرسالة الزبون الآن: " + message }] });
+    contents.push({ role: 'user', parts: [{ text: systemPrompt + "\n\nرسالة الزبون: " + message }] });
 
-    async function fetchGemini(modelName) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
-      return await fetch(url, {
+    // وضع مؤقت 8 ثواني للاتصال
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    try {
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify({ contents: contents })
+        body: JSON.stringify({ contents: contents }),
+        signal: controller.signal
       });
-    }
+      clearTimeout(timeoutId);
 
-    let rawReply = null;
-    
-    try {
-      let response = await fetchGemini('gemini-2.0-flash');
-      let data = await response.json();
+      const data = await response.json();
+      
       if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        rawReply = data.candidates[0].content.parts[0].text;
-      }
-    } catch(e) { }
+        let rawReply = data.candidates[0].content.parts[0].text;
+        let cleanReply = rawReply;
+        
+        // استخراج الطلب إذا وجد
+        const orderRegex = /\[\[NEW_ORDER\|Name:\s*(.*?)\|Phone:\s*(.*?)\|Address:\s*(.*?)\|Product:\s*(.*?)\]\]/;
+        const match = rawReply.match(orderRegex);
 
-    if (!rawReply) {
-      try {
-        let fbResponse = await fetchGemini('gemini-3.5-flash-lite');
-        let fbData = await fbResponse.json();
-        if (fbData.candidates && fbData.candidates[0] && fbData.candidates[0].content) {
-          rawReply = fbData.candidates[0].content.parts[0].text;
+        if (match) {
+          const [fullMatch, name, phone, address, product] = match;
+          cleanReply = rawReply.replace(fullMatch, '').trim();
+          
+          sendTelegram(`🛒 <b>طلب هاتف جديد عبر ميمو!</b>\n\n👤 الاسم: ${name}\n📞 الهاتف: ${phone}\n📍 العنوان: ${address}\n📱 الجهاز: ${product}`);
         }
-      } catch(e) { }
-    }
 
-    if (!rawReply) {
-      return res.json({ reply: 'أعتذر منك، هناك ضغط كبير على الخوادم حالياً. يرجى المحاولة بعد قليل. 🙏' });
-    }
-
-    // فحص وجود طلب جديد في رد ميمو
-    let cleanReply = rawReply;
-    const orderRegex = /\[\[NEW_ORDER\|Name:\s*(.*?)\|Phone:\s*(.*?)\|Address:\s*(.*?)\|Product:\s*(.*?)\]\]/;
-    const match = rawReply.match(orderRegex);
-
-    if (match) {
-      const [fullMatch, name, phone, address, product] = match;
-      cleanReply = rawReply.replace(fullMatch, '').trim(); // إزالة الوسم من الرسالة التي تظهر للزبون
-      
-      const orderMessage = `🤖 **طلب جديد من ميمو (الذكاء الاصطناعي):**\n👤 الاسم: ${name}\n📞 الرقم: ${phone}\n📍 المكان: ${address}\n📱 المنتج: ${product}`;
-      
-      // حفظ الطلب في الدردشة الحية لكي يظهر لك أنت
-      if (visitor_id) {
-        // (تم إيقاف إرسال الطلب للدردشة الحية بناءً على طلبك - يرسل لتيليجرام فقط)
-      // db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'visitor', ?)").run(visitor_id, orderMessage);
+        return res.json({ reply: cleanReply });
       }
-      
-      // إرسال إشعار تيليجرام لك
-      sendTelegram(`🛒 <b>طلب هاتف جديد عبر ميمو!</b>\n\n👤 الاسم: ${name}\n📞 الهاتف: ${phone}\n📍 العنوان: ${address}\n📱 الجهاز: ${product}`);
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        return res.json({ reply: 'أعتذر منك يا غالي، يبدو أن الاتصال بطيء قليلاً. هل يمكنك إعادة إرسال رسالتك؟ 🙏' });
+      }
     }
 
-    res.json({ reply: cleanReply });
+    return res.json({ reply: 'أعتذر منك يا غالي، أواجه ضغطاً كبيراً الآن. يرجى المحاولة بعد قليل. 🌸' });
 
   } catch (e) {
-    console.error(e);
     res.json({ reply: 'عذراً، حدث خطأ مؤقت. يرجى المحاولة لاحقاً.' });
   }
 });

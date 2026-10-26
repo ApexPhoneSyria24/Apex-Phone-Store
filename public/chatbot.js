@@ -160,6 +160,7 @@
     setTimeout(() => {
       if (chatWindow.style.display === 'none') {
         teaser.style.display = 'block';
+        localStorage.setItem('mimo_teaser_shown_once', 'true');
         setTimeout(() => { teaser.style.opacity = '1'; teaser.style.transform = 'translateY(0)'; }, 50);
         playSound('pop');
       }

@@ -105,10 +105,10 @@
         <a href="https://wa.me/963980259127" target="_blank" class="flex items-center gap-2 bg-[#25D366] hover:bg-[#20b858] text-white px-3 py-1.5 rounded-full font-bold text-sm shadow-md transition-colors">
           <i class="fa-brands fa-whatsapp text-lg"></i> <span class="hidden md:inline">تواصل</span>
         </a>
-        <button class="w-9 h-9 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-colors relative">
-          <i class="fa-regular fa-bell"></i>
-          <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
+        <button onclick="openNotifModal()" class="w-9 h-9 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-colors relative">
+      <i class="fa-regular fa-bell"></i>
+      <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+    </button>
       </div>
     </div>
   </nav>
@@ -464,6 +464,89 @@ function redirectToGames(e) {
 </script>
 <script src="/tracker.js"></script>
 <script src="/chatbot.js?v=11"></script>
+
+  <!-- نافذة الإشعارات -->
+  <div id="notifModal" class="fixed inset-0 bg-black/80 z-[9999] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+    <div class="bg-[#0f172a] border border-slate-700 w-full max-w-md rounded-2xl p-5 shadow-2xl relative">
+      <button onclick="closeNotifModal()" class="absolute top-4 left-4 text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+      <h2 class="text-xl font-bold text-white mb-5 text-center"><i class="fa-solid fa-bell text-blue-500 ml-2"></i> الإشعارات</h2>
+      <div id="notifContent" class="space-y-3 max-h-[60vh] overflow-y-auto text-right pr-1">
+         <!-- المحتوى هنا -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openNotifModal() {
+      const modal = document.getElementById('notifModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      
+      let phone = localStorage.getItem('apex_user_phone');
+      const content = document.getElementById('notifContent');
+      
+      if (!phone) {
+        content.innerHTML = `
+          <div class="text-center py-2">
+            <p class="text-slate-300 mb-4 text-sm">أدخل رقم هاتفك لعرض الإشعارات الخاصة بك</p>
+            <input type="tel" id="notifPhoneInput" class="w-full bg-slate-800 text-white p-3 rounded-xl mb-3 border border-slate-600 focus:border-blue-500 outline-none text-center font-bold" placeholder="09xxxxxxxx" dir="ltr">
+            <button onclick="fetchNotifs()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">عرض الإشعارات</button>
+          </div>
+        `;
+        return;
+      }
+      
+      content.innerHTML = '<div class="text-center text-slate-400 py-6"><i class="fa-solid fa-spinner fa-spin text-2xl mb-3 text-blue-500"></i><br>جاري تحميل الإشعارات...</div>';
+      loadNotifs(phone);
+    }
+
+    async function fetchNotifs() {
+      const phone = document.getElementById('notifPhoneInput').value.trim();
+      if (!phone || phone.length < 8) return alert('يرجى إدخال رقم هاتف صحيح');
+      localStorage.setItem('apex_user_phone', phone);
+      const content = document.getElementById('notifContent');
+      content.innerHTML = '<div class="text-center text-slate-400 py-6"><i class="fa-solid fa-spinner fa-spin text-2xl mb-3 text-blue-500"></i><br>جاري تحميل الإشعارات...</div>';
+      loadNotifs(phone);
+    }
+
+    async function loadNotifs(phone) {
+      const content = document.getElementById('notifContent');
+      try {
+        const res = await fetch('/api/notifications/' + phone);
+        const data = await res.json();
+        
+        if (data.length === 0) {
+          content.innerHTML = '<div class="text-center text-slate-400 py-8"><i class="fa-regular fa-bell-slash text-4xl mb-3 text-slate-600"></i><br>لا توجد إشعارات حالياً.</div>';
+        } else {
+          content.innerHTML = data.map(n => `
+            <div class="bg-slate-800/80 p-3 rounded-xl border ${n.is_read === 1 ? 'border-slate-700 opacity-60' : 'border-blue-500/50 shadow-[0_0_10px_rgba(59,130,246,0.1)]'} text-sm text-slate-200">
+              ${n.message}
+              <div class="text-[10px] text-slate-500 mt-2 font-mono" dir="ltr">${n.created_at}</div>
+            </div>
+          `).join('');
+          
+          // تعليم الإشعارات كمقروءة وإخفاء النقطة الحمراء
+          fetch('/api/notifications/read/' + phone, { method: 'POST' });
+          const redDot = document.querySelector('button[onclick="openNotifModal()"] span');
+          if (redDot) redDot.style.display = 'none';
+        }
+      } catch (e) {
+        content.innerHTML = '<div class="text-center text-red-400 py-6">حدث خطأ في جلب الإشعارات. تحقق من اتصالك.</div>';
+      }
+    }
+
+    function closeNotifModal() {
+      const modal = document.getElementById('notifModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    
+    // إغلاق النافذة عند النقر خارجها
+    document.getElementById('notifModal').addEventListener('click', function(e) {
+      if (e.target === this) closeNotifModal();
+    });
+  </script>
+  
 </body>
     
 </html>

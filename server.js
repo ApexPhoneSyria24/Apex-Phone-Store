@@ -177,6 +177,7 @@ app.use((req, res, next) => {
 
 
 
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
@@ -190,8 +191,10 @@ app.post('/api/chat', async (req, res) => {
 الهواتف المتاحة: ${phones.map(p => `${p.name} ($${p.price})`).join(', ')}`;
 
     const apiKey = process.env.GEMINI_API_KEY;
+    const fallbackMsg = 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الرجوع (السهم في الأعلى) واختيار "الدعم البشري" وسنخدمك فوراً!';
+
     if (!apiKey) {
-      return res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر "الدعم البشري" بالأعلى وسنخدمك فوراً!' });
+      return res.json({ reply: fallbackMsg });
     }
 
     let contents = [];
@@ -200,8 +203,8 @@ app.post('/api/chat', async (req, res) => {
     }
     contents.push({ role: 'user', parts: [{ text: systemPrompt + "\nالزبون: " + message }] });
 
-    // استخدام واجهة v1 المستقرة
-    const url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
+    // استخدام نموذج Pro المستقر
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
@@ -213,10 +216,11 @@ app.post('/api/chat', async (req, res) => {
 
     const data = await response.json();
 
-    // درع الحماية: إذا كان هناك خطأ من جوجل، لا نعرضه للزبون
     if (data.error) {
       console.error('Google API Error:', data.error.message);
-      return res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر "الدعم البشري" بالأعلى وسنخدمك فوراً!' });
+      // إرسال الخطأ الحقيقي لك على تيليجرام للتشخيص
+      sendTelegram('⚠️ خطأ ميمو: ' + data.error.message);
+      return res.json({ reply: fallbackMsg });
     }
 
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
@@ -232,13 +236,11 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ reply: cleanReply });
     }
 
-    // في حال عدم وجود رد
-    return res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر "الدعم البشري" بالأعلى وسنخدمك فوراً!' });
+    return res.json({ reply: fallbackMsg });
 
   } catch (e) {
     console.error('Chat Route Error:', e);
-    // حتى لو انقطع الإنترنت أو تعطل السيرفر، الزبون يرى رسالة احترافية
-    res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر "الدعم البشري" بالأعلى وسنخدمك فوراً!' });
+    res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الرجوع (السهم في الأعلى) واختيار "الدعم البشري" وسنخدمك فوراً!' });
   }
 });
 

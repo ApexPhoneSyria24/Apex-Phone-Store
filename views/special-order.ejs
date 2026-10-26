@@ -1,53 +1,273 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8"><title>اطلب جهازك الخاص | Apex Phone</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>اطلب جهازك الخاص | Apex Phone</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } } } }</script>
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] }, colors: { neon: { blue: '#00f3ff', dark: '#050505' } } } } }</script>
+  <style>
+    body {
+      background-color: #050505;
+      background-image: radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.15), transparent 60%),
+                        radial-gradient(circle at 10% 80%, rgba(0, 85, 255, 0.1), transparent 40%);
+      color: white;
+      font-family: 'Cairo', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      margin: 0;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      box-shadow: 0 0 40px rgba(0, 243, 255, 0.1), inset 0 0 20px rgba(0, 243, 255, 0.05);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 500px;
+      padding: 40px 30px;
+      position: relative;
+      overflow: hidden;
+      animation: floatIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(40px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .input-group {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .input-group i {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8892b0;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+    .input-group input, .input-group select {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 15px 45px 15px 15px;
+      color: white;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    .input-group input:focus, .input-group select:focus {
+      border-color: #00f3ff;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+      background: rgba(0, 0, 0, 0.6);
+    }
+    .input-group input:focus + i {
+      color: #00f3ff;
+    }
+    .submit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #00f3ff, #0055ff);
+      color: white;
+      font-weight: 900;
+      font-size: 16px;
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 243, 255, 0.3);
+      margin-top: 10px;
+    }
+    .submit-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 243, 255, 0.5);
+    }
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+    /* Customizing Select Arrow */
+    .input-group select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238892b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: left 15px center;
+      background-size: 16px;
+    }
+    .delivery-badge {
+      display: none;
+      margin-bottom: 20px;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: bold;
+      text-align: center;
+      animation: popIn 0.3s ease;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4">
-  <div class="bg-slate-800 rounded-2xl p-6 w-full max-w-lg shadow-2xl border border-slate-700">
-    <h1 class="text-2xl font-black mb-4 text-center">لم تجد جهازك؟ اطلبه الآن!</h1>
-    <form id="orderForm" class="space-y-4">
-      <input type="text" name="device_name" required placeholder="اسم الجهاز (مثال: iPhone 15)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-indigo-500 outline-none">
-      <input type="text" name="budget" placeholder="ميزانيتك (مثال: 800$)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-indigo-500 outline-none">
-      <input type="text" name="customer_name" required placeholder="اسمك الثلاثي" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-indigo-500 outline-none">
-      <input type="tel" name="phone" required placeholder="رقم هاتفك (واتساب)" dir="ltr" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-indigo-500 outline-none">
+<body>
+  <div class="glass-card">
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(0,243,255,0.4)]">
+        <i class="fa-solid fa-wand-magic-sparkles text-2xl text-white"></i>
+      </div>
+      <h1 class="text-2xl font-black text-white tracking-wide">لم تجد جهازك المطلوب؟</h1>
+      <p class="text-slate-400 text-sm mt-2">اطلبه الآن وسنوفره لك بأفضل سعر في سوريا</p>
+    </div>
+
+    <form id="orderForm">
+      <div class="input-group">
+        <input type="text" name="device_name" required placeholder="اسم الجهاز (مثال: iPhone 15)">
+        <i class="fa-solid fa-mobile-screen"></i>
+      </div>
       
-      <select name="governorate" id="governorateSelect" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-indigo-500 outline-none">
-        <option value="">اختر المحافظة...</option>
-        <option value="دمشق">دمشق</option><option value="ريف دمشق">ريف دمشق</option><option value="حلب">حلب</option>
-        <option value="حمص">حمص</option><option value="حماة">حماة</option><option value="اللاذقية">اللاذقية</option>
-        <option value="طرطوس">طرطوس</option><option value="إدلب">إدلب</option><option value="درعا">درعا</option>
-        <option value="السويداء">السويداء</option><option value="القنيطرة">القنيطرة</option>
-        <option value="دير الزور">دير الزور</option><option value="الرقة">الرقة</option><option value="الحسكة">الحسكة</option>
-      </select>
-      
-      <div id="deliveryInfo" class="hidden text-sm font-bold p-3 rounded-lg text-center"></div>
-      <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-xl">إرسال الطلب</button>
+      <div class="input-group">
+        <input type="text" name="budget" placeholder="ميزانيتك التقريبية (مثال: 800$)">
+        <i class="fa-solid fa-dollar-sign"></i>
+      </div>
+
+      <div class="input-group">
+        <input type="text" name="customer_name" required placeholder="اسمك الثلاثي">
+        <i class="fa-solid fa-user"></i>
+      </div>
+
+      <div class="input-group">
+        <input type="tel" name="phone" required placeholder="رقم هاتفك (واتساب)" dir="ltr" class="text-right">
+        <i class="fa-brands fa-whatsapp"></i>
+      </div>
+
+      <div class="input-group">
+        <select name="governorate" id="governorateSelect" required>
+          <option value="" disabled selected hidden>اختر المحافظة...</option>
+          <option value="دمشق">دمشق</option>
+          <option value="ريف دمشق">ريف دمشق</option>
+          <option value="حلب">حلب</option>
+          <option value="حمص">حمص</option>
+          <option value="حماة">حماة</option>
+          <option value="اللاذقية">اللاذقية</option>
+          <option value="طرطوس">طرطوس</option>
+          <option value="إدلب">إدلب</option>
+          <option value="درعا">درعا</option>
+          <option value="السويداء">السويداء</option>
+          <option value="القنيطرة">القنيطرة</option>
+          <option value="دير الزور">دير الزور</option>
+          <option value="الرقة">الرقة</option>
+          <option value="الحسكة">الحسكة</option>
+        </select>
+        <i class="fa-solid fa-location-dot"></i>
+      </div>
+
+      <div id="deliveryInfo" class="delivery-badge"></div>
+
+      <button type="submit" class="submit-btn">
+        <i class="fa-solid fa-paper-plane ml-2"></i> إرسال الطلب
+      </button>
     </form>
-    <a href="/" class="block text-center mt-4 text-slate-400 hover:text-white">العودة للمتجر</a>
+
+    <div class="text-center mt-6">
+      <a href="/" class="text-xs text-slate-500 hover:text-cyan-400 transition-colors"><i class="fa-solid fa-arrow-right ml-1"></i> العودة للمتجر</a>
+    </div>
   </div>
+
   <script>
-    document.getElementById('governorateSelect').addEventListener('change', function() {
-      const info = document.getElementById('deliveryInfo');
-      info.classList.remove('hidden');
-      if (this.value === 'دمشق' || this.value === 'اللاذقية') {
-        info.className = 'text-sm font-bold p-3 rounded-lg text-center bg-green-500/20 text-green-400 border border-green-500/30';
-        info.innerHTML = '🚚 توصيل دليفري مباشر لباب المنزل';
-      } else if (this.value) {
-        info.className = 'text-sm font-bold p-3 rounded-lg text-center bg-amber-500/20 text-amber-400 border border-amber-500/30';
-        info.innerHTML = '📦 الشحن عبر شركات النقل (هرم / قدموس)';
-      } else { info.classList.add('hidden'); }
+    // --- محرك الصوت ---
+    let audioCtx;
+    function playClickSound() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } catch(e) {}
+    }
+
+    // إضافة الصوت لكل الأزرار والحقول
+    document.querySelectorAll('input, select, button, a').forEach(el => {
+      el.addEventListener('pointerdown', playClickSound);
     });
+
+    // --- منطق التوصيل ---
+    const govSelect = document.getElementById('governorateSelect');
+    const deliveryInfo = document.getElementById('deliveryInfo');
+
+    govSelect.addEventListener('change', function() {
+      const val = this.value;
+      deliveryInfo.style.display = 'block';
+      
+      if (val === 'دمشق' || val === 'اللاذقية') {
+        deliveryInfo.style.background = 'rgba(57, 255, 20, 0.1)';
+        deliveryInfo.style.color = '#39ff14';
+        deliveryInfo.style.border = '1px solid rgba(57, 255, 20, 0.3)';
+        deliveryInfo.innerHTML = '<i class="fa-solid fa-truck-fast"></i> توصيل دليفري لباب المنزل';
+      } else {
+        deliveryInfo.style.background = 'rgba(255, 193, 7, 0.1)';
+        deliveryInfo.style.color = '#ffc107';
+        deliveryInfo.style.border = '1px solid rgba(255, 193, 7, 0.3)';
+        deliveryInfo.innerHTML = '<i class="fa-solid fa-box"></i> الشحن عبر شركات النقل (هرم / قدموس)';
+      }
+    });
+
+    // --- إرسال الطلب ---
     document.getElementById('orderForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const btn = this.querySelector('button');
-      btn.innerHTML = 'جاري الإرسال...';
-      const data = Object.fromEntries(new FormData(this).entries());
-      const res = await fetch('/api/special-order', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-      if(res.ok) { btn.innerHTML = '✅ تم الإرسال بنجاح!'; btn.classList.add('bg-green-600'); this.reset(); document.getElementById('deliveryInfo').classList.add('hidden'); }
+      const originalText = btn.innerHTML;
+      
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...';
+      btn.style.opacity = '0.8';
+
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        const res = await fetch('/api/special-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          btn.innerHTML = '✅ تم إرسال طلبك بنجاح!';
+          btn.style.background = 'linear-gradient(135deg, #39ff14, #00b300)';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = 'linear-gradient(135deg, #00f3ff, #0055ff)';
+            btn.style.opacity = '1';
+            this.reset();
+            deliveryInfo.style.display = 'none';
+          }, 3000);
+        } else {
+          alert('حدث خطأ، يرجى المحاولة لاحقاً');
+          btn.innerHTML = originalText;
+          btn.style.opacity = '1';
+        }
+      } catch(e) {
+        alert('حدث خطأ في الاتصال');
+        btn.innerHTML = originalText;
+        btn.style.opacity = '1';
+      }
     });
   </script>
 </body>

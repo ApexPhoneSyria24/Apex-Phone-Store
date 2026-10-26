@@ -90,31 +90,36 @@
 </head>
 <body class="font-sans text-slate-800 antialiased selection:bg-brand-500 selection:text-white flex flex-col min-h-screen">
 
-  <!-- الهيدر الملكي -->
+  <!-- الهيدر النظيف -->
   <nav class="bg-[#0f172a] sticky top-0 z-50 border-b border-slate-800 shadow-lg w-full">
-    <div class="max-w-7xl mx-auto px-2">
-      <!-- الشعار -->
-      <a href="/" class="flex items-center gap-2 group">
-        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)] group-hover:scale-105 transition-transform">
-          <i class="fa-solid fa-mobile-screen text-white text-lg"></i>
+    <div class="max-w-7xl mx-auto px-3 h-14 flex justify-between items-center">
+      <!-- الشعار (يمين) -->
+      <a href="/" class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.5)]">
+          <i class="fa-solid fa-mobile-screen text-white text-sm"></i>
         </div>
         <div class="flex flex-col">
-          <span class="text-white font-black text-xl leading-none">Apex <span class="text-blue-500">فون</span></span>
-          <span class="text-[10px] text-slate-400 font-bold">المتجر الأول</span>
+          <span class="text-white font-black text-base leading-none">Apex <span class="text-blue-500">فون</span></span>
+          <span class="text-[9px] text-slate-400 font-bold">المتجر الأول</span>
         </div>
       </a>
-      <!-- الأزرار -->
+      <!-- الأزرار (يسار) -->
       <div class="flex items-center gap-2">
-        <a href="https://wa.me/963980259127" target="_blank" class="flex items-center gap-2 bg-[#25D366] hover:bg-[#20b858] text-white px-3 py-1.5 rounded-full font-bold text-sm shadow-md transition-colors">
-          <i class="fa-brands fa-whatsapp text-lg"></i> <span class="hidden md:inline">تواصل</span>
+        <a href="https://wa.me/963980259127" target="_blank" class="flex items-center gap-1 bg-[#25D366] hover:bg-[#20b858] text-white px-2.5 py-1 rounded-full font-bold text-xs shadow-sm transition-colors">
+          <i class="fa-brands fa-whatsapp text-sm"></i> <span class="hidden sm:inline">تواصل</span>
         </a>
-        <button onclick="openNotifModal()" class="w-9 h-9 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-colors relative">
-          <i class="fa-regular fa-bell"></i>
+        <button onclick="openNotifModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-colors relative">
+          <i class="fa-regular fa-bell text-sm"></i>
           <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
         </button>
       </div>
     </div>
   </nav>
+
+
+
+  <!-- الهيدر الملكي -->
+  
 
 
   <!-- الشريط الموحد للطلب والتقسيط -->
@@ -145,7 +150,7 @@
             <p class="text-[9px] text-slate-400">نعمل على تجهيز الخدمة</p>
           </div>
         </div>
-        <i class="fa-solid fa-arrow-left text-slate-500 group-hover:text-cyan-400 transition-colors text-xs"></i>
+        
       </a>
     </div>
   </div>
@@ -166,7 +171,7 @@
   <!-- قسم البحث والخدمات - الوضع الفاتح -->
   
   <!-- قسم البحث والخدمات - مصغر واحترافي -->
-  <section class="bg-slate-50 border-b border-slate-200 py-3 px-3 w-full">
+  <section class="bg-slate-50 border-b border-slate-200 py-2 px-2 w-full">
     <div class="max-w-4xl mx-auto text-center">
       <h1 class="text-base md:text-lg font-black text-slate-900 mb-1 tracking-tight">أفخم الهواتف بين يديك</h1>
       <p class="text-slate-600 text-[10px] md:text-[11px] mb-2 font-bold">تصفح أحدث الأجهزة الأصلية بضمان محلي.</p>
@@ -180,7 +185,7 @@
       </div>
 
       <!-- الأزرار المصغرة -->
-      <div class="max-w-xl mx-auto flex flex-col gap-1.5">
+      <div class="max-w-xl mx-auto flex flex-col gap-1">
         <!-- زر بيع الجهاز -->
         <a href="/post-ad" class="w-full bg-orange-500 text-white font-bold py-1.5 rounded-lg hover:bg-orange-600 transition shadow-sm flex items-center justify-center gap-1.5 text-xs">
           <i class="fa-solid fa-plus text-xs"></i> بع جهازك الآن (أضف إعلانك)

@@ -148,38 +148,41 @@
     
 
   <!-- قسم البحث والخدمات - الوضع الفاتح -->
-  <section class="bg-slate-50 border-b border-slate-200 py-8 px-4 w-full">
-    <div class="max-w-7xl mx-auto text-center">
-      <h1 class="text-3xl md:text-4xl font-black text-slate-900 mb-3 tracking-tight">أفخم الهواتف بين يديك</h1>
-      <p class="text-slate-600 text-sm md:text-base mb-6 font-bold">تصفح أحدث الأجهزة الأصلية بضمان محلي.</p>
+  
+  <!-- قسم البحث والخدمات - مصغر واحترافي -->
+  <section class="bg-slate-50 border-b border-slate-200 py-4 px-3 w-full">
+    <div class="max-w-4xl mx-auto text-center">
+      <h1 class="text-xl md:text-2xl font-black text-slate-900 mb-1 tracking-tight">أفخم الهواتف بين يديك</h1>
+      <p class="text-slate-600 text-[11px] md:text-xs mb-3 font-bold">تصفح أحدث الأجهزة الأصلية بضمان محلي.</p>
       
-      <!-- شريط البحث -->
-      <div class="max-w-2xl mx-auto relative mb-4 shadow-sm rounded-xl overflow-hidden border border-slate-300 flex">
-        <input type="text" placeholder="ابحث عن هاتف..." class="w-full py-3 px-4 bg-white text-slate-800 outline-none focus:border-blue-500 transition-all placeholder-slate-400">
-        <button class="bg-blue-600 text-white px-5 py-3 hover:bg-blue-700 transition flex items-center justify-center">
-          <i class="fa-solid fa-magnifying-glass"></i>
+      <!-- شريط البحث المصغر -->
+      <div class="max-w-xl mx-auto relative mb-3 shadow-sm rounded-lg overflow-hidden border border-slate-300 flex">
+        <input type="text" placeholder="ابحث عن هاتف..." class="w-full py-2 px-3 bg-white text-slate-800 outline-none focus:border-blue-500 transition-all placeholder-slate-400 text-sm">
+        <button class="bg-blue-600 text-white px-4 py-2 hover:bg-blue-700 transition flex items-center justify-center">
+          <i class="fa-solid fa-magnifying-glass text-sm"></i>
         </button>
       </div>
 
-      <!-- الأزرار -->
-      <div class="max-w-2xl mx-auto flex flex-col gap-3">
+      <!-- الأزرار المصغرة -->
+      <div class="max-w-xl mx-auto flex flex-col gap-2">
         <!-- زر بيع الجهاز -->
-        <a href="/post-ad" class="w-full bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition shadow-sm flex items-center justify-center gap-2">
-          <i class="fa-solid fa-plus"></i> بع جهازك الآن (أضف إعلانك)
+        <a href="/post-ad" class="w-full bg-orange-500 text-white font-bold py-2 rounded-lg hover:bg-orange-600 transition shadow-sm flex items-center justify-center gap-2 text-sm">
+          <i class="fa-solid fa-plus text-xs"></i> بع جهازك الآن (أضف إعلانك)
         </a>
         
-        <!-- زر التوثيق (فاتح) -->
-        <a href="/verify-account" class="w-full bg-slate-200 text-slate-800 border border-slate-300 font-bold py-3 rounded-xl hover:bg-slate-300 transition shadow-sm flex items-center justify-center gap-2">
-          <i class="fa-solid fa-shield-check"></i> وثق حسابك (احصل على علامة ✓)
+        <!-- زر التوثيق -->
+        <a href="/verify-account" class="w-full bg-slate-200 text-slate-800 border border-slate-300 font-bold py-2 rounded-lg hover:bg-slate-300 transition shadow-sm flex items-center justify-center gap-2 text-sm">
+          <i class="fa-solid fa-shield-check text-xs"></i> وثق حسابك (احصل على علامة ✓)
         </a>
         
         <!-- زر الألعاب -->
-        <a href="/games" class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl hover:bg-purple-700 transition shadow-sm flex items-center justify-center gap-2">
-          <i class="fa-solid fa-gamepad"></i> شحن الألعاب الآن
+        <a href="/games" class="w-full bg-purple-600 text-white font-bold py-2 rounded-lg hover:bg-purple-700 transition shadow-sm flex items-center justify-center gap-2 text-sm">
+          <i class="fa-solid fa-gamepad text-xs"></i> شحن الألعاب الآن
         </a>
       </div>
     </div>
   </section>
+
 
     <form action="/" method="GET" class="flex-shrink-0">
       <% if(search) { %><input type="hidden" name="search" value="<%= search %>"><% } %><% if(activeBrand) { %><input type="hidden" name="brand" value="<%= activeBrand %>"><% } %>

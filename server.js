@@ -185,40 +185,34 @@ app.use((req, res, next) => {
 
 
 
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
     if (!message) return res.status(400).json({ reply: 'الرجاء كتابة رسالة.' });
 
-    const phones = db.prepare("SELECT name, price FROM phones WHERE status = 'approved' ORDER BY id DESC LIMIT 5").all();
+    // جلب كل الهواتف بدون حد أقصى لكي يراها ميمو جميعها
+    const phones = db.prepare("SELECT name, price FROM phones WHERE status = 'approved' ORDER BY id DESC").all();
     
-    let systemPrompt = `أنت "ميمو"، خبير خدمة العملاء في متجر Apex Phone Syria. أنت تعمل كمساعد ذكي ومحترف، وتجيب على جميع استفسارات الزبائن بدقة.
+    let systemPrompt = `أنت "ميمو"، المدير والمساعد الذكي لمتجر Apex Phone Syria. أنت تعمل نيابة عن صاحب المتجر وتدير المبيعات باحترافية.
 
-🧠 **قاعدة المعرفة الشاملة للمتجر:**
-1. **قسم الهواتف:** نبيع هواتف أصلية جديدة ومستعملة بضمان. الزبون يمكنه تصفح الأجهزة، البحث عنها، أو حتى نشر إعلانه الخاص للبيع. لدينا قسم توثيق (Verification) لزيادة الثقة.
-2. **قسم شحن الألعاب:** نشحن شدات ببجي، جواهر فري فاير، إلخ. **ولكن حالياً الخدمة الوحيدة المتاحة هي بطاقات App Store (آي تيونز) بقيمة 2$ فقط**، وباقي الألعاب تحت الصيانة.
-3. **قسم المحفظة (شحن الرصيد):** يمكن للزبون شحن رصيده عبر سيريتل كاش. سعر الصرف: **1 دولار = 142 ليرة سورية جديدة**. يمكنه استخدام الرصيد لشراء الهواتف مباشرة.
-4. **قسم الإعلانات:** يمكن للزبائن نشر إعلاناتهم الخاصة للهواتف بعد الموافقة.
+🧠 **القواعد المطلقة (ممنوع كسرها):**
+1. **قائمة الهواتف المرفقة أدناه هي الحقيقة المطلقة.** أنت لا تعرف أي هواتف أخرى في العالم. إذا طلب الزبون هاتفاً موجوداً في القائمة، فهو **متوفر لدينا** ويجب أن تبيعه له. (مثال: إذا طلب iPhone 17 Pro Max وهو في القائمة، قل له "نعم متوفر" واذكر سعره، ولا تقل "لم يصدر بعد").
+2. **ممنوع اقتراح بديل** إذا كان الهاتف المطلوب موجوداً في القائمة.
+3. **الأسعار:** انسخ السعر حرفياً من القائمة.
+4. **الأسلوب:** لطيف، مختصر جداً (سطرين كحد أقصى)، وإيموجي واحدة.
+5. **البيع:** إذا أراد الزبون الشراء، اطلب منه (الاسم الثلاثي، رقم الهاتف، مكان التسليم). بعد استلامها قل: "تم تسجيل طلبك بنجاح، سنتواصل معك قريباً." وأضف الوسم المخفي: [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
+6. **اللغة:** أجب بالعربية فقط. إذا كتب بالإنجليزية رد بـ "تمت برمجتي بالعربية فقط 🌸".
 
-🛑 **قواعد المحادثة والبيع (مهمة جداً):**
-1. **إذا أراد الزبون الشراء:** **لا تطلب كل المعلومات مرة واحدة ولا تسجل الطلب فوراً**. بل اتبع هذا التسلسل:
-   - أولاً: اسأله **"أي هاتف تريد بالضبط؟"** (إذا لم يحدد الموديل).
-   - ثانياً: إذا حدد الموديل، أخبره بالسعر واسأله إن كان يناسبه.
-   - ثالثاً: بعد موافقته، اطلب منه (الاسم الثلاثي، رقم الهاتف، مكان التسليم).
-2. **التسجيل:** بمجرد أن يعطيك المعلومات الثلاثة كاملة، قل: "تم تسجيل طلبك بنجاح يا [الاسم]! سنتواصل معك قريباً لتأكيد [نوع الجهاز]." ثم أضف الوسم المخفي: [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
-3. **اللغة:** أجب بالعربية دائماً. إذا كتب بالإنجليزية، رد بـ "تمت برمجتي بالعربية فقط 🌸".
-4. **الأسلوب:** مختصر (سطرين كحد أقصى)، لطيف، واستخدم إيموجي واحدة.
-5. **الأسعار:** لا تخترع أسعاراً، استخدم الأسعار من القائمة أدناه.
-
-📱 **أسعار الهواتف المتاحة حالياً (استخدمها عند السؤال):**
-${phones.map(p => `- ${p.name} ($${p.price})`).join('\n')}`;
+📱 **قائمة الهواتف المتوفرة في متجرنا (وهي الحقيقة الوحيدة):**
+${phones.map(p => `- ${p.name} بسعر $${p.price}`).join('\n')}`;
 
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) return res.json({ reply: 'أهلاً بك! يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
 
     let messages = [{ role: 'system', content: systemPrompt }];
     if (history && Array.isArray(history)) {
-      history.slice(-4).forEach(msg => { messages.push({ role: msg.role === 'user' ? 'user' : 'assistant', content: msg.text }); });
+      history.slice(-3).forEach(msg => { messages.push({ role: msg.role === 'user' ? 'user' : 'assistant', content: msg.text }); });
     }
     messages.push({ role: 'user', content: message });
 
@@ -231,7 +225,7 @@ ${phones.map(p => `- ${p.name} ($${p.price})`).join('\n')}`;
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-        body: JSON.stringify({ model: 'openai/gpt-oss-20b', messages: messages, max_tokens: 200, temperature: 0.6 }),
+        body: JSON.stringify({ model: 'openai/gpt-oss-20b', messages: messages, max_tokens: 200, temperature: 0.5 }),
         signal: controller.signal
       });
       clearTimeout(timeoutId);
@@ -239,7 +233,7 @@ ${phones.map(p => `- ${p.name} ($${p.price})`).join('\n')}`;
       if (data.choices && data.choices[0] && data.choices[0].message) {
         finalReply = data.choices[0].message.content;
       }
-    } catch (e) { console.error('Primary model error'); }
+    } catch (e) { }
 
     // محاولة 2: النموذج الاحتياطي
     if (!finalReply) {
@@ -247,13 +241,13 @@ ${phones.map(p => `- ${p.name} ($${p.price})`).join('\n')}`;
         const fbResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-          body: JSON.stringify({ model: 'openai/gpt-oss-120b', messages: messages, max_tokens: 200, temperature: 0.6 })
+          body: JSON.stringify({ model: 'openai/gpt-oss-120b', messages: messages, max_tokens: 200, temperature: 0.5 })
         });
         const fbData = await fbResponse.json();
         if (fbData.choices && fbData.choices[0] && fbData.choices[0].message) {
           finalReply = fbData.choices[0].message.content;
         }
-      } catch (e) { console.error('Fallback model error'); }
+      } catch (e) { }
     }
 
     if (finalReply) {
@@ -268,7 +262,6 @@ ${phones.map(p => `- ${p.name} ($${p.price})`).join('\n')}`;
       return res.json({ reply: cleanReply });
     }
 
-    sendTelegram('⚠️ خطأ: جميع نماذج Groq فشلت في الرد.');
     return res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
 
   } catch (e) {

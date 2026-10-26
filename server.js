@@ -736,4 +736,10 @@ app.get('/api/test-special-telegram', (req, res) => {
   res.send('تم إرسال الرسالة التجريبية إلى تيليجرام. افحص هاتفك!');
 });
 
+
+// ===== Installments Maintenance Page =====
+app.get('/installments', (req, res) => {
+  res.render('installments');
+});
+
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

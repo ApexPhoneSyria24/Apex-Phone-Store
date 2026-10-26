@@ -112,30 +112,41 @@
 
   
   <!-- الأزرار المصغرة -->
-  <div class="max-w-7xl mx-auto px-4 mt-3 mb-3 space-y-2">
-    <a href="/special-order" class="flex items-center justify-between bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-2.5 rounded-xl shadow-md hover:shadow-lg transition-all group">
-      <div class="flex items-center gap-3">
-        <span class="text-lg group-hover:scale-110 transition-transform">✨</span>
-        <div>
-          <h3 class="font-bold text-[11px] md:text-sm">لم تجد جهازك المطلوب؟</h3>
-          <p class="text-[9px] md:text-[10px] text-indigo-100">اطلبه الآن وسنوفره لك بأفضل سعر</p>
-        </div>
-      </div>
+  
       <div class="bg-white text-indigo-700 px-3 py-1 rounded-lg text-[10px] md:text-xs font-bold shadow-sm whitespace-nowrap">اضغط هنا ←</div>
     </a>
 
-    <a href="/installments" class="flex items-center justify-between bg-slate-800 border border-slate-700 text-white p-2.5 rounded-xl shadow-md hover:border-cyan-500 transition-all group">
-      <div class="flex items-center gap-3">
-        <span class="text-lg group-hover:rotate-12 transition-transform">💳</span>
-        <div>
-          <h3 class="font-bold text-[11px] md:text-sm flex items-center gap-2">
-            قسم التقسيط <span class="text-[8px] bg-amber-500 text-black px-1.5 py-0.5 rounded-full">قريباً</span>
-          </h3>
-          <p class="text-[9px] md:text-[10px] text-slate-400">نعمل على تجهيز الخدمة لتكون متاحة قريباً</p>
+    
+  </div>
+
+  <!-- الشريط الموحد الملكي (الطلب الخاص + التقسيط) -->
+  <div class="max-w-7xl mx-auto px-4 mt-4 mb-4">
+    <div class="relative flex flex-row items-stretch gap-2 md:gap-4 bg-[#0f172a]/80 backdrop-blur-xl p-2 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] border border-slate-700/50 overflow-hidden group">
+      
+      <!-- تأثير التوهج المتحرك في خلفية الشريط -->
+      <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-purple-500/10 to-cyan-500/20 opacity-50 group-hover:opacity-100 transition-opacity duration-700 animate-pulse"></div>
+      
+      <!-- زر الطلب الخاص -->
+      <a href="/special-order" class="relative flex-1 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-3 bg-gradient-to-br from-indigo-600 to-purple-700 text-white p-2 md:p-3 rounded-xl shadow-md transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(139,92,246,0.5)] z-10 group/btn">
+        <span class="text-xl md:text-2xl group-hover/btn:scale-110 transition-transform">✨</span>
+        <div class="text-center md:text-right">
+          <h3 class="font-black text-[10px] md:text-sm whitespace-nowrap">اطلب جهازك</h3>
+          <p class="text-[8px] md:text-[10px] text-indigo-200 hidden md:block">غير موجود في المتجر؟</p>
         </div>
-      </div>
-      <div class="bg-slate-700 text-white px-3 py-1 rounded-lg text-[10px] md:text-xs font-bold group-hover:bg-slate-600 transition-colors whitespace-nowrap">تفاصيل ←</div>
-    </a>
+      </a>
+
+      <!-- زر التقسيط -->
+      <a href="/installments" class="relative flex-1 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-3 bg-slate-800/90 border border-slate-600/50 text-white p-2 md:p-3 rounded-xl shadow-md transition-all duration-300 hover:scale-[1.02] hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] z-10 group/btn">
+        <span class="text-xl md:text-2xl group-hover/btn:rotate-12 transition-transform">💳</span>
+        <div class="text-center md:text-right">
+          <h3 class="font-black text-[10px] md:text-sm whitespace-nowrap flex items-center justify-center md:justify-start gap-1">
+            التقسيط <span class="text-[7px] md:text-[9px] bg-amber-500 text-black px-1 md:px-2 py-0.5 rounded-full">قريباً</span>
+          </h3>
+          <p class="text-[8px] md:text-[10px] text-slate-400 hidden md:block">نعمل على تجهيز الخدمة</p>
+        </div>
+      </a>
+
+    </div>
   </div>
 <div class="bg-gradient-to-l from-slate-900 to-slate-800 text-white py-5 px-3 text-center border-b-2 border-brand-600 w-full">
     <h1 class="text-base md:text-lg font-extrabold mb-1">أفخم الهواتف بين يديك</h1>

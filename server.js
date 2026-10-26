@@ -180,6 +180,7 @@ app.use((req, res, next) => {
 
 
 
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
@@ -192,46 +193,37 @@ app.post('/api/chat', async (req, res) => {
 2. إذا كتب بالإنجليزية رد "تمت برمجتي بالعربية فقط 🌸".
 الهواتف المتاحة: ${phones.map(p => `${p.name} ($${p.price})`).join(', ')}`;
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      sendTelegram('⚠️ ميمو: المفتاح GROQ_API_KEY غير موجود في السيرفر!');
+      return res.json({ reply: 'أهلاً بك! يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
+    }
 
-    let contents = [];
+    let messages = [{ role: 'system', content: systemPrompt }];
     if (history && Array.isArray(history)) {
-      history.slice(-3).forEach(msg => { contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }); });
+      history.slice(-3).forEach(msg => { messages.push({ role: msg.role === 'user' ? 'user' : 'assistant', content: msg.text }); });
     }
-    contents.push({ role: 'user', parts: [{ text: systemPrompt + "\nالزبون: " + message }] });
+    messages.push({ role: 'user', content: message });
 
-    const modelsToTry = ['gemini-3.8-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
-    let finalReply = null;
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json', 
+        'Authorization': `Bearer ${apiKey}` 
+      },
+      body: JSON.stringify({ 
+        model: 'llama3-8b-8192', // النموذج القياسي المستقر
+        messages: messages,
+        max_tokens: 150,
+        temperature: 0.7
+      })
+    });
 
-    for (const model of modelsToTry) {
-      try {
-        // وضع مؤقت قاسي (5 ثواني) لكل محاولة، لمنع التعليق
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds max per model
+    const data = await response.json();
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-          body: JSON.stringify({ contents: contents, generationConfig: { maxOutputTokens: 150 } }),
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        const data = await response.json();
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+      let cleanReply = data.choices[0].message.content;
 
-        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-          finalReply = data.candidates[0].content.parts[0].text;
-          break; // نجحنا!
-        }
-      } catch (e) {
-        // انتهى الوقت أو حدث خطأ، ننتقل للنموذج التالي فوراً
-      }
-    }
-
-    if (finalReply) {
-      let cleanReply = finalReply;
       const orderRegex = /\[\[NEW_ORDER\|Name:\s*(.*?)\|Phone:\s*(.*?)\|Address:\s*(.*?)\|Product:\s*(.*?)\]\]/;
       const match = cleanReply.match(orderRegex);
       if (match) {
@@ -242,11 +234,17 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ reply: cleanReply });
     }
 
-    // إذا فشلت كل النماذج بسرعة، نرسل الرد الاحتياطي للزبون بدلاً من ترك النقاط تدور
-    return res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الرجوع (السهم) واختيار "الدعم البشري" وسنخدمك فوراً!' });
+    // إرسال الخطأ الحقيقي إلى تيليجرام
+    const errMsg = data.error ? data.error.message : 'استجابة غير متوقعة من Groq';
+    console.error('Groq Error:', errMsg);
+    sendTelegram('⚠️ خطأ من Groq: ' + errMsg);
+    
+    return res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
 
   } catch (e) {
-    res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
+    console.error('Groq API Error:', e);
+    sendTelegram('⚠️ خطأ اتصال Groq: ' + e.message);
+    res.json({ reply: 'أهلاً بك! يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
   }
 });
 

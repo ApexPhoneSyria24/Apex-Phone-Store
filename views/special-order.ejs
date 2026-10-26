@@ -43,7 +43,7 @@
     .delivery-badge { display: none; margin-bottom: 15px; padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 700; text-align: center; animation: popIn 0.3s ease; }
     @keyframes popIn { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     
-    /* تصميم النافذة المنبثقة الملكية */
+    /* تصميم النافذة الملكية المنبثقة */
     #successModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .modal-content { background: #0f172a; border: 1px solid rgba(0,243,255,0.3); border-radius: 20px; padding: 30px 20px; text-align: center; max-width: 350px; width: 100%; box-shadow: 0 0 50px rgba(0,243,255,0.2); transform: scale(0.9); animation: scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
@@ -109,7 +109,7 @@
   <!-- النافذة الملكية المنبثقة -->
   <div id="successModal">
     <div class="modal-content">
-      <div style="width: 80px; height: 80px; background: rgba(57, 255, 20, 0.1); border: 2px solid #39ff14; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+      <div style="width: 80px; height: 80px; background: rgba(57, 255, 20, 0.1); border: 2px solid #39ff14; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 0 20px rgba(57,255,20,0.3);">
         <i class="fa-solid fa-check" style="font-size: 40px; color: #39ff14;"></i>
       </div>
       <h2 style="color: white; font-size: 22px; font-weight: 900; margin-bottom: 10px;">تم استلام طلبك بنجاح!</h2>
@@ -137,28 +137,60 @@
         const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
         osc.connect(gain); gain.connect(audioCtx.destination);
         const now = audioCtx.currentTime;
-        osc.type = 'sine'; osc.frequency.setValueAt
-node << 'EOF'
-const fs = require('fs');
-let s = fs.readFileSync('public/chatbot.js', 'utf8');
+        osc.type = 'sine'; osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+        gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.start(now); osc.stop(now + 0.1);
+      } catch(e) {}
+    }
+    document.querySelectorAll('input, select, button, a').forEach(el => el.addEventListener('pointerdown', playClickSound));
 
-// إضافة شرط التذكر (LocalStorage)
-s = s.replace(
-  "if (chatWindow.style.display === 'none') {",
-  "if (chatWindow.style.display === 'none' && !localStorage.getItem('mimo_teaser_seen')) {"
-);
+    const govSelect = document.getElementById('governorateSelect');
+    const deliveryInfo = document.getElementById('deliveryInfo');
 
-// حفظ الحالة عند إغلاق النافذة
-s = s.replace(
-  "closeTeaser.onclick = () => { teaser.style.display = 'none'; };",
-  "closeTeaser.onclick = () => { teaser.style.display = 'none'; localStorage.setItem('mimo_teaser_seen', 'true'); };"
-);
+    govSelect.addEventListener('change', function() {
+      const val = this.value;
+      deliveryInfo.style.display = 'block';
+      if (val === 'دمشق' || val === 'اللاذقية') {
+        deliveryInfo.style.background = 'rgba(57, 255, 20, 0.1)'; deliveryInfo.style.color = '#39ff14';
+        deliveryInfo.style.border = '1px solid rgba(57, 255, 20, 0.3)';
+        deliveryInfo.innerHTML = '🚚 توصيل دليفري لباب المنزل';
+      } else {
+        deliveryInfo.style.background = 'rgba(255, 193, 7, 0.1)'; deliveryInfo.style.color = '#ffc107';
+        deliveryInfo.style.border = '1px solid rgba(255, 193, 7, 0.3)';
+        deliveryInfo.innerHTML = '📦 الشحن عبر شركات النقل (هرم / قدموس)';
+      }
+    });
 
-// حفظ الحالة عند فتح المحادثة
-s = s.replace(
-  "teaser.style.display = 'none';\n      chatWindow.style.display = 'flex';",
-  "teaser.style.display = 'none';\n      localStorage.setItem('mimo_teaser_seen', 'true');\n      chatWindow.style.display = 'flex';"
-);
+    document.getElementById('orderForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = this.querySelector('button');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...';
+      btn.style.opacity = '0.8';
 
-fs.writeFileSync('public/chatbot.js', s);
-console.log('✅ تم إصلاح نافذة ميمو، ستظهر مرة واحدة فقط للزائر الجديد.');
+      const data = Object.fromEntries(new FormData(this).entries());
+
+      try {
+        const res = await fetch('/api/special-order', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          document.getElementById('successModal').style.display = 'flex';
+          this.reset();
+          deliveryInfo.style.display = 'none';
+          btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> تأكيد الطلب';
+          btn.style.opacity = '1';
+        } else {
+          alert('حدث خطأ، يرجى المحاولة لاحقاً');
+          btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> تأكيد الطلب';
+          btn.style.opacity = '1';
+        }
+      } catch(e) {
+        alert('حدث خطأ في الاتصال');
+        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> تأكيد الطلب';
+        btn.style.opacity = '1';
+      }
+    });
+  </script>
+</body>
+</html>

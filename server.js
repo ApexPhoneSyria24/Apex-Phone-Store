@@ -170,6 +170,7 @@ app.use((req, res, next) => {
 
 
 
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history, user_phone, visitor_id } = req.body;
@@ -187,13 +188,12 @@ app.post('/api/chat', async (req, res) => {
 5. لا تخترع أسعاراً، استخدم السعر الحقيقي من القائمة.
 6. إذا أراد الشراء، اطلب (الاسم الثلاثي، الهاتف، مكان التسليم). وبعدها قل "تم تسجيل طلبك." وأضف الوسم: [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
 
-الهواتف:
+الهواتف المتاحة:
 ${phones.map(p => `${p.name} ($${p.price})`).join(', ')}`;
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود.' });
 
-    // جلب آخر 6 رسائل فقط لتسريع الرد
     let contents = [];
     if (history && Array.isArray(history)) {
       const recentHistory = history.slice(-6);
@@ -201,47 +201,55 @@ ${phones.map(p => `${p.name} ($${p.price})`).join(', ')}`;
     }
     contents.push({ role: 'user', parts: [{ text: systemPrompt + "\n\nرسالة الزبون: " + message }] });
 
-    // وضع مؤقت 8 ثواني للاتصال
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-    try {
-      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-      const response = await fetch(url, {
+    async function callGemini(modelName) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
+      return await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify({ contents: contents }),
-        signal: controller.signal
+        body: JSON.stringify({ contents: contents })
       });
-      clearTimeout(timeoutId);
-
-      const data = await response.json();
-      
-      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        let rawReply = data.candidates[0].content.parts[0].text;
-        let cleanReply = rawReply;
-        
-        // استخراج الطلب إذا وجد
-        const orderRegex = /\[\[NEW_ORDER\|Name:\s*(.*?)\|Phone:\s*(.*?)\|Address:\s*(.*?)\|Product:\s*(.*?)\]\]/;
-        const match = rawReply.match(orderRegex);
-
-        if (match) {
-          const [fullMatch, name, phone, address, product] = match;
-          cleanReply = rawReply.replace(fullMatch, '').trim();
-          
-          sendTelegram(`🛒 <b>طلب هاتف جديد عبر ميمو!</b>\n\n👤 الاسم: ${name}\n📞 الهاتف: ${phone}\n📍 العنوان: ${address}\n📱 الجهاز: ${product}`);
-        }
-
-        return res.json({ reply: cleanReply });
-      }
-    } catch (error) {
-      clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
-        return res.json({ reply: 'أعتذر منك يا غالي، يبدو أن الاتصال بطيء قليلاً. هل يمكنك إعادة إرسال رسالتك؟ 🙏' });
-      }
     }
 
-    return res.json({ reply: 'أعتذر منك يا غالي، أواجه ضغطاً كبيراً الآن. يرجى المحاولة بعد قليل. 🌸' });
+    let reply = null;
+
+    // المحاولة 1: النموذج السريع
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 ثانية
+      const res1 = await callGemini('gemini-1.5-flash');
+      clearTimeout(timeoutId);
+      const data1 = await res1.json();
+      if (data1.candidates && data1.candidates[0] && data1.candidates[0].content) {
+        reply = data1.candidates[0].content.parts[0].text;
+      }
+    } catch(e) { console.log('Primary model failed'); }
+
+    // المحاولة 2: النموذج الاحتياطي (إذا فشل الأول)
+    if (!reply) {
+      try {
+        const res2 = await callGemini('gemini-3.5-flash-lite');
+        const data2 = await res2.json();
+        if (data2.candidates && data2.candidates[0] && data2.candidates[0].content) {
+          reply = data2.candidates[0].content.parts[0].text;
+        }
+      } catch(e) { console.log('Fallback model failed'); }
+    }
+
+    // إذا نجحنا في الحصول على رد
+    if (reply) {
+      let cleanReply = reply;
+      const orderRegex = /\[\[NEW_ORDER\|Name:\s*(.*?)\|Phone:\s*(.*?)\|Address:\s*(.*?)\|Product:\s*(.*?)\]\]/;
+      const match = reply.match(orderRegex);
+      if (match) {
+        const [fullMatch, name, phone, address, product] = match;
+        cleanReply = reply.replace(fullMatch, '').trim();
+        sendTelegram(`🛒 <b>طلب هاتف جديد عبر ميمو!</b>\n\n👤 الاسم: ${name}\n📞 الهاتف: ${phone}\n📍 العنوان: ${address}\n📱 الجهاز: ${product}`);
+      }
+      return res.json({ reply: cleanReply });
+    }
+
+    // إذا فشل كل شيء
+    return res.json({ reply: 'أعتذر منك يا غالي، يبدو أن الاتصال بطيء قليلاً. هل يمكنك إعادة إرسال رسالتك؟ 🙏' });
 
   } catch (e) {
     res.json({ reply: 'عذراً، حدث خطأ مؤقت. يرجى المحاولة لاحقاً.' });

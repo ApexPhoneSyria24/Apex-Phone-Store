@@ -178,6 +178,7 @@ app.use((req, res, next) => {
 
 
 
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
@@ -191,41 +192,50 @@ app.post('/api/chat', async (req, res) => {
 الهواتف المتاحة: ${phones.map(p => `${p.name} ($${p.price})`).join(', ')}`;
 
     const apiKey = process.env.GEMINI_API_KEY;
-    const fallbackMsg = 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الرجوع (السهم في الأعلى) واختيار "الدعم البشري" وسنخدمك فوراً!';
-
-    if (!apiKey) {
-      return res.json({ reply: fallbackMsg });
-    }
+    if (!apiKey) return res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
 
     let contents = [];
     if (history && Array.isArray(history)) {
-      history.slice(-2).forEach(msg => { contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }); });
+      history.slice(-3).forEach(msg => { contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }); });
     }
     contents.push({ role: 'user', parts: [{ text: systemPrompt + "\nالزبون: " + message }] });
 
-    // استخدام نموذج Pro المستقر
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent';
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-      body: JSON.stringify({ 
-        contents: contents,
-        generationConfig: { maxOutputTokens: 150 }
-      })
-    });
+    // قائمة النماذج التي سنجربها بالترتيب (إذا فشل الأول يجرب الثاني)
+    const modelsToTry = [
+      'gemini-3.8-flash',
+      'gemini-1.5-pro',
+      'gemini-1.5-flash',
+      'gemini-pro'
+    ];
 
-    const data = await response.json();
+    let finalReply = null;
+    let lastErrorMessage = '';
 
-    if (data.error) {
-      console.error('Google API Error:', data.error.message);
-      // إرسال الخطأ الحقيقي لك على تيليجرام للتشخيص
-      sendTelegram('⚠️ خطأ ميمو: ' + data.error.message);
-      return res.json({ reply: fallbackMsg });
+    for (const model of modelsToTry) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+          body: JSON.stringify({ contents: contents, generationConfig: { maxOutputTokens: 150 } })
+        });
+
+        const data = await response.json();
+
+        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+          finalReply = data.candidates[0].content.parts[0].text;
+          break; // نجحنا! نوقف المحاولات ونرد على الزبون
+        } else if (data.error) {
+          lastErrorMessage = data.error.message;
+        }
+      } catch (e) {
+        lastErrorMessage = e.message;
+      }
     }
 
-    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-      let cleanReply = data.candidates[0].content.parts[0].text;
-
+    // إذا نجح أحد النماذج في الرد
+    if (finalReply) {
+      let cleanReply = finalReply;
       const orderRegex = /\[\[NEW_ORDER\|Name:\s*(.*?)\|Phone:\s*(.*?)\|Address:\s*(.*?)\|Product:\s*(.*?)\]\]/;
       const match = cleanReply.match(orderRegex);
       if (match) {
@@ -236,11 +246,15 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ reply: cleanReply });
     }
 
-    return res.json({ reply: fallbackMsg });
+    // إذا فشلت جميع النماذج (وهذا نادر جداً)
+    console.error('All Models Failed:', lastErrorMessage);
+    sendTelegram('⚠️ ميمو: جميع النماذج مشغولة حالياً. آخر خطأ: ' + lastErrorMessage);
+    
+    return res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الرجوع (السهم) واختيار "الدعم البشري" وسنخدمك فوراً!' });
 
   } catch (e) {
     console.error('Chat Route Error:', e);
-    res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الرجوع (السهم في الأعلى) واختيار "الدعم البشري" وسنخدمك فوراً!' });
+    res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الرجوع واختيار "الدعم البشري" وسنخدمك فوراً!' });
   }
 });
 

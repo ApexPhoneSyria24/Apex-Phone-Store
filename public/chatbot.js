@@ -158,19 +158,18 @@
     handleVisualViewport();
 
     setTimeout(() => {
-      if (chatWindow.style.display === 'none') {
+      // استخدام sessionStorage لمنع التكرار أثناء التنقل
+      if (chatWindow.style.display === 'none' && !sessionStorage.getItem('mimo_teaser_shown_once')) {
         teaser.style.display = 'block';
-        sessionStorage.setItem('mimo_teaser_seen_v11', 'true');
-        localStorage.setItem('mimo_teaser_seen_v11_v11', 'true');
-        localStorage.setItem('mimo_teaser_seen_v11_v11_v10', 'true');
-        localStorage.setItem('mimo_teaser_seen_v11_v11_v10_v9', 'true');
-        localStorage.setItem('mimo_teaser_shown_once', 'true');
-        setTimeout(() => { teaser.style.opacity = '1'; teaser.style.transform = 'translateY(0)'; }, 50);
+        sessionStorage.setItem('mimo_teaser_shown_once', 'true');
+        playSound('pop');
+      }
+    }, 2000);
         playSound('pop');
       }
     }, 2000);
 
-    closeTeaser.onclick = () => { teaser.style.display = 'none'; localStorage.setItem('mimo_teaser_seen_v11_v11_v10_v9_v8', 'true'); };
+    closeTeaser.onclick = () => { teaser.style.display = 'none'; sessionStorage.setItem('mimo_teaser_shown_once', 'true'); };
 
     teaserBtn.onclick = () => { localStorage.setItem('mimo_teaser_seen_v11_v11_v10_v9_v8', 'true');
       playSound('send');

@@ -8,115 +8,46 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Tajawal', sans-serif;
-    }
+    * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
     body {
       background-color: #050505;
       background-image: radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.12), transparent 60%),
                         radial-gradient(circle at 10% 80%, rgba(0, 85, 255, 0.08), transparent 40%);
-      color: white;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 15px;
-      margin: 0;
+      color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 15px; margin: 0;
     }
     .glass-card {
-      background: rgba(15, 23, 42, 0.7);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(0, 243, 255, 0.15);
-      box-shadow: 0 0 30px rgba(0, 243, 255, 0.08), inset 0 0 15px rgba(0, 243, 255, 0.03);
-      border-radius: 20px;
-      width: 100%;
-      max-width: 380px; /* تصغير حجم البطاقة */
-      padding: 25px 20px;
-      position: relative;
-      overflow: hidden;
+      background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(0, 243, 255, 0.15); box-shadow: 0 0 30px rgba(0, 243, 255, 0.08), inset 0 0 15px rgba(0, 243, 255, 0.03);
+      border-radius: 20px; width: 100%; max-width: 380px; padding: 25px 20px; position: relative; overflow: hidden;
       animation: floatIn 0.6s ease-out forwards;
     }
-    @keyframes floatIn {
-      from { opacity: 0; transform: translateY(20px) scale(0.98); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .input-group {
-      position: relative;
-      margin-bottom: 15px;
-    }
-    .input-group i {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #8892b0;
-      font-size: 14px;
-      transition: 0.3s;
-    }
+    @keyframes floatIn { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .input-group { position: relative; margin-bottom: 15px; }
+    .input-group i { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #8892b0; font-size: 14px; transition: 0.3s; }
     .input-group input, .input-group select {
-      width: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-      padding: 12px 35px 12px 12px;
-      color: white;
-      font-size: 13px;
-      outline: none;
-      transition: all 0.3s ease;
+      width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px;
+      padding: 12px 35px 12px 12px; color: white; font-size: 13px; outline: none; transition: all 0.3s ease;
     }
-    .input-group input:focus, .input-group select:focus {
-      border-color: #00f3ff;
-      box-shadow: 0 0 10px rgba(0, 243, 255, 0.15);
-      background: rgba(0, 0, 0, 0.7);
-    }
-    .input-group input:focus + i {
-      color: #00f3ff;
-    }
+    .input-group input:focus, .input-group select:focus { border-color: #00f3ff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.15); background: rgba(0, 0, 0, 0.7); }
+    .input-group input:focus + i { color: #00f3ff; }
     .submit-btn {
-      width: 100%;
-      background: linear-gradient(135deg, #00f3ff, #0055ff);
-      color: white;
-      font-weight: 700;
-      font-size: 14px;
-      padding: 14px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0, 243, 255, 0.2);
-      margin-top: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      width: 100%; background: linear-gradient(135deg, #00f3ff, #0055ff); color: white; font-weight: 700; font-size: 14px;
+      padding: 14px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 243, 255, 0.2); margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    .submit-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0, 243, 255, 0.4);
-    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 243, 255, 0.4); }
     .input-group select {
-      appearance: none;
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238892b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-      background-repeat: no-repeat;
-      background-position: left 12px center;
-      background-size: 14px;
+      appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238892b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat; background-position: left 12px center; background-size: 14px;
     }
-    .delivery-badge {
-      display: none;
-      margin-bottom: 15px;
-      padding: 10px;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 700;
-      text-align: center;
-      animation: popIn 0.3s ease;
-    }
-    @keyframes popIn {
-      0% { transform: scale(0.95); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
+    .delivery-badge { display: none; margin-bottom: 15px; padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 700; text-align: center; animation: popIn 0.3s ease; }
+    @keyframes popIn { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    
+    /* تصميم النافذة المنبثقة الملكية */
+    #successModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal-content { background: #0f172a; border: 1px solid rgba(0,243,255,0.3); border-radius: 20px; padding: 30px 20px; text-align: center; max-width: 350px; width: 100%; box-shadow: 0 0 50px rgba(0,243,255,0.2); transform: scale(0.9); animation: scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    @keyframes scaleUp { to { transform: scale(1); } }
   </style>
 </head>
 <body>
@@ -129,158 +60,97 @@
       <p class="text-slate-400 text-xs mt-1">اطلبه الآن وسنوفره لك بأفضل سعر</p>
     </div>
 
-    <!-- أضفنا autocomplete="off" لمنع المتصفح من ملء البيانات القديمة -->
-    
-    <!-- تنبيه التوصيل والشحن -->
-    <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; padding: 12px; border-radius: 12px; margin-bottom: 18px; font-size: 11px; font-weight: 700; text-align: center; line-height: 1.8;">
-      <i class="fa-solid fa-circle-info" style="font-size: 14px; display: block; margin-bottom: 4px;"></i>
-      يرجى العلم: التوصيل لباب المنزل (دليفري) متاح فقط في <span style="color: white;">دمشق واللاذقية</span>.<br>
-      باقي المحافظات يتم الشحن عبر شركات النقل (قدموس / هرم).
+    <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 11px; font-weight: 700; text-align: center; line-height: 1.8;">
+      <i class="fa-solid fa-circle-info" style="font-size: 14px; display: block; margin-bottom: 2px;"></i>
+      التوصيل (دليفري) متاح فقط في <span style="color: white;">دمشق واللاذقية</span>.<br>
+      باقي المحافظات شحن (قدموس / هرم).
     </div>
 
     <form id="orderForm" autocomplete="off">
-
       <div class="input-group">
         <input type="text" name="device_name" required placeholder="اسم الجهاز بالكامل (مثال: iPhone 15 Pro Max)">
         <i class="fa-solid fa-mobile-screen"></i>
       </div>
-      
       <div class="input-group">
         <input type="text" name="budget" placeholder="ميزانيتك التقريبية (مثال: 800$)">
         <i class="fa-solid fa-dollar-sign"></i>
       </div>
-
       <div class="input-group">
         <input type="text" name="customer_name" required placeholder="اسمك الثلاثي">
         <i class="fa-solid fa-user"></i>
       </div>
-
       <div class="input-group">
         <input type="tel" name="phone" required placeholder="رقم هاتفك (واتساب)" dir="ltr" class="text-right">
         <i class="fa-brands fa-whatsapp"></i>
       </div>
-
       <div class="input-group">
         <select name="governorate" id="governorateSelect" required>
           <option value="" disabled selected hidden>اختر المحافظة...</option>
-          <option value="دمشق">دمشق</option>
-          <option value="ريف دمشق">ريف دمشق</option>
-          <option value="حلب">حلب</option>
-          <option value="حمص">حمص</option>
-          <option value="حماة">حماة</option>
-          <option value="اللاذقية">اللاذقية</option>
-          <option value="طرطوس">طرطوس</option>
-          <option value="إدلب">إدلب</option>
-          <option value="درعا">درعا</option>
-          <option value="السويداء">السويداء</option>
-          <option value="القنيطرة">القنيطرة</option>
-          <option value="دير الزور">دير الزور</option>
-          <option value="الرقة">الرقة</option>
-          <option value="الحسكة">الحسكة</option>
+          <option value="دمشق">دمشق</option><option value="ريف دمشق">ريف دمشق</option>
+          <option value="حلب">حلب</option><option value="حمص">حمص</option>
+          <option value="حماة">حماة</option><option value="اللاذقية">اللاذقية</option>
+          <option value="طرطوس">طرطوس</option><option value="إدلب">إدلب</option>
+          <option value="درعا">درعا</option><option value="السويداء">السويداء</option>
+          <option value="القنيطرة">القنيطرة</option><option value="دير الزور">دير الزور</option>
+          <option value="الرقة">الرقة</option><option value="الحسكة">الحسكة</option>
         </select>
         <i class="fa-solid fa-location-dot"></i>
       </div>
-
       <div id="deliveryInfo" class="delivery-badge"></div>
-
-      <!-- زر الإرسال مع أيقونة صح -->
       <button type="submit" class="submit-btn">
         <i class="fa-solid fa-check-circle"></i> تأكيد الطلب
       </button>
     </form>
-
     <div class="text-center mt-4">
       <a href="/" class="text-xs text-slate-500 hover:text-cyan-400 transition-colors"><i class="fa-solid fa-arrow-right ml-1"></i> العودة للمتجر</a>
     </div>
   </div>
 
+  <!-- النافذة الملكية المنبثقة -->
+  <div id="successModal">
+    <div class="modal-content">
+      <div style="width: 80px; height: 80px; background: rgba(57, 255, 20, 0.1); border: 2px solid #39ff14; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+        <i class="fa-solid fa-check" style="font-size: 40px; color: #39ff14;"></i>
+      </div>
+      <h2 style="color: white; font-size: 22px; font-weight: 900; margin-bottom: 10px;">تم استلام طلبك!</h2>
+      <p style="color: #8892b0; font-size: 14px; line-height: 1.6; margin-bottom: 25px;">
+        لقد تم إرسال طلبك إلى قسم الإدارة بنجاح.<br>سيتم التواصل معك في أقرب وقت ممكن.
+      </p>
+      <a href="/" style="display: block; background: linear-gradient(135deg, #00f3ff, #0055ff); color: white; padding: 14px; border-radius: 12px; font-weight: 700; text-decoration: none; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,243,255,0.3);">العودة للمتجر</a>
+    </div>
+  </div>
+
   <script>
-    // --- محرك الصوت ---
     let audioCtx;
     function playClickSound() {
       try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
         const now = audioCtx.currentTime;
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(600, now);
-        osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
-        gain.gain.setValueAtTime(0.05, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-        osc.start(now);
-        osc.stop(now + 0.1);
-      } catch(e) {}
-    }
+        osc.type = 'sine'; osc.frequency.setValueAt
+node << 'EOF'
+const fs = require('fs');
+let s = fs.readFileSync('public/chatbot.js', 'utf8');
 
-    document.querySelectorAll('input, select, button, a').forEach(el => {
-      el.addEventListener('pointerdown', playClickSound);
-    });
+// إضافة شرط التذكر (LocalStorage)
+s = s.replace(
+  "if (chatWindow.style.display === 'none') {",
+  "if (chatWindow.style.display === 'none' && !localStorage.getItem('mimo_teaser_seen')) {"
+);
 
-    // --- منطق التوصيل ---
-    const govSelect = document.getElementById('governorateSelect');
-    const deliveryInfo = document.getElementById('deliveryInfo');
+// حفظ الحالة عند إغلاق النافذة
+s = s.replace(
+  "closeTeaser.onclick = () => { teaser.style.display = 'none'; };",
+  "closeTeaser.onclick = () => { teaser.style.display = 'none'; localStorage.setItem('mimo_teaser_seen', 'true'); };"
+);
 
-    govSelect.addEventListener('change', function() {
-      const val = this.value;
-      deliveryInfo.style.display = 'block';
-      
-      if (val === 'دمشق' || val === 'اللاذقية') {
-        deliveryInfo.style.background = 'rgba(57, 255, 20, 0.1)';
-        deliveryInfo.style.color = '#39ff14';
-        deliveryInfo.style.border = '1px solid rgba(57, 255, 20, 0.3)';
-        deliveryInfo.innerHTML = '🚚 توصيل دليفري لباب المنزل';
-      } else {
-        deliveryInfo.style.background = 'rgba(255, 193, 7, 0.1)';
-        deliveryInfo.style.color = '#ffc107';
-        deliveryInfo.style.border = '1px solid rgba(255, 193, 7, 0.3)';
-        deliveryInfo.innerHTML = '📦 الشحن عبر شركات النقل (هرم / قدموس)';
-      }
-    });
+// حفظ الحالة عند فتح المحادثة
+s = s.replace(
+  "teaser.style.display = 'none';\n      chatWindow.style.display = 'flex';",
+  "teaser.style.display = 'none';\n      localStorage.setItem('mimo_teaser_seen', 'true');\n      chatWindow.style.display = 'flex';"
+);
 
-    // --- إرسال الطلب ---
-    document.getElementById('orderForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const btn = this.querySelector('button');
-      const originalText = btn.innerHTML;
-      
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...';
-      btn.style.opacity = '0.8';
-
-      const formData = new FormData(this);
-      const data = Object.fromEntries(formData.entries());
-
-      try {
-        const res = await fetch('/api/special-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-
-        if (res.ok) {
-          btn.innerHTML = '✅ تم إرسال طلبك بنجاح!';
-          btn.style.background = 'linear-gradient(135deg, #39ff14, #00b300)';
-          setTimeout(() => {
-            btn.innerHTML = originalText;
-            btn.style.background = 'linear-gradient(135deg, #00f3ff, #0055ff)';
-            btn.style.opacity = '1';
-            this.reset();
-            deliveryInfo.style.display = 'none';
-          }, 3000);
-        } else {
-          alert('حدث خطأ، يرجى المحاولة لاحقاً');
-          btn.innerHTML = originalText;
-          btn.style.opacity = '1';
-        }
-      } catch(e) {
-        alert('حدث خطأ في الاتصال');
-        btn.innerHTML = originalText;
-        btn.style.opacity = '1';
-      }
-    });
-  </script>
-</body>
-</html>
+fs.writeFileSync('public/chatbot.js', s);
+console.log('✅ تم إصلاح نافذة ميمو، ستظهر مرة واحدة فقط للزائر الجديد.');

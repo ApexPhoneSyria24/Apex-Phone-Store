@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><title>اطلب جهازك الخاص | Apex Phone</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } } } }</script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4">
+  <div class="bg-slate-800 rounded-2xl p-6 w-full max-w-lg shadow-2xl border border-slate-700">
+    <h1 class="text-2xl font-black mb-4 text-center">لم تجد جهازك؟ اطلبه الآن!</h1>
+    <form id="orderForm" class="space-y-4">
+      <input type="text" name="device_name" required placeholder="اسم الجهاز (مثال: iPhone 15)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-indigo-500 outline-none">
+      <input type="text" name="budget" placeholder="ميزانيتك (مثال: 800$)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-indigo-500 outline-none">
+      <input type="text" name="customer_name" required placeholder="اسمك الثلاثي" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-indigo-500 outline-none">
+      <input type="tel" name="phone" required placeholder="رقم هاتفك (واتساب)" dir="ltr" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-indigo-500 outline-none">
+      
+      <select name="governorate" id="governorateSelect" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-indigo-500 outline-none">
+        <option value="">اختر المحافظة...</option>
+        <option value="دمشق">دمشق</option><option value="ريف دمشق">ريف دمشق</option><option value="حلب">حلب</option>
+        <option value="حمص">حمص</option><option value="حماة">حماة</option><option value="اللاذقية">اللاذقية</option>
+        <option value="طرطوس">طرطوس</option><option value="إدلب">إدلب</option><option value="درعا">درعا</option>
+        <option value="السويداء">السويداء</option><option value="القنيطرة">القنيطرة</option>
+        <option value="دير الزور">دير الزور</option><option value="الرقة">الرقة</option><option value="الحسكة">الحسكة</option>
+      </select>
+      
+      <div id="deliveryInfo" class="hidden text-sm font-bold p-3 rounded-lg text-center"></div>
+      <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-xl">إرسال الطلب</button>
+    </form>
+    <a href="/" class="block text-center mt-4 text-slate-400 hover:text-white">العودة للمتجر</a>
+  </div>
+  <script>
+    document.getElementById('governorateSelect').addEventListener('change', function() {
+      const info = document.getElementById('deliveryInfo');
+      info.classList.remove('hidden');
+      if (this.value === 'دمشق' || this.value === 'اللاذقية') {
+        info.className = 'text-sm font-bold p-3 rounded-lg text-center bg-green-500/20 text-green-400 border border-green-500/30';
+        info.innerHTML = '🚚 توصيل دليفري مباشر لباب المنزل';
+      } else if (this.value) {
+        info.className = 'text-sm font-bold p-3 rounded-lg text-center bg-amber-500/20 text-amber-400 border border-amber-500/30';
+        info.innerHTML = '📦 الشحن عبر شركات النقل (هرم / قدموس)';
+      } else { info.classList.add('hidden'); }
+    });
+    document.getElementById('orderForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = this.querySelector('button');
+      btn.innerHTML = 'جاري الإرسال...';
+      const data = Object.fromEntries(new FormData(this).entries());
+      const res = await fetch('/api/special-order', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+      if(res.ok) { btn.innerHTML = '✅ تم الإرسال بنجاح!'; btn.classList.add('bg-green-600'); this.reset(); document.getElementById('deliveryInfo').classList.add('hidden'); }
+    });
+  </script>
+</body>
+</html>

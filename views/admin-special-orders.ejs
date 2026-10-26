@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><title>طلبات الأجهزة الخاصة</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } } } }</script>
+</head>
+<body class="bg-slate-100 p-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-black text-slate-800">طلبات الأجهزة الخاصة</h1>
+      <a href="/admin" class="bg-slate-800 text-white px-4 py-2 rounded-lg font-bold">عودة للإدارة</a>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border overflow-x-auto">
+      <table class="w-full text-right text-sm whitespace-nowrap">
+        <thead class="bg-slate-100 text-slate-600">
+          <tr><th class="p-3">#</th><th class="p-3">الجهاز</th><th class="p-3">الميزانية</th><th class="p-3">الاسم</th><th class="p-3">الهاتف</th><th class="p-3">المحافظة</th><th class="p-3">التوصيل</th></tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <% orders.forEach(o => { %>
+            <tr class="hover:bg-slate-50">
+              <td class="p-3"><%= o.id %></td>
+              <td class="p-3 font-bold text-indigo-700"><%= o.device_name %></td>
+              <td class="p-3 text-green-600 font-bold"><%= o.budget %></td>
+              <td class="p-3 font-bold"><%= o.customer_name %></td>
+              <td class="p-3 font-mono" dir="ltr"><a href="https://wa.me/<%= o.phone %>" class="text-blue-500"><%= o.phone %></a></td>
+              <td class="p-3"><%= o.governorate %></td>
+              <td class="p-3">
+                <% if (o.delivery_method && o.delivery_method.includes('دليفري')) { %>
+                  <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">🚚 دليفري</span>
+                <% } else { %>
+                  <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs font-bold">📦 شحن</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

@@ -90,88 +90,20 @@
 </head>
 <body class="font-sans text-slate-800 antialiased selection:bg-brand-500 selection:text-white flex flex-col min-h-screen">
 
-<div id="preloader">
-  <div class="premium-title">Apex فون</div>
-  <div class="royal-loader-container"><div class="ring-outer"></div><div class="ring-inner"></div><i class="fa-solid fa-mobile-screen-button loader-phone-icon"></i></div>
-  <div class="loader-text-modern">يتم تحميل كامل البيانات<span class="loading-dots"></span></div>
-</div>
 
-<!-- نافذة الإشعارات الأنيقة -->
-<div id="notifModal" class="fixed inset-0 z-[100000] bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
-  <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="notifContent">
-    <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
-      <h3 class="text-lg font-extrabold flex items-center gap-2"><i class="fa-solid fa-bell text-gold-500"></i> الإشعارات</h3>
-      <button onclick="closeNotifModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div id="notifList" class="p-4 max-h-[60vh] overflow-y-auto space-y-3">
-      <!-- سيتم ملء الإشعارات هنا -->
-    </div>
-  </div>
-</div>
-
-<div id="fraudModal" class="modal-overlay fixed top-0 left-0 w-screen h-screen z-[10000] hidden items-center justify-center p-4">
-  <div id="modalContent" class="royal-modal-wrap opacity-0 translate-y-4 transition-all duration-300">
-    <div class="royal-modal-inner text-center">
-      <div class="w-16 h-16 bg-gradient-to-br from-gold-500 to-yellow-700 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl shadow-lg"><i class="fa-solid fa-crown"></i></div>
-      <h3 class="text-xl font-extrabold text-white mb-3 gold-glow">تنبيه سيادي هام</h3>
-      <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-3 mb-5 text-right"><p class="text-[11px] font-bold text-slate-300 leading-relaxed"><span class="text-red-400 block mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> <b>نظراً لانتشار عمليات الاحتيال (الرعبون):</b></span> يمنع منعاً باتاً تحويل أي مبالغ (عربون) عبر الهرم أو شام كاش <span class="text-red-400 underline decoration-1">إلا بعد موافقة صريحة من قسم الإدارة حصراً</span>.<br><span class="text-slate-400 text-[9px]">الإدارة تخلي مسؤوليتها عن أي تحويل يتم دون علمها.</span></p></div>
-      <div class="space-y-2 relative z-10">
-        <button onclick="closeFraudModal(); playFirstModalSounds();" class="w-full bg-gradient-to-r from-gold-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black py-2.5 rounded-xl font-extrabold text-base transition-all shadow-md flex items-center justify-center gap-2"><i class="fa-solid fa-check-double"></i> أوافق وأتفهم</button>
-        <a href="/policy" onclick="playFirstModalSounds();" class="block w-full bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 py-2 rounded-xl font-bold text-xs transition">قراءة سياسة الضمان</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="servicesModal" class="modal-overlay fixed top-0 left-0 w-screen h-screen z-[10000] hidden items-center justify-center p-4">
-  <div id="servicesContent" class="royal-modal-wrap opacity-0 translate-y-4 transition-all duration-300">
-    <div class="royal-modal-inner text-center">
-      <div class="w-16 h-16 bg-gradient-to-br from-brand-500 to-purple-700 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl shadow-lg"><i class="fa-solid fa-gamepad"></i></div>
-      <h3 class="text-xl font-extrabold text-white mb-2 gold-glow">خدمات حصرية</h3>
-      <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 mb-5"><p class="text-[11px] font-bold text-slate-200 leading-relaxed">نوفر شحن جميع الألعاب والبرامج، وحسابات <span class="text-brand-400 font-extrabold">App Store</span> الأصلية بأسعار لا تُنافس.</p></div>
-      <div class="space-y-2 relative z-10">
-        <a href="https://wa.me/963980259127" target="_blank" onclick="playSecondModalSounds();" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-2.5 rounded-xl font-extrabold text-base transition-all shadow-md flex items-center justify-center gap-2"><i class="fa-brands fa-whatsapp text-xl"></i> تواصل مع الإدارة</a>
-        <button onclick="playSecondModalSounds(); closeServicesModal();" class="w-full bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 py-2 rounded-xl font-bold text-xs transition">تصفح المتجر</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<main class="flex-1 flex flex-col w-full">
-  <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm w-full">
-    
-  
-  <div class="max-w-7xl mx-auto px-4 mt-4 mb-6">
-    <a href="/special-order" class="flex items-center justify-between bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all group">
-      <div class="flex items-center gap-3">
-        <span class="text-2xl group-hover:scale-110 transition-transform">✨</span>
+  <div class="max-w-7xl mx-auto px-3 mt-2 mb-2">
+    <a href="/special-order" class="flex items-center justify-between bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-2.5 rounded-lg shadow-md hover:shadow-lg transition-all group">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">✨</span>
         <div>
-          <h3 class="font-black text-base md:text-lg">لم تجد جهازك المطلوب؟</h3>
-          <p class="text-[11px] md:text-xs text-indigo-100">اطلبه الآن وسنوفره لك بأفضل سعر!</p>
+          <h3 class="font-bold text-[11px] md:text-sm">لم تجد جهازك المطلوب؟</h3>
+          <p class="text-[9px] md:text-[10px] text-indigo-100">اطلبه الآن وسنوفره لك بأفضل سعر</p>
         </div>
       </div>
-      <div class="bg-white text-indigo-700 px-4 py-2 rounded-lg text-xs md:text-sm font-black shadow-md group-hover:bg-indigo-50 transition-colors flex items-center gap-1">
-        اضغط هنا <i class="fa-solid fa-arrow-left text-[10px]"></i>
-      </div>
-    </a>
-
-  <div class="max-w-7xl mx-auto px-4 mt-4 mb-6">
-    <a href="/installments" class="flex items-center justify-between bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 text-white p-4 rounded-xl shadow-lg hover:border-cyan-500 transition-all group">
-      <div class="flex items-center gap-3">
-        <span class="text-2xl group-hover:rotate-12 transition-transform">💳</span>
-        <div>
-          <h3 class="font-black text-base md:text-lg flex items-center gap-2">
-            قسم التقسيط 
-            <span class="text-[9px] bg-amber-500 text-black px-2 py-0.5 rounded-full">قريباً</span>
-          </h3>
-          <p class="text-[11px] md:text-xs text-slate-400">نعمل على تجهيز خدمة التقسيط لتكون متاحة قريباً.</p>
-        </div>
-      </div>
-      <div class="bg-white/10 text-white px-4 py-2 rounded-lg text-xs md:text-sm font-black group-hover:bg-white/20 transition-colors flex items-center gap-1">
-        تفاصيل <i class="fa-solid fa-arrow-left text-[10px]"></i>
-      </div>
+      <div class="bg-white text-indigo-700 px-2 py-1 rounded text-[10px] md:text-xs font-bold shadow-sm">اضغط هنا ←</div>
     </a>
   </div>
+
 
   </div>
 
@@ -500,7 +432,7 @@ function redirectToGames(e) {
   }
 </script>
 <script src="/tracker.js"></script>
-<script src="/chatbot.js"></script>
+<script src="/chatbot.js?v=9"></script>
 </body>
     
 </html>

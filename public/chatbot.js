@@ -27,22 +27,22 @@
 
   const widgetHTML = `
     <!-- Teaser -->
-    <div id="mimo-teaser" style="display:none; position:fixed; bottom:90px; right:25px; z-index:999999; background:rgba(17,34,64,0.95); backdrop-filter:blur(10px); border:1px solid #00f3ff; border-radius:20px 20px 0 20px; padding:15px; width:270px; box-shadow:0 10px 30px rgba(0,243,255,0.3); font-family:'Cairo', sans-serif; transform-origin: bottom right; opacity: 0; transition: opacity 0.5s ease, transform 0.5s ease; transform: translateY(20px);" dir="rtl">
+    <div id="mimo-teaser" style="display:none; position:fixed; bottom:75px; right:25px; z-index:999999; background:rgba(17,34,64,0.95); backdrop-filter:blur(10px); border:1px solid #00f3ff; border-radius:20px 20px 0 20px; padding:12px; width:220px; box-shadow:0 10px 30px rgba(0,243,255,0.3); font-family:'Cairo', sans-serif; transform-origin: bottom right; opacity: 0; transition: opacity 0.5s ease, transform 0.5s ease; transform: translateY(20px);" dir="rtl">
       <button id="mimo-close-teaser" style="position:absolute; top:-10px; left:-10px; background:#ef4444; color:white; border:none; width:24px; height:24px; border-radius:50%; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3);">✕</button>
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-        <div style="width:45px; height:45px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:2px solid #00f3ff; box-shadow:0 0 15px rgba(0,243,255,0.5);">
+        <div style="width:32px; height:32px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1.5px solid #00f3ff; box-shadow:0 0 10px rgba(0,243,255,0.5);">
           <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover;">
         </div>
         <div>
-          <h4 style="color:#e6f1ff; margin:0; font-size:16px; font-weight:900;">ميمو (Mimo)</h4>
+          <h4 style="color:#e6f1ff; margin:0; font-size:13px; font-weight:900;">ميمو (Mimo)</h4>
           <span style="color:#39ff14; font-size:11px; font-weight:bold;">مساعدك الذكي</span>
         </div>
       </div>
-      <p style="color:#a8b2c1; font-size:13px; margin:0 0 12px 0; line-height:1.6;">أهلاً بك في <b>Apex Phone</b>! 🥰<br>هل تحتاج مساعدة في اختيار جهازك أو شحن ألعابك؟</p>
-      <button id="mimo-teaser-btn" style="width:100%; background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer; font-size:14px; box-shadow:0 4px 10px rgba(0,243,255,0.3);">تحدث معي الآن 💬</button>
+      <p style="color:#a8b2c1; font-size:11px; margin:0 0 10px 0; line-height:1.4;">أهلاً بك في <b>Apex Phone</b>! 🥰<br>هل تحتاج مساعدة في اختيار جهازك أو شحن ألعابك؟</p>
+      <button id="mimo-teaser-btn" style="width:100%; background:linear-gradient(135deg, #00f3ff, #0055ff); color:white; border:none; padding:8px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:12px; box-shadow:0 4px 10px rgba(0,243,255,0.3);">تحدث معي الآن 💬</button>
     </div>
 
-    <button id="chat-toggle" style="position:fixed; bottom:25px; right:25px; width:55px; height:55px; border-radius:50%; background:#112240; color:white; border:3px solid #00f3ff; box-shadow:0 6px 25px rgba(0,243,255,0.6); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:22px; z-index:999998; transition:transform 0.3s; overflow:hidden;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    <button id="chat-toggle" style="position:fixed; bottom:25px; right:25px; width:45px; height:45px; border-radius:50%; background:#112240; color:white; border:3px solid #00f3ff; box-shadow:0 6px 25px rgba(0,243,255,0.6); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; z-index:999998; transition:transform 0.3s; overflow:hidden;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
       <img src="${mimoImageUrl}" style="width:100%; height:100%; object-fit:cover; background:#fff;">
     </button>
     
@@ -62,7 +62,7 @@
         <button id="chat-close" style="background:none; border:none; color:#a8b2c1; width:35px; height:35px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:20px;"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div id="chat-messages" style="flex:1; min-height:0; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:5px; background-color:#0a192f;">
+      <div id="chat-messages" style="flex:1; min-height:0; padding:12px; overflow-y:auto; display:flex; flex-direction:column; gap:5px; background-color:#0a192f;">
         
         <div id="choice-screen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:20px; text-align:center;">
           <div style="width:80px; height:80px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:3px solid #00f3ff; box-shadow:0 0 30px rgba(0,243,255,0.4);">
@@ -74,11 +74,11 @@
             أنا <b>ميمو</b>، مساعدك الشخصي الذكي. كيف يمكنني أن أخدمك اليوم؟ ✨
           </p>
           
-          <button id="btn-ai" style="width:100%; max-width:300px; background:#112240; border:2px solid #00f3ff; color:#e6f1ff; padding:15px; border-radius:12px; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
+          <button id="btn-ai" style="width:100%; max-width:300px; background:#112240; border:2px solid #00f3ff; color:#e6f1ff; padding:12px; border-radius:12px; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
             <i class="fa-solid fa-robot text-xl text-[#00f3ff]"></i> التحدث مع ميمو (ذكاء اصطناعي)
           </button>
           
-          <button id="btn-human" style="width:100%; max-width:300px; background:#112240; border:1px solid #334155; color:#e6f1ff; padding:15px; border-radius:12px; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
+          <button id="btn-human" style="width:100%; max-width:300px; background:#112240; border:1px solid #334155; color:#e6f1ff; padding:12px; border-radius:12px; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
             <i class="fa-solid fa-user-headset text-xl text-[#8892b0]"></i> التحدث مع الدعم البشري
           </button>
         </div>

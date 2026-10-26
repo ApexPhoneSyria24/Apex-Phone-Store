@@ -160,18 +160,19 @@
     setTimeout(() => {
       if (chatWindow.style.display === 'none') {
         teaser.style.display = 'block';
-        localStorage.setItem('mimo_teaser_seen_v10', 'true');
-        localStorage.setItem('mimo_teaser_seen_v10_v10', 'true');
-        localStorage.setItem('mimo_teaser_seen_v10_v10_v9', 'true');
+        sessionStorage.setItem('mimo_teaser_seen_v11', 'true');
+        localStorage.setItem('mimo_teaser_seen_v11_v11', 'true');
+        localStorage.setItem('mimo_teaser_seen_v11_v11_v10', 'true');
+        localStorage.setItem('mimo_teaser_seen_v11_v11_v10_v9', 'true');
         localStorage.setItem('mimo_teaser_shown_once', 'true');
         setTimeout(() => { teaser.style.opacity = '1'; teaser.style.transform = 'translateY(0)'; }, 50);
         playSound('pop');
       }
     }, 2000);
 
-    closeTeaser.onclick = () => { teaser.style.display = 'none'; localStorage.setItem('mimo_teaser_seen_v10_v10_v9_v8', 'true'); };
+    closeTeaser.onclick = () => { teaser.style.display = 'none'; localStorage.setItem('mimo_teaser_seen_v11_v11_v10_v9_v8', 'true'); };
 
-    teaserBtn.onclick = () => { localStorage.setItem('mimo_teaser_seen_v10_v10_v9_v8', 'true');
+    teaserBtn.onclick = () => { localStorage.setItem('mimo_teaser_seen_v11_v11_v10_v9_v8', 'true');
       playSound('send');
       teaser.style.display = 'none';
       chatWindow.style.display = 'flex';

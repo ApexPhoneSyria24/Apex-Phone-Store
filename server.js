@@ -172,7 +172,15 @@ app.use((req, res, next) => {
 
 
 
-let systemPrompt = `أنت "ميمو" (Mimo)، المساعد الذكي الخبير في متجر Apex Phone Syria.
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message, history, user_phone, visitor_id } = req.body;
+    if (!message) return res.status(400).json({ reply: 'الرجاء كتابة رسالة.' });
+
+    const phones = db.prepare("SELECT name, brand, price FROM phones WHERE status = 'approved' ORDER BY id DESC").all();
+
+    let systemPrompt = `أنت "ميمو" (Mimo)، المساعد الذكي الخبير في متجر Apex Phone Syria.
 شخصيتك: مهذب، لطيف، مختصر جداً (سطرين كحد أقصى)، تستخدم إيموجي واحدة أو اثنتين، وبدون علامات نجمة (**).
 
 ⚠️ قواعد صارمة جداً:
@@ -195,12 +203,11 @@ ${phones.map(p => `- ${p.name} بسعر $${p.price}`).join('\n')}`;
 
     let contents = [];
     if (history && Array.isArray(history)) {
-      const recentHistory = history.slice(-6); // آخر 6 رسائل للسرعة
+      const recentHistory = history.slice(-6);
       recentHistory.forEach(msg => { contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }); });
     }
     contents.push({ role: 'user', parts: [{ text: systemPrompt + "\n\nرسالة الزبون: " + message }] });
 
-    // استخدام النموذج الأسرع
     const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
     const response = await fetch(url, {
       method: 'POST',
@@ -209,10 +216,10 @@ ${phones.map(p => `- ${p.name} بسعر $${p.price}`).join('\n')}`;
     });
 
     const data = await response.json();
-    
+
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       let cleanReply = data.candidates[0].content.parts[0].text;
-      
+
       const orderRegex = /\[\[NEW_ORDER\|Name:\s*(.*?)\|Phone:\s*(.*?)\|Address:\s*(.*?)\|Product:\s*(.*?)\]\]/;
       const match = cleanReply.match(orderRegex);
       if (match) {

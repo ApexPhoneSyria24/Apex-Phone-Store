@@ -113,7 +113,7 @@
   
   <!-- الأزرار المصغرة -->
   
-      <div class="bg-white text-indigo-700 px-3 py-1 rounded-lg text-[10px] md:text-xs font-bold shadow-sm whitespace-nowrap">اضغط هنا ←</div>
+      <div class="bg-white text-indigo-700 px-3 py-1 rounded-lg text-[10px] md:text-xs font-bold shadow-sm whitespace-nowrap"> ←</div>
     </a>
 
     
@@ -127,23 +127,47 @@
       <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-purple-500/10 to-cyan-500/20 opacity-50 group-hover:opacity-100 transition-opacity duration-700 animate-pulse"></div>
       
       <!-- زر الطلب الخاص -->
-      <a href="/special-order" class="relative flex-1 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-3 bg-gradient-to-br from-indigo-600 to-purple-700 text-white p-2 md:p-3 rounded-xl shadow-md transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(139,92,246,0.5)] z-10 group/btn">
-        <span class="text-xl md:text-2xl group-hover/btn:scale-110 transition-transform">✨</span>
-        <div class="text-center md:text-right">
-          <h3 class="font-black text-[10px] md:text-sm whitespace-nowrap">اطلب جهازك</h3>
-          <p class="text-[8px] md:text-[10px] text-indigo-200 hidden md:block">غير موجود في المتجر؟</p>
+      
+
+      <!-- زر التقسيط -->
+      
+
+    </div>
+  </div>
+
+  <!-- الشريط الموحد للطلب والتقسيط -->
+  <div class="w-full bg-slate-900 border-y border-slate-800">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-slate-800">
+      
+      <!-- زر الطلب الخاص -->
+      <a href="/special-order" class="flex-1 flex items-center justify-between p-3 md:p-4 hover:bg-slate-800 transition-colors group">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-white text-sm md:text-base">اطلب جهازك الخاص</h3>
+            <p class="text-xs text-slate-400">لم تجده في المتجر؟ سنوفره لك!</p>
+          </div>
         </div>
+        <i class="fa-solid fa-arrow-left text-slate-500 group-hover:text-indigo-400 transition-colors text-sm"></i>
       </a>
 
       <!-- زر التقسيط -->
-      <a href="/installments" class="relative flex-1 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-3 bg-slate-800/90 border border-slate-600/50 text-white p-2 md:p-3 rounded-xl shadow-md transition-all duration-300 hover:scale-[1.02] hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] z-10 group/btn">
-        <span class="text-xl md:text-2xl group-hover/btn:rotate-12 transition-transform">💳</span>
-        <div class="text-center md:text-right">
-          <h3 class="font-black text-[10px] md:text-sm whitespace-nowrap flex items-center justify-center md:justify-start gap-1">
-            التقسيط <span class="text-[7px] md:text-[9px] bg-amber-500 text-black px-1 md:px-2 py-0.5 rounded-full">قريباً</span>
-          </h3>
-          <p class="text-[8px] md:text-[10px] text-slate-400 hidden md:block">نعمل على تجهيز الخدمة</p>
+      <a href="/installments" class="flex-1 flex items-center justify-between p-3 md:p-4 hover:bg-slate-800 transition-colors group">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <i class="fa-solid fa-credit-card"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-white text-sm md:text-base flex items-center gap-2">
+              تقسيط الأجهزة
+              <span class="text-[10px] bg-amber-500 text-black px-1.5 py-0.5 rounded-md font-bold">قريباً</span>
+            </h3>
+            <p class="text-xs text-slate-400">نعمل على تجهيز الخدمة</p>
+          </div>
         </div>
+        <i class="fa-solid fa-arrow-left text-slate-500 group-hover:text-cyan-400 transition-colors text-sm"></i>
       </a>
 
     </div>

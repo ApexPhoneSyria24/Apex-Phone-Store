@@ -245,7 +245,8 @@ ${phones.map(p => `- ${p.name} بسعر $${p.price}`).join('\n')}`;
       
       // حفظ الطلب في الدردشة الحية لكي يظهر لك أنت
       if (visitor_id) {
-        db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'visitor', ?)").run(visitor_id, orderMessage);
+        // (تم إيقاف إرسال الطلب للدردشة الحية بناءً على طلبك - يرسل لتيليجرام فقط)
+      // db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'visitor', ?)").run(visitor_id, orderMessage);
       }
       
       // إرسال إشعار تيليجرام لك
@@ -272,7 +273,7 @@ app.post('/api/human-chat/init', (req, res) => {
         db.prepare("UPDATE chat_sessions SET status = 'open' WHERE visitor_id = ?").run(visitor_id);
         db.prepare("DELETE FROM chat_messages WHERE visitor_id = ?").run(visitor_id); 
       }
-      const welcomeMsg = "مرحباً بك في دعم Apex Phone! 👋\\nتم استلام طلبك بنجاح، ونحن الآن نبحث لك عن أحد المطورين للرد عليك في أسرع وقت. يرجى البقاء معنا... ⏳";
+      const welcomeMsg = "أهلاً وسهلاً بك في الدعم الفني لـ Apex Phone! 🌟\nلقد تم توصيلك بأحد المطورين، وسيتم الرد على استفسارك في أقرب وقت ممكن. يرجى كتابة رسالتك الآن... ⏳";
       db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'admin', ?)").run(visitor_id, welcomeMsg);
       sendTelegram(`🔔 <b>زبون بدأ محادثة جديدة!</b>\\nالزائر: ${visitor_id}`);
     }

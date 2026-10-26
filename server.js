@@ -171,84 +171,58 @@ app.use((req, res, next) => {
 
 
 
-app.post('/api/chat', async (req, res) => {
-  try {
-    const { message, history, user_phone, visitor_id } = req.body;
-    if (!message) return res.status(400).json({ reply: 'الرجاء كتابة رسالة.' });
 
-    const phones = db.prepare("SELECT name, brand, price FROM phones WHERE status = 'approved' ORDER BY id DESC").all();
-    
-    let systemPrompt = `أنت "ميمو" (Mimo)، مساعد خدمة العملاء في متجر Apex Phone Syria.
-شخصيتك: مهذب، لطيف، مختصر جداً، وتتحدث كإنسان طبيعي.
-قواعد صارمة:
-1. أجب في سطرين كحد أقصى. لا تكتب فقرات طويلة.
-2. استخدم إيموجي واحد أو اثنين فقط.
-3. ممنوع استخدام علامات النجمة (**).
-4. لا تلح على الزبون بالشراء.
-5. لا تخترع أسعاراً، استخدم السعر الحقيقي من القائمة.
-6. إذا أراد الشراء، اطلب (الاسم الثلاثي، الهاتف، مكان التسليم). وبعدها قل "تم تسجيل طلبك." وأضف الوسم: [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
+let systemPrompt = `أنت "ميمو" (Mimo)، المساعد الذكي الخبير في متجر Apex Phone Syria.
+شخصيتك: مهذب، لطيف، مختصر جداً (سطرين كحد أقصى)، تستخدم إيموجي واحدة أو اثنتين، وبدون علامات نجمة (**).
 
-الهواتف المتاحة:
-${phones.map(p => `${p.name} ($${p.price})`).join(', ')}`;
+⚠️ قواعد صارمة جداً:
+1. **اللغة:** إذا كتب الزبون بأي لغة غير العربية (مثل الإنجليزية)، رد عليه بهذه الجملة فقط: "تمت برمجتي للتحدث معك باللغة العربية فقط 🌸، كيف يمكنني مساعدتك؟".
+2. **خبرتك الشاملة بالمتجر (استخدم هذه المعلومات بدقة):**
+   - **قسم الهواتف:** نبيع هواتف أصلية (جديدة ومستعملة) بضمان محلي. يمكنك ترشيح الهواتف بناءً على الميزانية.
+   - **قسم الألعاب:** نشحن الألعاب (مثل ببجي، فري فاير)، ولكن **حالياً الخدمة الوحيدة المتاحة هي بطاقات App Store بقيمة 2$**، وباقي الألعاب تحت الصيانة.
+   - **شحن الرصيد (المحفظة):** يمكن للزبون شحن محفظته عبر سيريتل كاش (1 دولار = 142 ليرة سورية جديدة). يمكنه الدفع من المحفظة مباشرة عند شراء الهواتف.
+   - **التوثيق:** يمكن للزبون توثيق حسابه برفع الهوية لزيادة الثقة.
+   - **الإعلانات:** يمكن للزبائن نشر إعلاناتهم الخاصة للهواتف.
+3. **الترشيح:** عندما يطلب هاتفاً، اقترح خياراً أو خيارين فقط من القائمة أدناه مع السعر.
+4. **الأسعار:** لا تخترع أسعاراً، انسخها حرفياً من القائمة.
+5. **استلام الطلبات:** إذا أراد الشراء، اطلب (الاسم الثلاثي، الهاتف، مكان التسليم). بعد استلامها قل: "تم تسجيل طلبك بنجاح، سنتواصل معك قريباً." وأضف الوسم المخفي: [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
+
+قائمة الهواتف المتاحة حالياً:
+${phones.map(p => `- ${p.name} بسعر $${p.price}`).join('\n')}`;
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود.' });
 
     let contents = [];
     if (history && Array.isArray(history)) {
-      const recentHistory = history.slice(-6);
+      const recentHistory = history.slice(-6); // آخر 6 رسائل للسرعة
       recentHistory.forEach(msg => { contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }); });
     }
     contents.push({ role: 'user', parts: [{ text: systemPrompt + "\n\nرسالة الزبون: " + message }] });
 
-    async function callGemini(modelName) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
-      return await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify({ contents: contents })
-      });
-    }
+    // استخدام النموذج الأسرع
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      body: JSON.stringify({ contents: contents })
+    });
 
-    let reply = null;
-
-    // المحاولة 1: النموذج السريع
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 ثانية
-      const res1 = await callGemini('gemini-1.5-flash');
-      clearTimeout(timeoutId);
-      const data1 = await res1.json();
-      if (data1.candidates && data1.candidates[0] && data1.candidates[0].content) {
-        reply = data1.candidates[0].content.parts[0].text;
-      }
-    } catch(e) { console.log('Primary model failed'); }
-
-    // المحاولة 2: النموذج الاحتياطي (إذا فشل الأول)
-    if (!reply) {
-      try {
-        const res2 = await callGemini('gemini-3.5-flash-lite');
-        const data2 = await res2.json();
-        if (data2.candidates && data2.candidates[0] && data2.candidates[0].content) {
-          reply = data2.candidates[0].content.parts[0].text;
-        }
-      } catch(e) { console.log('Fallback model failed'); }
-    }
-
-    // إذا نجحنا في الحصول على رد
-    if (reply) {
-      let cleanReply = reply;
+    const data = await response.json();
+    
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      let cleanReply = data.candidates[0].content.parts[0].text;
+      
       const orderRegex = /\[\[NEW_ORDER\|Name:\s*(.*?)\|Phone:\s*(.*?)\|Address:\s*(.*?)\|Product:\s*(.*?)\]\]/;
-      const match = reply.match(orderRegex);
+      const match = cleanReply.match(orderRegex);
       if (match) {
         const [fullMatch, name, phone, address, product] = match;
-        cleanReply = reply.replace(fullMatch, '').trim();
+        cleanReply = cleanReply.replace(fullMatch, '').trim();
         sendTelegram(`🛒 <b>طلب هاتف جديد عبر ميمو!</b>\n\n👤 الاسم: ${name}\n📞 الهاتف: ${phone}\n📍 العنوان: ${address}\n📱 الجهاز: ${product}`);
       }
       return res.json({ reply: cleanReply });
     }
 
-    // إذا فشل كل شيء
     return res.json({ reply: 'أعتذر منك يا غالي، يبدو أن الاتصال بطيء قليلاً. هل يمكنك إعادة إرسال رسالتك؟ 🙏' });
 
   } catch (e) {

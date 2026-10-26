@@ -168,46 +168,33 @@ app.use((req, res, next) => {
 
 // ===== AI Chatbot (Mimo) - Robust Version =====
 
+
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, history, user_phone } = req.body;
+    const { message, history, user_phone, visitor_id } = req.body;
     if (!message) return res.status(400).json({ reply: 'الرجاء كتابة رسالة.' });
 
     const phones = db.prepare("SELECT name, brand, price, description FROM phones WHERE status = 'approved' LIMIT 10").all();
-    const games = db.prepare("SELECT name FROM games WHERE is_active = 1").all();
+    
+    let systemPrompt = `أنت "ميمو" (Mimo)، وكيل مبيعات محترف وذكي في متجر Apex Phone Syria.
+شخصيتك: خبير، ودود جداً، مقنع، وتتحدث بأسلوب راقٍ.
+مهمتك: مساعدة الزبون في اختيار هاتف وبناء الثقة.
 
-    // جلب طلبات الزبون السابقة إن وجدت
-    let userOrdersText = "لا توجد طلبات سابقة مسجلة لهذا الرقم.";
-    if (user_phone) {
-      const topupOrders = db.prepare("SELECT id, game_name, package_name, status FROM topup_orders WHERE user_phone = ? ORDER BY id DESC LIMIT 3").all(user_phone);
-      const phoneOrders = db.prepare("SELECT id, name, price, status FROM phones WHERE seller_phone = ? ORDER BY id DESC LIMIT 3").all(user_phone);
-      
-      let orders = [];
-      topupOrders.forEach(o => orders.push(`طلب شحن #${o.id} (${o.game_name} - ${o.package_name}) - الحالة: ${o.status === 'approved' ? 'مقبول' : o.status === 'rejected' ? 'مرفوض' : 'قيد المراجعة'}`));
-      phoneOrders.forEach(o => orders.push(`إعلان هاتف #${o.id} (${o.name}) - الحالة: ${o.status === 'approved' ? 'مقبول' : o.status === 'pending' ? 'قيد المراجعة' : 'مرفوض'}`));
+⚠️ قواعد صارمة:
+1. لا تقل أبداً "أنا ذكاء اصطناعي".
+2. إجاباتك مختصرة وذكية.
+3. إذا أراد الزبون شراء هاتف، رشح له الأنسب من القائمة، واسأله إن كان يناسبه.
+4. إذا وافق الزبون على جهاز معين، اطلب منه تزويدك بـ:
+   أ) الاسم الثلاثي.
+   ب) رقم الهاتف.
+   ج) مكان التسليم (المحافظة والمنطقة).
+5. بمجرد أن يعطيك الزبون هذه المعلومات الثلاثة، قل له: "تم تسجيل طلبك بنجاح يا [اسم الزبون]! سيتواصل معك فريقنا قريباً لتأكيد التفاصيل." 
+6. **هام جداً:** في نهاية رسالتك (بعد كلمة النجاح)، يجب أن تضيف هذا الوسم المخفي بالضبط:
+   [[NEW_ORDER|Name: الاسم_الثلاثي|Phone: رقم_الهاتف|Address: مكان_التسليم|Product: اسم_الهاتف]]
+7. لا تضع هذا الوسم إلا إذا أعطاك الزبون المعلومات الثلاثة كاملة.
 
-      if (orders.length > 0) {
-        userOrdersText = orders.join('\n');
-      }
-    }
-
-    let systemPrompt = `أنت "ميمو" (Mimo)، خبير المبيعات ومساعد خدمة العملاء الذكي لمتجر Apex Phone Syria.
-شخصيتك: خبير محترف، ودود جداً، مقنع، وتتحدث بأسلوب راقٍ.
-
-⚠️ تعليمات هامة:
-1. لا تقل أبداً "أنا ذكاء اصطناعي". أنت مستشار مبيعات في المتجر.
-2. إجاباتك مختصرة (سطرين إلى ثلاثة كحد أقصى).
-3. لا تؤكد أي عملية دفع أو تحويل. إذا قال "تم التحويل"، قل له: "يرجى إرسال الإثبات للدعم البشري".
-4. **الخدمة المتاحة حالياً:** فقط بطاقات App Store بـ 2$. باقي الألعاب (Free Fire, PUBG) تحت الصيانة.
-5. **مهمتك كمستشار مبيعات:** إذا سأل الزبون عن هاتف، اسأله عن ميزانيته واستخدامه (ألعاب، تصوير)، ثم رشح له هاتفاً من القائمة أدناه واذكر سعره وميزته.
-6. **مهمتك كمتتبع للطلبات:** إذا سأل الزبون "أين طلبي؟"، استخدم البيانات التالية لترد عليه (إذا كانت فارغة، اطلب منه رقم هاتفه أو توجيهه للدعم البشري).
-7. ممنوع تكرار الترحيب.
-
-📱 الهواتف المتاحة للترشيح: 
-${phones.map(p => `- ${p.name} (${p.brand}) بسعر $${p.price}: ${p.description ? p.description.substring(0, 30) + '...' : ''}`).join('\n')}
-
-📦 طلبات الزبون الحالي (إذا كان رقمه مسجلاً):
-${userOrdersText}`;
+الهواتف المتاحة:
+${phones.map(p => `- ${p.name} بسعر $${p.price}`).join('\n')}`;
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود في السيرفر.' });
@@ -227,35 +214,54 @@ ${userOrdersText}`;
       });
     }
 
-    let reply = null;
-    let googleError = '';
-
+    let rawReply = null;
+    
     try {
       let response = await fetchGemini('gemini-2.0-flash');
       let data = await response.json();
       if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        reply = data.candidates[0].content.parts[0].text;
-      } else if (data.error) { googleError = data.error.message; }
-    } catch(e) { googleError = e.message; }
+        rawReply = data.candidates[0].content.parts[0].text;
+      }
+    } catch(e) { }
 
-    if (!reply) {
+    if (!rawReply) {
       try {
         let fbResponse = await fetchGemini('gemini-3.5-flash-lite');
         let fbData = await fbResponse.json();
         if (fbData.candidates && fbData.candidates[0] && fbData.candidates[0].content) {
-          reply = fbData.candidates[0].content.parts[0].text;
+          rawReply = fbData.candidates[0].content.parts[0].text;
         }
       } catch(e) { }
     }
 
-    if (reply) return res.json({ reply: reply });
-    
-    if (googleError.includes('high demand') || googleError.includes('quota')) {
-      return res.json({ reply: 'أعتذر منك جداً، هناك ضغط كبير على الخوادم حالياً. يرجى المحاولة بعد قليل. 🙏' });
+    if (!rawReply) {
+      return res.json({ reply: 'أعتذر منك، هناك ضغط كبير على الخوادم حالياً. يرجى المحاولة بعد قليل. 🙏' });
     }
-    res.json({ reply: 'عذراً، أواجه صعوبة في الاتصال بالشبكة. يرجى إعادة المحاولة لاحقاً. 🌸' });
+
+    // فحص وجود طلب جديد في رد ميمو
+    let cleanReply = rawReply;
+    const orderRegex = /\[\[NEW_ORDER\|Name:\s*(.*?)\|Phone:\s*(.*?)\|Address:\s*(.*?)\|Product:\s*(.*?)\]\]/;
+    const match = rawReply.match(orderRegex);
+
+    if (match) {
+      const [fullMatch, name, phone, address, product] = match;
+      cleanReply = rawReply.replace(fullMatch, '').trim(); // إزالة الوسم من الرسالة التي تظهر للزبون
+      
+      const orderMessage = `🤖 **طلب جديد من ميمو (الذكاء الاصطناعي):**\n👤 الاسم: ${name}\n📞 الرقم: ${phone}\n📍 المكان: ${address}\n📱 المنتج: ${product}`;
+      
+      // حفظ الطلب في الدردشة الحية لكي يظهر لك أنت
+      if (visitor_id) {
+        db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'visitor', ?)").run(visitor_id, orderMessage);
+      }
+      
+      // إرسال إشعار تيليجرام لك
+      sendTelegram(`🛒 <b>طلب هاتف جديد عبر ميمو!</b>\n\n👤 الاسم: ${name}\n📞 الهاتف: ${phone}\n📍 العنوان: ${address}\n📱 الجهاز: ${product}`);
+    }
+
+    res.json({ reply: cleanReply });
 
   } catch (e) {
+    console.error(e);
     res.json({ reply: 'عذراً، حدث خطأ مؤقت. يرجى المحاولة لاحقاً.' });
   }
 });

@@ -87,7 +87,16 @@
   .to-yellow-600 { --tw-gradient-to: #ca8a04; }
   .to-yellow-700 { --tw-gradient-to: #a16207; }
 </style>
-</head>
+
+  <style>
+    @keyframes shimmer {
+      100% { transform: translateX(200%); }
+    }
+    .animate-shimmer-loop {
+      animation: shimmer 2.5s infinite;
+    }
+  </style>
+  </head>
 <body class="font-sans text-slate-800 antialiased selection:bg-brand-500 selection:text-white flex flex-col min-h-screen">
 
   <!-- الهيدر النظيف -->
@@ -193,10 +202,19 @@
         
         <!-- زر التوثيق -->
         
-  <a href="/verify-account" class="w-full bg-gradient-to-r from-[#BF953F] via-[#FCF6B5] to-[#B38728] text-slate-900 border border-[#FCF6B5] font-black py-2 rounded-lg hover:brightness-110 transition-all shadow-[0_0_15px_rgba(191,149,63,0.5)] flex items-center justify-center gap-2 text-xs md:text-sm">
-    <i class="fa-solid fa-circle-check text-blue-600 text-base drop-shadow-sm bg-white rounded-full"></i> 
-    وثق حسابك لزيادة نسبة مبيعك
+  
+  <a href="/verify-account" class="relative overflow-hidden w-full bg-gradient-to-r from-[#BF953F] via-[#FCF6B5] to-[#B38728] text-slate-900 border border-[#FCF6B5] font-black py-2.5 rounded-lg shadow-[0_4px_15px_rgba(191,149,63,0.4)] hover:shadow-[0_4px_25px_rgba(191,149,63,0.8)] transition-all flex items-center justify-center gap-2 text-xs md:text-sm group">
+    
+    <!-- تأثير اللمعان المتحرك -->
+    <div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/70 to-transparent skew-x-[-20deg] animate-shimmer-loop"></div>
+    
+    <!-- أيقونة التوثيق -->
+    <i class="fa-solid fa-circle-check text-blue-600 text-base drop-shadow-sm bg-white rounded-full z-10"></i> 
+    
+    <!-- النص -->
+    <span class="relative z-10">وثق حسابك لزيادة نسبة مبيعك</span>
   </a>
+
 
         
         <!-- زر الألعاب -->

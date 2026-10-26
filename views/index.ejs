@@ -154,7 +154,7 @@
       <button type="submit" class="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 bg-brand-600 text-white rounded flex items-center justify-center hover:bg-brand-700 transition text-[10px]"><i class="fa-solid fa-search"></i></button>
     </form>
     <a href="/post-ad" class="block bg-gradient-to-r from-amber-500 to-orange-600 text-white text-center py-1.5 rounded-lg font-bold text-[10px] shadow-sm hover:from-amber-400 hover:to-orange-500 transition max-w-xs mx-auto mb-1.5"><i class="fa-solid fa-plus-circle mr-1"></i> بِع جهازك الآن (أضف إعلانك)</a>
-    <a href="/verify-account" class="block bg-slate-800 text-white text-center py-1.5 rounded-lg font-bold text-[10px] shadow-sm hover:bg-slate-700 transition max-w-xs mx-auto"><i class="fa-solid fa-id-card mr-1 text-blue-400"></i> وثّق حسابك (احصل على علامة ✔️)</a>
+    <a href="/verify-account" class="block bg-slate-200 text-slate-800 border border-slate-300 text-center py-1.5 rounded-lg font-bold text-[10px] shadow-sm hover:bg-slate-700 transition max-w-xs mx-auto"><i class="fa-solid fa-id-card mr-1 text-blue-400"></i> وثّق حسابك (احصل على علامة ✔️)</a>
     <a href="/games" onclick="redirectToGames(event); return false;" class="block bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-center py-1.5 rounded-lg font-bold text-[10px] shadow-sm hover:from-fuchsia-500 hover:to-purple-500 transition max-w-xs mx-auto mt-1.5"><i class="fa-solid fa-gamepad mr-1"></i> شحن الألعاب الآن</a>
   </div>
 
@@ -489,7 +489,7 @@ function redirectToGames(e) {
         content.innerHTML = `
           <div class="text-center py-2">
             <p class="text-slate-300 mb-4 text-sm">أدخل رقم هاتفك لعرض الإشعارات الخاصة بك</p>
-            <input type="tel" id="notifPhoneInput" class="w-full bg-slate-800 text-white p-3 rounded-xl mb-3 border border-slate-600 focus:border-blue-500 outline-none text-center font-bold" placeholder="09xxxxxxxx" dir="ltr">
+            <input type="tel" id="notifPhoneInput" class="w-full bg-slate-200 text-slate-800 border border-slate-300 p-3 rounded-xl mb-3 border border-slate-600 focus:border-blue-500 outline-none text-center font-bold" placeholder="09xxxxxxxx" dir="ltr">
             <button onclick="fetchNotifs()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">عرض الإشعارات</button>
           </div>
         `;

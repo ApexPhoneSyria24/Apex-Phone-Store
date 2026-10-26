@@ -96,6 +96,23 @@ async function sendTelegram(message) {
   } catch(err) { console.error('Telegram Fetch Error:', err.message); }
 }
 
+
+try {
+  db.exec(`CREATE TABLE IF NOT EXISTS special_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    device_name TEXT NOT NULL,
+    budget TEXT,
+    customer_name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    governorate TEXT NOT NULL,
+    delivery_method TEXT,
+    status TEXT DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+  const spCols = db.prepare("PRAGMA table_info(special_orders)").all().map(c => c.name);
+  if (!spCols.includes('delivery_method')) db.exec("ALTER TABLE special_orders ADD COLUMN delivery_method TEXT");
+} catch(e) {}
+
 const app = express();
 const PORT = 3000;
 
@@ -659,5 +676,36 @@ app.get('/api/test-telegram', (req, res) => {
   sendTelegram('🚀 هذه رسالة تجريبية من موقع Apex! إذا وصلتك، فالإشعارات تعمل بنجاح.');
   res.send('تم إرسال الرسالة التجريبية إلى تيليجرام. افحص هاتفك!');
 });
+
+
+// ===== Special Order Routes =====
+app.get('/special-order', (req, res) => {
+  res.render('special-order');
+});
+
+app.post('/api/special-order', (req, res) => {
+  try {
+    const { device_name, budget, customer_name, phone, governorate } = req.body;
+    let delivery_method = '';
+    
+    if (governorate === 'دمشق' || governorate === 'اللاذقية') {
+      delivery_method = 'توصيل دليفري لباب المنزل';
+    } else {
+      delivery_method = 'شحن عبر شركات النقل (هرم / قدموس)';
+    }
+
+    db.prepare("INSERT INTO special_orders (device_name, budget, customer_name, phone, governorate, delivery_method) VALUES (?, ?, ?, ?, ?, ?)").run(device_name, budget || 'غير محدد', customer_name, phone, governorate, delivery_method);
+    
+    sendTelegram(`📱 <b>طلب جهاز خاص (غير موجود)!</b>\n\n📱 الجهاز: ${device_name}\n💰 الميزانية: ${budget || 'غير محدد'}\n👤 الاسم: ${customer_name}\n📞 الهاتف: ${phone}\n📍 المحافظة: ${governorate}\n🚚 التوصيل: ${delivery_method}`);
+    
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/admin/special-orders', requireAuth, (req, res) => {
+  const orders = db.prepare("SELECT * FROM special_orders ORDER BY id DESC").all();
+  res.render('admin-special-orders', { orders });
+});
+
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

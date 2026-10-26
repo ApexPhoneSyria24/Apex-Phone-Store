@@ -182,12 +182,12 @@ app.use((req, res, next) => {
 
 
 
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
     if (!message) return res.status(400).json({ reply: 'الرجاء كتابة رسالة.' });
 
-    // جلب 5 هواتف فقط لضمان سرعة الرد ومنع التعليق
     const phones = db.prepare("SELECT name, price FROM phones WHERE status = 'approved' ORDER BY id DESC LIMIT 5").all();
     
     let systemPrompt = `أنت "ميمو"، مساعد متجر Apex Phone Syria. أجب باختصار شديد (سطرين كحد أقصى) وبإيموجي واحدة.
@@ -196,7 +196,10 @@ app.post('/api/chat', async (req, res) => {
 قائمة أسعار الهواتف المتاحة: ${phones.map(p => `${p.name} ($${p.price})`).join(', ')}`;
 
     const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) return res.json({ reply: 'أهلاً بك! يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
+    if (!apiKey) {
+      sendTelegram('⚠️ ميمو: المفتاح GROQ_API_KEY غير موجود!');
+      return res.json({ reply: 'أهلاً بك! يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
+    }
 
     let messages = [{ role: 'system', content: systemPrompt }];
     if (history && Array.isArray(history)) {
@@ -204,7 +207,10 @@ app.post('/api/chat', async (req, res) => {
     }
     messages.push({ role: 'user', content: message });
 
-    // نموذج Llama 3.1 السريع جداً
+    // إضافة مؤقت 10 ثواني لمنع التعليق
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { 
@@ -212,12 +218,14 @@ app.post('/api/chat', async (req, res) => {
         'Authorization': `Bearer ${apiKey}` 
       },
       body: JSON.stringify({ 
-        model: 'openai/gpt-oss-20b', 
+        model: 'llama-3.3-70b-versatile', // النموذج الأقوى والأكثر استقراراً
         messages: messages,
         max_tokens: 150,
         temperature: 0.7
-      })
+      }),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
 
     const data = await response.json();
 
@@ -234,12 +242,16 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ reply: cleanReply });
     }
 
-    const errMsg = data.error ? data.error.message : 'استجابة غير متوقعة من Groq';
+    const errMsg = data.error ? data.error.message : 'استجابة غير متوقعة';
     sendTelegram('⚠️ خطأ من Groq: ' + errMsg);
     return res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
 
   } catch (e) {
-    sendTelegram('⚠️ خطأ اتصال Groq: ' + e.message);
+    if (e.name === 'AbortError') {
+      sendTelegram('⚠️ خطأ: Groq استغرق وقتاً طويلاً (Timeout)');
+    } else {
+      sendTelegram('⚠️ خطأ اتصال: ' + e.message);
+    }
     res.json({ reply: 'أهلاً بك! يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
   }
 });

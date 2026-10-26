@@ -90,6 +90,70 @@
 </head>
 <body class="font-sans text-slate-800 antialiased selection:bg-brand-500 selection:text-white flex flex-col min-h-screen">
 
+  <!-- الهيدر الجديد -->
+  <nav class="bg-[#0f172a] sticky top-0 z-50 border-b border-slate-800 shadow-lg w-full">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
+      <!-- الشعار (يمين) -->
+      <a href="/" class="flex items-center gap-2 group">
+        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)] group-hover:scale-105 transition-transform">
+          <i class="fa-solid fa-mobile-screen text-white text-lg"></i>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-white font-black text-xl leading-none">Apex <span class="text-blue-500">فون</span></span>
+          <span class="text-[10px] text-slate-400 font-bold">المتجر الأول</span>
+        </div>
+      </a>
+      <!-- الأزرار (يسار) -->
+      <div class="flex items-center gap-2">
+        <a href="https://wa.me/963980259127" target="_blank" class="flex items-center gap-2 bg-[#25D366] hover:bg-[#20b858] text-white px-3 py-1.5 rounded-full font-bold text-sm shadow-md transition-colors">
+          <i class="fa-brands fa-whatsapp text-lg"></i> <span class="hidden md:inline">تواصل</span>
+        </a>
+        <button class="w-9 h-9 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-colors relative">
+          <i class="fa-regular fa-bell"></i>
+          <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+
+  <div class="w-full bg-[#0a1120] border-b border-slate-800">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-slate-800">
+      
+      <a href="/special-order" class="flex-1 flex items-center justify-between p-2.5 px-4 hover:bg-slate-800 transition-colors group">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform text-sm">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-white text-xs md:text-sm">اطلب جهازك الخاص</h3>
+            <p class="text-[10px] text-slate-400">لم تجده في المتجر؟ سنوفره لك!</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-arrow-left text-slate-500 group-hover:text-indigo-400 transition-colors text-xs"></i>
+      </a>
+
+      <a href="/installments" class="flex-1 flex items-center justify-between p-2.5 px-4 hover:bg-slate-800 transition-colors group">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform text-sm">
+            <i class="fa-solid fa-credit-card"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-white text-xs md:text-sm flex items-center gap-2">
+              تقسيط الأجهزة
+              <span class="text-[9px] bg-amber-500 text-black px-1.5 py-0.5 rounded-md font-bold">قريباً</span>
+            </h3>
+            <p class="text-[10px] text-slate-400">نعمل على تجهيز الخدمة</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-arrow-left text-slate-500 group-hover:text-cyan-400 transition-colors text-xs"></i>
+      </a>
+
+    </div>
+  </div>
+
+
+
 
   
 
@@ -113,7 +177,7 @@
   
   <!-- الأزرار المصغرة -->
   
-      <div class="bg-white text-indigo-700 px-3 py-1 rounded-lg text-[10px] md:text-xs font-bold shadow-sm whitespace-nowrap"> ←</div>
+      <div class="bg-[#050505]"> ←</div>
     </a>
 
     
@@ -135,21 +199,7 @@
     </div>
   </div>
 
-  <!-- الشريط الموحد للطلب والتقسيط -->
-  <div class="w-full bg-slate-900 border-y border-slate-800">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-slate-800">
-      
-      <!-- زر الطلب الخاص -->
-      <a href="/special-order" class="flex-1 flex items-center justify-between p-3 md:p-4 hover:bg-slate-800 transition-colors group">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-          </div>
-          <div>
-            <h3 class="font-bold text-white text-sm md:text-base">اطلب جهازك الخاص</h3>
-            <p class="text-xs text-slate-400">لم تجده في المتجر؟ سنوفره لك!</p>
-          </div>
-        </div>
+  
         <i class="fa-solid fa-arrow-left text-slate-500 group-hover:text-indigo-400 transition-colors text-sm"></i>
       </a>
 
@@ -186,11 +236,7 @@
 
   <% if (banners && banners.length > 0) { %>
   <div class="max-w-7xl mx-auto px-3 pt-3 w-full">
-    <div class="swiper banner-swiper shadow-md">
-      <div class="swiper-wrapper"><% banners.forEach(b => { %><div class="swiper-slide"><img src="https://images.weserv.nl/?url=https://apexphonesyria.online<%= b.image_url %>&w=800&output=webp&q=80" alt="Banner"></div><% }) %></div>
-      
-    </div>
-  </div>
+    
   <% } %>
 
   <div class="max-w-7xl mx-auto px-3 pt-3 w-full flex justify-between items-center">
@@ -208,7 +254,7 @@
 
   <div class="max-w-7xl mx-auto px-3 py-4 w-full">
     <div class="flex items-center justify-between mb-3"><h2 class="text-xs font-extrabold text-slate-900 flex items-center gap-1"><i class="fa-solid fa-fire text-orange-500"></i> <%= search ? 'البحث عن: ' + search : 'الأجهزة المتوفرة' %></h2></div>
-    <% if (phones.length === 0) { %><div class="text-center py-8 bg-white rounded-xl border border-slate-200"><i class="fa-solid fa-mobile-screen text-2xl text-slate-200 mb-1"></i><p class="text-xs text-slate-500 font-bold">لا توجد أجهزة.</p></div><% } else { %>
+    <% if (phones.length === 0) { %><div class="bg-[#050505]"><i class="fa-solid fa-mobile-screen text-2xl text-slate-200 mb-1"></i><p class="text-xs text-slate-500 font-bold">لا توجد أجهزة.</p></div><% } else { %>
       
   
       <div class="text-cyan-400 group-hover:-translate-x-1 transition-transform">
@@ -229,12 +275,12 @@
 
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 w-full">
         <% phones.forEach(p => { let imgs = []; try { imgs = JSON.parse(p.images || '[]'); } catch(e) {} if (imgs.length === 0) imgs = ['https://via.placeholder.com/400x400?text=No+Image']; const isAvailable = (p.availability || 'متوفر') === 'متوفر'; const isSold = p.availability === 'تم البيع'; const isFeatured = p.is_featured === 1; %>
-          <div class="phone-card w-full bg-white rounded-xl border border-slate-200 p-2 flex flex-col relative <%= isFeatured ? 'featured-card' : '' %>">
+          <div class="bg-[#050505]">
             <% if(isFeatured) { %><div class="absolute -top-2 -right-2 bg-gradient-to-r from-gold-500 to-yellow-600 text-white text-[8px] font-extrabold px-2 py-0.5 rounded-full shadow-lg z-10 animate-pulse"><i class="fa-solid fa-star"></i> مميز</div><% } %>
             <a href="/phone/<%= p.id %>" class="block w-full h-[110px] bg-slate-50 rounded-lg overflow-hidden mb-2 relative group">
               <img src="https://images.weserv.nl/?url=https://apexphonesyria.online<%= imgs[0] %>&w=400&output=webp&q=80" alt="<%= p.name %>" loading="lazy" decoding="async" class="w-full h-full object-contain p-1 group-hover:scale-105 transition duration-500 <%= isSold ? 'grayscale opacity-50' : '' %>">
               <div class="absolute top-1 right-1 flex flex-col gap-1 items-end">
-                <div class="bg-white/90 backdrop-blur text-brand-600 text-[8px] font-extrabold px-1.5 py-0.5 rounded shadow-sm"><%= p.brand %></div>
+                <div class="bg-[#050505]"><%= p.brand %></div>
                 <% if (p.is_admin === 1) { %><div class="bg-blue-600 text-white text-[7px] font-bold px-1.5 py-0.5 rounded shadow-sm flex items-center gap-0.5"><i class="fa-solid fa-circle-check"></i> الإدارة</div><% } else if (p.seller_phone && verifiedPhones.includes(p.seller_phone)) { %><div class="bg-blue-50 text-blue-600 border border-blue-200 text-[7px] font-bold px-1.5 py-0.5 rounded shadow-sm flex items-center gap-0.5">
     <svg class="w-2.5 h-2.5 inline-block" viewBox="0 0 24 24" fill="currentColor"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.26 2.26 4.8-5.23 1.47 1.36-6.2 6.77z"></path></svg>
     بائع موثوق
@@ -255,8 +301,8 @@
     <% } %>
   </div>
 
-  <div class="max-w-7xl mx-auto px-3 py-4 w-full"><h2 class="text-sm font-extrabold text-slate-900 text-center mb-4">لماذا يثق بنا آلاف الزبائن؟</h2><div class="grid grid-cols-2 md:grid-cols-4 gap-2"><div class="bg-white p-3 rounded-xl border border-slate-200 text-center shadow-sm"><i class="fa-solid fa-certificate text-brand-600 text-lg mb-1"></i><h3 class="text-[11px] font-extrabold text-slate-800">أجهزة أصلية 100%</h3><p class="text-[9px] text-slate-500 mt-1">مستوردة بضمان الوكيل</p></div><div class="bg-white p-3 rounded-xl border border-slate-200 text-center shadow-sm"><i class="fa-solid fa-shield-halved text-green-600 text-lg mb-1"></i><h3 class="text-[11px] font-extrabold text-slate-800">ضمان سنة كاملة</h3><p class="text-[9px] text-slate-500 mt-1">على جميع العيوب المصنعية</p></div><div class="bg-white p-3 rounded-xl border border-slate-200 text-center shadow-sm"><i class="fa-solid fa-hand-holding-dollar text-amber-500 text-lg mb-1"></i><h3 class="text-[11px] font-extrabold text-slate-800">افحص قبل الدفع</h3><p class="text-[9px] text-slate-500 mt-1">داخل المحافظة</p></div><div class="bg-white p-3 rounded-xl border border-slate-200 text-center shadow-sm"><i class="fa-solid fa-truck-fast text-purple-600 text-lg mb-1"></i><h3 class="text-[11px] font-extrabold text-slate-800">شحن لكل المحافظات</h3><p class="text-[9px] text-slate-500 mt-1">مع فيديو فحص مسبق</p></div></div></div>
-  <div class="max-w-7xl mx-auto px-3 py-6 bg-slate-100 rounded-2xl mb-6 w-full"><h2 class="text-sm font-extrabold text-slate-900 text-center mb-4">ماذا قال زبائننا؟</h2><div class="grid grid-cols-1 md:grid-cols-3 gap-3 w-full"><div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm w-full"><div class="text-amber-400 text-[10px] mb-1"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-[10px] text-slate-600 font-bold mb-2">"جهاز أصلي متل ما وعدتوني، والتوصيل كان سريع كتير لدرعا. شكراً لتعاملكم الراقي."</p><div class="flex items-center gap-1.5"><div class="w-5 h-5 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-[8px] font-bold">أ</div><span class="text-[9px] font-bold text-slate-800">أحمد - درعا</span></div></div><div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm w-full"><div class="text-amber-400 text-[10px] mb-1"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-[10px] text-slate-600 font-bold mb-2">"أول مرة أشتري أونلاين وأرتاح. بعتولي فيديو للجهاز قبل ما أدفع، وصولتني بحالة ممتازة."</p><div class="flex items-center gap-1.5"><div class="w-5 h-5 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center text-[8px] font-bold">م</div><span class="text-[9px] font-bold text-slate-800">مريم - حلب</span></div></div><div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm w-full"><div class="text-amber-400 text-[10px] mb-1"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-[10px] text-slate-600 font-bold mb-2">"أسعار منافسة جداً والضمان حقيقي مو بس كلام. تعاملت معهم كذا مرة وما ندمت."</p><div class="flex items-center gap-1.5"><div class="w-5 h-5 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-[8px] font-bold">س</div><span class="text-[9px] font-bold text-slate-800">سامر - دمشق</span></div></div></div></div>
+  <div class="max-w-7xl mx-auto px-3 py-4 w-full"><h2 class="text-sm font-extrabold text-slate-900 text-center mb-4">لماذا يثق بنا آلاف الزبائن؟</h2><div class="grid grid-cols-2 md:grid-cols-4 gap-2"><div class="bg-[#050505]"><i class="fa-solid fa-certificate text-brand-600 text-lg mb-1"></i><h3 class="text-[11px] font-extrabold text-slate-800">أجهزة أصلية 100%</h3><p class="text-[9px] text-slate-500 mt-1">مستوردة بضمان الوكيل</p></div><div class="bg-[#050505]"><i class="fa-solid fa-shield-halved text-green-600 text-lg mb-1"></i><h3 class="text-[11px] font-extrabold text-slate-800">ضمان سنة كاملة</h3><p class="text-[9px] text-slate-500 mt-1">على جميع العيوب المصنعية</p></div><div class="bg-[#050505]"><i class="fa-solid fa-hand-holding-dollar text-amber-500 text-lg mb-1"></i><h3 class="text-[11px] font-extrabold text-slate-800">افحص قبل الدفع</h3><p class="text-[9px] text-slate-500 mt-1">داخل المحافظة</p></div><div class="bg-[#050505]"><i class="fa-solid fa-truck-fast text-purple-600 text-lg mb-1"></i><h3 class="text-[11px] font-extrabold text-slate-800">شحن لكل المحافظات</h3><p class="text-[9px] text-slate-500 mt-1">مع فيديو فحص مسبق</p></div></div></div>
+  <div class="max-w-7xl mx-auto px-3 py-6 bg-slate-100 rounded-2xl mb-6 w-full"><h2 class="text-sm font-extrabold text-slate-900 text-center mb-4">ماذا قال زبائننا؟</h2><div class="grid grid-cols-1 md:grid-cols-3 gap-3 w-full"><div class="bg-[#050505]"><div class="text-amber-400 text-[10px] mb-1"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-[10px] text-slate-600 font-bold mb-2">"جهاز أصلي متل ما وعدتوني، والتوصيل كان سريع كتير لدرعا. شكراً لتعاملكم الراقي."</p><div class="flex items-center gap-1.5"><div class="w-5 h-5 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-[8px] font-bold">أ</div><span class="text-[9px] font-bold text-slate-800">أحمد - درعا</span></div></div><div class="bg-[#050505]"><div class="text-amber-400 text-[10px] mb-1"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-[10px] text-slate-600 font-bold mb-2">"أول مرة أشتري أونلاين وأرتاح. بعتولي فيديو للجهاز قبل ما أدفع، وصولتني بحالة ممتازة."</p><div class="flex items-center gap-1.5"><div class="w-5 h-5 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center text-[8px] font-bold">م</div><span class="text-[9px] font-bold text-slate-800">مريم - حلب</span></div></div><div class="bg-[#050505]"><div class="text-amber-400 text-[10px] mb-1"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-[10px] text-slate-600 font-bold mb-2">"أسعار منافسة جداً والضمان حقيقي مو بس كلام. تعاملت معهم كذا مرة وما ندمت."</p><div class="flex items-center gap-1.5"><div class="w-5 h-5 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-[8px] font-bold">س</div><span class="text-[9px] font-bold text-slate-800">سامر - دمشق</span></div></div></div></div>
   <div class="max-w-7xl mx-auto px-3 py-4 w-full mb-6"><h2 class="text-sm font-extrabold text-slate-900 text-center mb-4">الأسئلة الشائعة</h2><div class="space-y-2"><details class="bg-white border border-slate-200 rounded-lg p-3 cursor-pointer group shadow-sm"><summary class="text-[11px] font-bold text-slate-800 flex justify-between items-center list-none">كيف يمكنني الدفع؟ <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition"></i></summary><p class="text-[10px] text-slate-600 mt-2 font-bold leading-relaxed">الدفع يتم عند الاستلام (كاش) بعد فحص الجهاز داخل المحافظة. للزبائن خارج المحافظة، يتم التنسيق مع الإدارة حصراً قبل أي تحويل.</p></details><details class="bg-white border border-slate-200 rounded-lg p-3 cursor-pointer group shadow-sm"><summary class="text-[11px] font-bold text-slate-800 flex justify-between items-center list-none">هل يوجد ضمان على الأجهزة؟ <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition"></i></summary><p class="text-[10px] text-slate-600 mt-2 font-bold leading-relaxed">نعم، جميع الأجهزة أصلية وتأتي مع ضمان لمدة سنة كاملة ضد العيوب المصنعية. (لا يوجد كرتونة إلا إذا ذكرنا ذلك).</p></details><details class="bg-white border border-slate-200 rounded-lg p-3 cursor-pointer group shadow-sm"><summary class="text-[11px] font-bold text-slate-800 flex justify-between items-center list-none">كيف أتأكد من الجهاز إذا كنت خارج المحافظة؟ <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition"></i></summary><p class="text-[10px] text-slate-600 mt-2 font-bold leading-relaxed">نقوم بتصوير فيديو كامل للجهاز (الشاشة، البصمة، البطارية) وإرساله لك عبر الواتساب. لا نشحنه إلا بعد موافقتك على الفيديو.</p></details></div></div>
 </main>
 

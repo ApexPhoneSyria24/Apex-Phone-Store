@@ -179,6 +179,7 @@ app.use((req, res, next) => {
 
 
 
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
@@ -200,40 +201,35 @@ app.post('/api/chat', async (req, res) => {
     }
     contents.push({ role: 'user', parts: [{ text: systemPrompt + "\nالزبون: " + message }] });
 
-    // قائمة النماذج التي سنجربها بالترتيب (إذا فشل الأول يجرب الثاني)
-    const modelsToTry = [
-      'gemini-3.8-flash',
-      'gemini-1.5-pro',
-      'gemini-1.5-flash',
-      'gemini-pro'
-    ];
-
+    const modelsToTry = ['gemini-3.8-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
     let finalReply = null;
-    let lastErrorMessage = '';
 
     for (const model of modelsToTry) {
       try {
+        // وضع مؤقت قاسي (5 ثواني) لكل محاولة، لمنع التعليق
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds max per model
+
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-          body: JSON.stringify({ contents: contents, generationConfig: { maxOutputTokens: 150 } })
+          body: JSON.stringify({ contents: contents, generationConfig: { maxOutputTokens: 150 } }),
+          signal: controller.signal
         });
-
+        
+        clearTimeout(timeoutId);
         const data = await response.json();
 
         if (data.candidates && data.candidates[0] && data.candidates[0].content) {
           finalReply = data.candidates[0].content.parts[0].text;
-          break; // نجحنا! نوقف المحاولات ونرد على الزبون
-        } else if (data.error) {
-          lastErrorMessage = data.error.message;
+          break; // نجحنا!
         }
       } catch (e) {
-        lastErrorMessage = e.message;
+        // انتهى الوقت أو حدث خطأ، ننتقل للنموذج التالي فوراً
       }
     }
 
-    // إذا نجح أحد النماذج في الرد
     if (finalReply) {
       let cleanReply = finalReply;
       const orderRegex = /\[\[NEW_ORDER\|Name:\s*(.*?)\|Phone:\s*(.*?)\|Address:\s*(.*?)\|Product:\s*(.*?)\]\]/;
@@ -246,15 +242,11 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ reply: cleanReply });
     }
 
-    // إذا فشلت جميع النماذج (وهذا نادر جداً)
-    console.error('All Models Failed:', lastErrorMessage);
-    sendTelegram('⚠️ ميمو: جميع النماذج مشغولة حالياً. آخر خطأ: ' + lastErrorMessage);
-    
+    // إذا فشلت كل النماذج بسرعة، نرسل الرد الاحتياطي للزبون بدلاً من ترك النقاط تدور
     return res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الرجوع (السهم) واختيار "الدعم البشري" وسنخدمك فوراً!' });
 
   } catch (e) {
-    console.error('Chat Route Error:', e);
-    res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الرجوع واختيار "الدعم البشري" وسنخدمك فوراً!' });
+    res.json({ reply: 'أهلاً بك! ميمو يخضع لتحديثات سريعة الآن 🌸، يرجى الضغط على زر الدعم البشري وسنخدمك فوراً!' });
   }
 });
 

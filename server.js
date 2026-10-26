@@ -212,7 +212,7 @@ app.post('/api/chat', async (req, res) => {
         'Authorization': `Bearer ${apiKey}` 
       },
       body: JSON.stringify({ 
-        model: 'llama3-8b-8192', // النموذج القياسي المستقر
+        model: 'openai/gpt-oss-20b', // النموذج القياسي المستقر
         messages: messages,
         max_tokens: 150,
         temperature: 0.7

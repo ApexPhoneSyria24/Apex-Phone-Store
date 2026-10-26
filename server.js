@@ -175,41 +175,48 @@ app.use((req, res, next) => {
 
 
 
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
     if (!message) return res.status(400).json({ reply: 'الرجاء كتابة رسالة.' });
 
-    const phones = db.prepare("SELECT name, price FROM phones WHERE status = 'approved' ORDER BY id DESC LIMIT 10").all();
-
-    let systemPrompt = `أنت "ميمو"، مساعد ذكي في متجر Apex Phone Syria. شخصيتك: لطيف، مختصر جداً (سطرين)، تستخدم إيموجي.
-قواعد:
-1. إذا كتب الزبون بالإنجليزية، رد: "تمت برمجتي للتحدث معك باللغة العربية فقط 🌸".
-2. إذا أراد الشراء، اطلب (الاسم، الهاتف، المكان). ثم أضف: [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
+    const phones = db.prepare("SELECT name, price FROM phones WHERE status = 'approved' ORDER BY id DESC LIMIT 8").all();
+    
+    // تعليمات قصيرة جداً للسرعة القصوى
+    let systemPrompt = `أنت "ميمو"، مساعد متجر Apex Phone Syria. أجب باختصار شديد (سطرين كحد أقصى) وبإيموجي واحدة.
+قواعد: 1. إذا أراد الشراء اطلب (الاسم، الهاتف، المكان) وأضف [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
+2. إذا كتب بالإنجليزية رد "تمت برمجتي بالعربية فقط 🌸".
 الهواتف المتاحة: ${phones.map(p => `${p.name} ($${p.price})`).join(', ')}`;
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود.' });
 
+    // نرسل فقط آخر رسالتين كحد أقصى للسياق
     let contents = [];
     if (history && Array.isArray(history)) {
-      history.slice(-3).forEach(msg => { contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }); });
+      history.slice(-2).forEach(msg => { contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }); });
     }
-    contents.push({ role: 'user', parts: [{ text: systemPrompt + "\n\nرسالة الزبون: " + message }] });
+    contents.push({ role: 'user', parts: [{ text: systemPrompt + "\nالزبون: " + message }] });
 
-    // استخدام النموذج المستقر
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent';
+    // النموذج الأكثر استقراراً وسرعة
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-      body: JSON.stringify({ contents: contents })
+      body: JSON.stringify({ 
+        contents: contents,
+        generationConfig: {
+          maxOutputTokens: 150, // إجباره على الرد القصير والسريع
+          temperature: 0.7
+        }
+      })
     });
 
     const data = await response.json();
 
-    // إذا كان هناك خطأ من جوجل، اعرضه لنا
     if (data.error) {
-      return res.json({ reply: '⚠️ خطأ من جوجل: ' + data.error.message });
+      return res.json({ reply: '⚠️ خطأ: ' + data.error.message });
     }
 
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
@@ -225,13 +232,12 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ reply: cleanReply });
     }
 
-    return res.json({ reply: '⚠️ لم يتم استلام رد صحيح من جوجل.' });
+    return res.json({ reply: 'أعتذر منك، يرجى المحاولة مرة أخرى. 🙏' });
 
   } catch (e) {
-    res.json({ reply: '⚠️ خطأ في السيرفر: ' + e.message });
+    res.json({ reply: 'عذراً، حدث خطأ مؤقت.' });
   }
 });
-
 
 // ===== Live Chat API =====
 app.post('/api/human-chat/init', (req, res) => {

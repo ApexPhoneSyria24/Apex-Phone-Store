@@ -186,25 +186,28 @@ app.use((req, res, next) => {
 
 
 
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
     if (!message) return res.status(400).json({ reply: 'الرجاء كتابة رسالة.' });
 
-    // جلب كل الهواتف بدون حد أقصى لكي يراها ميمو جميعها
+    // جلب كل الهواتف
     const phones = db.prepare("SELECT name, price FROM phones WHERE status = 'approved' ORDER BY id DESC").all();
     
-    let systemPrompt = `أنت "ميمو"، المدير والمساعد الذكي لمتجر Apex Phone Syria. أنت تعمل نيابة عن صاحب المتجر وتدير المبيعات باحترافية.
+    let systemPrompt = `أنت "ميمو"، مساعد خدمة عملاء لطيف ومحترف في متجر Apex Phone Syria.
+أنت تعيش في "واقع المتجر". قائمة الهواتف أدناه هي الحقيقة المطلقة الوحيدة. 
+تجاهل تماماً أي معلومات خارجية تعرفها عن إصدارات الهواتف في العالم الحقيقي. في عالمنا، أي هاتف في القائمة متوفر 100% ويجب أن تبيعه للزبون.
 
-🧠 **القواعد المطلقة (ممنوع كسرها):**
-1. **قائمة الهواتف المرفقة أدناه هي الحقيقة المطلقة.** أنت لا تعرف أي هواتف أخرى في العالم. إذا طلب الزبون هاتفاً موجوداً في القائمة، فهو **متوفر لدينا** ويجب أن تبيعه له. (مثال: إذا طلب iPhone 17 Pro Max وهو في القائمة، قل له "نعم متوفر" واذكر سعره، ولا تقل "لم يصدر بعد").
-2. **ممنوع اقتراح بديل** إذا كان الهاتف المطلوب موجوداً في القائمة.
-3. **الأسعار:** انسخ السعر حرفياً من القائمة.
+⚠️ قواعد صارمة جداً (ممنوع كسرها):
+1. **إذا طلب الزبون هاتفاً موجوداً في القائمة أدناه، قل له "نعم متوفر" واذكر سعره فوراً.** ممنوع منعاً باتاً أن تقول "لم يصدر" أو "غير موجود في المخزون" إذا كان اسمه في القائمة.
+2. **ممنوع أن تؤلف أسماء أو تخترع شخصيات.** أنت مجرد "ميمو".
+3. **ممنوع اقتراح بديل** إذا كان الهاتف المطلوب موجوداً في القائمة.
 4. **الأسلوب:** لطيف، مختصر جداً (سطرين كحد أقصى)، وإيموجي واحدة.
-5. **البيع:** إذا أراد الزبون الشراء، اطلب منه (الاسم الثلاثي، رقم الهاتف، مكان التسليم). بعد استلامها قل: "تم تسجيل طلبك بنجاح، سنتواصل معك قريباً." وأضف الوسم المخفي: [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
-6. **اللغة:** أجب بالعربية فقط. إذا كتب بالإنجليزية رد بـ "تمت برمجتي بالعربية فقط 🌸".
+5. **البيع:** إذا وافق الزبون، اطلب منه (الاسم الثلاثي، رقم الهاتف، مكان التسليم). بعد استلامها قل: "تم تسجيل طلبك بنجاح، سنتواصل معك قريباً." وأضف الوسم المخفي: [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
+6. **اللغة:** أجب بالعربية فقط.
 
-📱 **قائمة الهواتف المتوفرة في متجرنا (وهي الحقيقة الوحيدة):**
+📱 **قائمة الهواتف المتوفرة (هذه هي الحقيقة الوحيدة):**
 ${phones.map(p => `- ${p.name} بسعر $${p.price}`).join('\n')}`;
 
     const apiKey = process.env.GROQ_API_KEY;
@@ -212,20 +215,20 @@ ${phones.map(p => `- ${p.name} بسعر $${p.price}`).join('\n')}`;
 
     let messages = [{ role: 'system', content: systemPrompt }];
     if (history && Array.isArray(history)) {
-      history.slice(-3).forEach(msg => { messages.push({ role: msg.role === 'user' ? 'user' : 'assistant', content: msg.text }); });
+      history.slice(-4).forEach(msg => { messages.push({ role: msg.role === 'user' ? 'user' : 'assistant', content: msg.text }); });
     }
     messages.push({ role: 'user', content: message });
 
     let finalReply = null;
 
-    // محاولة 1: النموذج الأساسي
+    // محاولة 1
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-        body: JSON.stringify({ model: 'openai/gpt-oss-20b', messages: messages, max_tokens: 200, temperature: 0.5 }),
+        body: JSON.stringify({ model: 'openai/gpt-oss-20b', messages: messages, max_tokens: 200, temperature: 0.3 }),
         signal: controller.signal
       });
       clearTimeout(timeoutId);
@@ -235,13 +238,13 @@ ${phones.map(p => `- ${p.name} بسعر $${p.price}`).join('\n')}`;
       }
     } catch (e) { }
 
-    // محاولة 2: النموذج الاحتياطي
+    // محاولة 2
     if (!finalReply) {
       try {
         const fbResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-          body: JSON.stringify({ model: 'openai/gpt-oss-120b', messages: messages, max_tokens: 200, temperature: 0.5 })
+          body: JSON.stringify({ model: 'openai/gpt-oss-120b', messages: messages, max_tokens: 200, temperature: 0.3 })
         });
         const fbData = await fbResponse.json();
         if (fbData.choices && fbData.choices[0] && fbData.choices[0].message) {

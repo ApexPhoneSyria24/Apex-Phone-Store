@@ -166,9 +166,9 @@
       }
     }, 2000);
 
-    closeTeaser.onclick = () => { teaser.style.display = 'none'; };
+    closeTeaser.onclick = () => { teaser.style.display = 'none'; localStorage.setItem('mimo_teaser_seen_v7', 'true'); };
 
-    teaserBtn.onclick = () => {
+    teaserBtn.onclick = () => { localStorage.setItem('mimo_teaser_seen_v7', 'true');
       playSound('send');
       teaser.style.display = 'none';
       chatWindow.style.display = 'flex';

@@ -135,7 +135,7 @@
             <p class="text-[9px] text-slate-400">لم تجده في المتجر؟ سنوفره لك!</p>
           </div>
         </div>
-        <i class="fa-solid fa-arrow-left text-slate-500 group-hover:text-indigo-400 transition-colors text-xs"></i>
+        
       </a>
       <a href="/installments" class="flex-1 flex items-center justify-between p-1.5 px-3 hover:bg-slate-800 transition-colors group">
         <div class="flex items-center gap-3">
@@ -215,11 +215,11 @@
 
   <div class="max-w-7xl mx-auto px-3 py-1 w-full">
     <div class="flex items-center justify-between mb-3"><h2 class="text-xs font-extrabold text-slate-900 flex items-center gap-1"><i class="fa-solid fa-fire text-orange-500"></i> <%= search ? 'البحث عن: ' + search : 'الأجهزة المتوفرة' %></h2></div>
-    <% if (phones.length === 0) { %><div class="bg-white rounded-xl shadow-md overflow-hidden"><i class="fa-solid fa-mobile-screen text-2xl text-slate-200 mb-1"></i><p class="text-xs text-slate-500 font-bold">لا توجد أجهزة.</p></div><% } else { %>
+    <% if (phones.length === 0) { %><div class="bg-white rounded-xl shadow-md overflow-hidden"><p class="text-xs text-slate-500 font-bold">لا توجد أجهزة.</p></div><% } else { %>
       
   
       <div class="text-cyan-400 group-hover:-translate-x-1 transition-transform">
-        <i class="fa-solid fa-arrow-left"></i>
+        
       </div>
     </a>
   </div>
@@ -258,7 +258,7 @@
           </div>
         <% }) %>
       </div>
-      <% if (!isViewAll && !search && phones.length > 0 && totalPhonesCount > 12) { %><div class="flex justify-center mt-2 mb-2 w-full"><a href="/?view=all<%= activeBrand ? '&brand=' + encodeURIComponent(activeBrand) : '' %><%= currentSort ? '&sort=' + currentSort : '' %>" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-extrabold text-sm shadow-lg hover:bg-black hover:shadow-xl transition flex items-center gap-2">عرض جميع الأجهزة (<%= totalPhonesCount %> جهاز) <i class="fa-solid fa-arrow-left"></i></a></div><% } else if (isViewAll) { %><div class="flex justify-center mt-2 mb-2 w-full"><a href="/" class="bg-slate-100 text-slate-700 border border-slate-300 px-8 py-3 rounded-xl font-extrabold text-sm shadow-sm hover:bg-slate-200 transition flex items-center gap-2"><i class="fa-solid fa-arrow-right"></i> العودة للصفحة الرئيسية</a></div><% } %>
+      <% if (!isViewAll && !search && phones.length > 0 && totalPhonesCount > 12) { %><div class="flex justify-center mt-2 mb-2 w-full"><a href="/?view=all<%= activeBrand ? '&brand=' + encodeURIComponent(activeBrand) : '' %><%= currentSort ? '&sort=' + currentSort : '' %>" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-extrabold text-sm shadow-lg hover:bg-black hover:shadow-xl transition flex items-center gap-2">عرض جميع الأجهزة (<%= totalPhonesCount %> جهاز) </a></div><% } else if (isViewAll) { %><div class="flex justify-center mt-2 mb-2 w-full"><a href="/" class="bg-slate-100 text-slate-700 border border-slate-300 px-8 py-3 rounded-xl font-extrabold text-sm shadow-sm hover:bg-slate-200 transition flex items-center gap-2"><i class="fa-solid fa-arrow-right"></i> العودة للصفحة الرئيسية</a></div><% } %>
     <% } %>
   </div>
 

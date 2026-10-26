@@ -633,6 +633,73 @@ function redirectToGames(e) {
       });
     </script>
   
+
+  <!-- النافذة التحذيرية للرعبون (التنبيه السيادي) -->
+  <div id="scamWarningModal" class="fixed inset-0 bg-black/85 z-[99999] hidden items-center justify-center p-4 backdrop-blur-md transition-opacity" style="opacity: 0; transition: opacity 0.3s ease;">
+    <div class="bg-[#0f172a] border border-slate-700 w-full max-w-sm rounded-3xl p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] relative text-center transform scale-95 transition-transform duration-300" id="scamModalBox">
+      
+      <!-- أيقونة التاج -->
+      <div class="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-[0_0_30px_rgba(250,204,21,0.4)]">
+        <i class="fa-solid fa-crown text-4xl text-white drop-shadow-md"></i>
+      </div>
+      
+      <h2 class="text-2xl font-black text-white mb-4" style="text-shadow: 0 0 10px rgba(255,255,255,0.5);">تنبيه سيادي هام</h2>
+      
+      <!-- صندوق التحذير الأحمر -->
+      <div class="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 mb-6 text-right">
+        <p class="text-red-400 font-bold text-xs leading-relaxed">
+          <i class="fa-solid fa-triangle-exclamation ml-1"></i>
+          نظراً لانتشار عمليات الاحتيال (الرعبون):<br>
+          يمنع منعاً باتاً تحويل أي مبالغ (رعبون) عبر الهرم أو شام كاش إلا بعد موافقة صريحة من قسم الإدارة حصراً.
+          <br><br>
+          الإدارة تخلي مسؤوليتها عن أي تحويل يتم دون علمها.
+        </p>
+      </div>
+      
+      <!-- الأزرار -->
+      <div class="flex flex-col gap-3">
+        <button onclick="acceptScamWarning()" class="w-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-slate-900 font-black py-3 rounded-xl shadow-[0_4px_15px_rgba(250,204,21,0.3)] hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
+          <i class="fa-solid fa-check-double"></i> أوافق وأتفهم
+        </button>
+        <a href="/policy" class="w-full bg-slate-800 border border-slate-700 text-slate-300 font-bold py-3 rounded-xl hover:bg-slate-700 transition-colors text-sm">
+          قراءة سياسة الضمان
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function acceptScamWarning() {
+      const modal = document.getElementById('scamWarningModal');
+      const box = document.getElementById('scamModalBox');
+      box.classList.replace('scale-100', 'scale-95');
+      modal.style.opacity = '0';
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        localStorage.setItem('apex_scam_warning_seen_v1', 'true');
+      }, 300);
+    }
+
+    // إظهار النافذة بعد 1.5 ثانية إذا لم يسبق للزائر رؤيتها
+    document.addEventListener('DOMContentLoaded', function() {
+      if (!localStorage.getItem('apex_scam_warning_seen_v1')) {
+        setTimeout(() => {
+          const modal = document.getElementById('scamWarningModal');
+          const box = document.getElementById('scamModalBox');
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          
+          // تأثير الظهور
+          setTimeout(() => {
+            modal.style.opacity = '1';
+            box.classList.replace('scale-95', 'scale-100');
+          }, 50);
+        }, 1500);
+      }
+    });
+  </script>
+  
 </body>
     
 </html>

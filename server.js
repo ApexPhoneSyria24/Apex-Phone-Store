@@ -174,38 +174,31 @@ app.use((req, res, next) => {
 
 
 
+
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, history, user_phone, visitor_id } = req.body;
+    const { message, history } = req.body;
     if (!message) return res.status(400).json({ reply: 'الرجاء كتابة رسالة.' });
 
-    // جلب 10 هواتف فقط لتخفيف الحمل
     const phones = db.prepare("SELECT name, price FROM phones WHERE status = 'approved' ORDER BY id DESC LIMIT 10").all();
 
-    let systemPrompt = `أنت "ميمو"، مساعد ذكي في متجر Apex Phone Syria.
-شخصيتك: لطيف، مختصر جداً (سطرين)، وتستخدم إيموجي (🌸).
+    let systemPrompt = `أنت "ميمو"، مساعد ذكي في متجر Apex Phone Syria. شخصيتك: لطيف، مختصر جداً (سطرين)، تستخدم إيموجي.
 قواعد:
 1. إذا كتب الزبون بالإنجليزية، رد: "تمت برمجتي للتحدث معك باللغة العربية فقط 🌸".
-2. الألعاب: الخدمة الوحيدة المتاحة الآن هي App Store بـ 2$ (الباقي صيانة).
-3. شحن الرصيد: سيريتل كاش (1$ = 142 ل.س جديدة).
-4. إذا أراد الشراء، اطلب (الاسم، الهاتف، المكان). ثم أضف الوسم: [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
-
-الهواتف المتاحة:
-${phones.map(p => `${p.name} ($${p.price})`).join(', ')}`;
+2. إذا أراد الشراء، اطلب (الاسم، الهاتف، المكان). ثم أضف: [[NEW_ORDER|Name: الاسم|Phone: الرقم|Address: المكان|Product: الجهاز]].
+الهواتف المتاحة: ${phones.map(p => `${p.name} ($${p.price})`).join(', ')}`;
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(500).json({ reply: '⚠️ المفتاح غير موجود.' });
 
     let contents = [];
     if (history && Array.isArray(history)) {
-      // إرسال آخر 3 رسائل فقط للسرعة القصوى
-      const recentHistory = history.slice(-3);
-      recentHistory.forEach(msg => { contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }); });
+      history.slice(-3).forEach(msg => { contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }); });
     }
     contents.push({ role: 'user', parts: [{ text: systemPrompt + "\n\nرسالة الزبون: " + message }] });
 
-    // استخدام النموذج فائق السرعة
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent';
+    // استخدام النموذج المستقر
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
@@ -213,6 +206,11 @@ ${phones.map(p => `${p.name} ($${p.price})`).join(', ')}`;
     });
 
     const data = await response.json();
+
+    // إذا كان هناك خطأ من جوجل، اعرضه لنا
+    if (data.error) {
+      return res.json({ reply: '⚠️ خطأ من جوجل: ' + data.error.message });
+    }
 
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       let cleanReply = data.candidates[0].content.parts[0].text;
@@ -227,10 +225,10 @@ ${phones.map(p => `${p.name} ($${p.price})`).join(', ')}`;
       return res.json({ reply: cleanReply });
     }
 
-    return res.json({ reply: 'أعتذر منك، يبدو أن الاتصال بطيء. هل يمكنك إعادة إرسال رسالتك؟ 🙏' });
+    return res.json({ reply: '⚠️ لم يتم استلام رد صحيح من جوجل.' });
 
   } catch (e) {
-    res.json({ reply: 'عذراً، حدث خطأ مؤقت. يرجى المحاولة لاحقاً.' });
+    res.json({ reply: '⚠️ خطأ في السيرفر: ' + e.message });
   }
 });
 

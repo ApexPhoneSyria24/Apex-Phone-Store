@@ -91,18 +91,7 @@
 <body class="font-sans text-slate-800 antialiased selection:bg-brand-500 selection:text-white flex flex-col min-h-screen">
 
 
-  <div class="max-w-7xl mx-auto px-3 mt-2 mb-2">
-    <a href="/special-order" class="flex items-center justify-between bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-2.5 rounded-lg shadow-md hover:shadow-lg transition-all group">
-      <div class="flex items-center gap-2">
-        <span class="text-lg">✨</span>
-        <div>
-          <h3 class="font-bold text-[11px] md:text-sm">لم تجد جهازك المطلوب؟</h3>
-          <p class="text-[9px] md:text-[10px] text-indigo-100">اطلبه الآن وسنوفره لك بأفضل سعر</p>
-        </div>
-      </div>
-      <div class="bg-white text-indigo-700 px-2 py-1 rounded text-[10px] md:text-xs font-bold shadow-sm">اضغط هنا ←</div>
-    </a>
-  </div>
+  
 
 
   </div>
@@ -166,6 +155,36 @@
     </a>
   </div>
   
+
+  <!-- شرائط الطلب والتقسيط المصغرة -->
+  <div class="max-w-7xl mx-auto px-4 mt-4 mb-4 space-y-2">
+    <!-- شريط الطلب الخاص -->
+    <a href="/special-order" class="flex items-center justify-between bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-2.5 rounded-xl shadow-md hover:shadow-lg transition-all group">
+      <div class="flex items-center gap-3">
+        <span class="text-lg group-hover:scale-110 transition-transform">✨</span>
+        <div>
+          <h3 class="font-bold text-xs md:text-sm">لم تجد جهازك المطلوب؟</h3>
+          <p class="text-[9px] md:text-[10px] text-indigo-100">اطلبه الآن وسنوفره لك بأفضل سعر</p>
+        </div>
+      </div>
+      <div class="bg-white text-indigo-700 px-3 py-1 rounded-lg text-[10px] md:text-xs font-bold shadow-sm">اضغط هنا ←</div>
+    </a>
+
+    <!-- شريط التقسيط -->
+    <a href="/installments" class="flex items-center justify-between bg-slate-800 border border-slate-700 text-white p-2.5 rounded-xl shadow-md hover:border-cyan-500 transition-all group">
+      <div class="flex items-center gap-3">
+        <span class="text-lg group-hover:rotate-12 transition-transform">💳</span>
+        <div>
+          <h3 class="font-bold text-xs md:text-sm flex items-center gap-2">
+            قسم التقسيط <span class="text-[8px] bg-amber-500 text-black px-1.5 py-0.5 rounded-full">قريباً</span>
+          </h3>
+          <p class="text-[9px] md:text-[10px] text-slate-400">نعمل على تجهيز الخدمة لتكون متاحة قريباً</p>
+        </div>
+      </div>
+      <div class="bg-slate-700 text-white px-3 py-1 rounded-lg text-[10px] md:text-xs font-bold group-hover:bg-slate-600 transition-colors">تفاصيل ←</div>
+    </a>
+  </div>
+
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 w-full">
         <% phones.forEach(p => { let imgs = []; try { imgs = JSON.parse(p.images || '[]'); } catch(e) {} if (imgs.length === 0) imgs = ['https://via.placeholder.com/400x400?text=No+Image']; const isAvailable = (p.availability || 'متوفر') === 'متوفر'; const isSold = p.availability === 'تم البيع'; const isFeatured = p.is_featured === 1; %>
           <div class="phone-card w-full bg-white rounded-xl border border-slate-200 p-2 flex flex-col relative <%= isFeatured ? 'featured-card' : '' %>">
@@ -432,7 +451,7 @@ function redirectToGames(e) {
   }
 </script>
 <script src="/tracker.js"></script>
-<script src="/chatbot.js?v=9"></script>
+<script src="/chatbot.js?v=10"></script>
 </body>
     
 </html>

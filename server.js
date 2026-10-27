@@ -876,24 +876,36 @@ app.get('/shield', (req, res) => {
   res.render('shield');
 });
 
-app.post('/api/shield/request', (req, res, next) => { if (req.body.website_url) return res.status(400).json({ error: 'Bot Detected' }); next(); }, uploadPrivate.fields([
-  { name: 'buyer_id_front', maxCount: 1 }, { name: 'buyer_id_back', maxCount: 1 },
-  { name: 'seller_id_front', maxCount: 1 }, { name: 'seller_id_back', maxCount: 1 }
-]), (req, res) => {
+app.post('/api/shield/request', uploadPrivate.any(), (req, res) => {
   try {
     const { buyer_phone, seller_phone, amount, buyer_txid, seller_txid } = req.body;
-    const f = req.files;
-    const b_front = f['buyer_id_front'] ? f['buyer_id_front'][0].filename : null;
-    const b_back = f['buyer_id_back'] ? f['buyer_id_back'][0].filename : null;
-    const s_front = f['seller_id_front'] ? f['seller_id_front'][0].filename : null;
-    const s_back = f['seller_id_back'] ? f['seller_id_back'][0].filename : null;
+    const files = req.files || [];
+    
+    const getFileName = (fieldName) => {
+      const file = files.find(f => f.fieldname === fieldName);
+      return file ? file.filename : null;
+    };
+
+    const b_front = getFileName('buyer_id_front');
+    const b_back = getFileName('buyer_id_back');
+    const s_front = getFileName('seller_id_front');
+    const s_back = getFileName('seller_id_back');
+
+    if (!b_front || !b_back || !s_front || !s_back) {
+      return res.status(400).json({ error: 'يرجى رفع جميع صور الهويات المطلوبة' });
+    }
 
     const info = db.prepare("INSERT INTO shield_requests (buyer_phone, seller_phone, amount, buyer_id_front, buyer_id_back, seller_id_front, seller_id_back, buyer_txid, seller_txid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(buyer_phone, seller_phone, amount, b_front, b_back, s_front, s_back, buyer_txid || null, seller_txid || null);
     const requestId = info.lastInsertRowid;
 
-    sendTelegram(`🛡️ <b>طلب وساطة جديد!</b>\n\n👤 المشتري: ${buyer_phone}\n🏪 البائع: ${seller_phone}\n💰 المبلغ: ${amount}\n\nيرجى مراجعة لوحة الإدارة لفحص الهويات.`);
+    if (typeof sendTelegram === 'function') {
+      sendTelegram(`🛡️ <b>طلب وساطة جديد!</b>\n\n👤 المشتري: ${buyer_phone}\n🏪 البائع: ${seller_phone}\n💰 المبلغ: ${amount}\n\nيرجى مراجعة لوحة الإدارة.`);
+    }
     res.json({ success: true, requestId: requestId });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { 
+    if (typeof sendTelegram === 'function') sendTelegram('❌ خطأ في طلب درع Apex: ' + e.message);
+    res.status(500).json({ error: e.message }); 
+  }
 });
 
 app.get('/shield/track', (req, res) => {

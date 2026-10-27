@@ -576,13 +576,7 @@ app.get('/games/:gameName', async (req, res) => {
       });
       const products = await productsRes.json();
       
-      const ffProducts = products.filter(p => 
-        p.name && (
-          p.name.includes('FreeFire By ID') || 
-          p.name.includes('FreeFire SG') || 
-          p.name.includes('FreeFire EU')
-        )
-      );
+      const ffProducts = products.filter(p => p.name && p.name.includes('FreeFire By ID'));
       
       if (ffProducts.length > 0) {
         const ids = ffProducts.map(p => p.id).join(',');
@@ -592,29 +586,19 @@ app.get('/games/:gameName', async (req, res) => {
         const details = await detailsRes.json();
         
         const exchangeRate = 142;
-        const profitMargin = 1.15;
+        
         
         samacardPackages = details.map(p => {
           const priceSYP = parseFloat(p.price);
-          const priceUSD = (priceSYP / exchangeRate) * profitMargin;
+          const basePriceUSD = priceSYP / 142; // سعر التكلفة بالدولار
+          const finalPriceUSD = basePriceUSD + 0.15; // إضافة ربح ثابت 15 سنت
           
-          // تنظيف اسم الباقة ليكون واضحاً للزبون
-          let cleanName = p.name;
-          let region = 'عالمي';
-          if (cleanName.includes('FreeFire By ID')) {
-            cleanName = cleanName.replace('FreeFire By ID', '').trim();
-          } else if (cleanName.includes('FreeFire SG')) {
-            cleanName = cleanName.replace('FreeFire SG', '').replace('Diamonds', '').trim();
-            region = 'سنغافورة';
-          } else if (cleanName.includes('FreeFire EU')) {
-            cleanName = cleanName.replace('FreeFire EU', '').replace('Diamonds', '').trim();
-            region = 'أوروبا';
-          }
+          let cleanName = p.name.replace('FreeFire By ID', '').trim();
           
           return {
             id: p.id,
-            name: cleanName + ' (' + region + ')',
-            price: priceUSD.toFixed(2)
+            name: cleanName,
+            price: finalPriceUSD.toFixed(2)
           };
         });
         

@@ -65,7 +65,9 @@
 
       <!-- الشهادة (متاحة دائماً بعد حجز الأموال) -->
       <% if(['funds_held', 'shipped', 'completed'].includes(order.tracking_status)) { %>
-        <a href="/certificate-shield/<%= order.id %>" target="_blank" class="mt-6 block w-full text-center bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black py-3 rounded-xl shadow-lg hover:scale-[1.02] transition">عرض شهادة الحجز</a>
+        <a href="/certificate-shield/<%= order.id %>" target="_blank" class="mt-6 block w-full text-center <%= order.tracking_status === 'completed' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 shadow-[0_0_20px_rgba(234,179,8,0.4)]' : 'bg-gradient-to-r from-cyan-500 to-blue-600 shadow-cyan-500/30' %> text-white font-black py-3 rounded-xl shadow-lg hover:scale-[1.02] transition">
+          <%= order.tracking_status === 'completed' ? 'عرض شهادة إتمام الصفقة' : 'عرض شهادة الحجز' %>
+        </a>
       <% } %>
 
       <!-- الحالات النهائية للطلب -->

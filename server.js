@@ -809,6 +809,8 @@ try {
   if (!cols.includes('seller_id_front')) db.exec("ALTER TABLE shield_requests ADD COLUMN seller_id_front TEXT");
   if (!cols.includes('seller_id_back')) db.exec("ALTER TABLE shield_requests ADD COLUMN seller_id_back TEXT");
   if (!cols.includes('tracking_status')) db.exec("ALTER TABLE shield_requests ADD COLUMN tracking_status TEXT DEFAULT 'waiting_payment'");
+  if (!cols.includes('buyer_txid')) db.exec("ALTER TABLE shield_requests ADD COLUMN buyer_txid TEXT");
+  if (!cols.includes('seller_txid')) db.exec("ALTER TABLE shield_requests ADD COLUMN seller_txid TEXT");
 } catch(e) { console.error('Shield Table Error:', e.message); }
 
 app.get('/shield', (req, res) => {
@@ -820,14 +822,14 @@ app.post('/api/shield/request', uploadPrivate.fields([
   { name: 'seller_id_front', maxCount: 1 }, { name: 'seller_id_back', maxCount: 1 }
 ]), (req, res) => {
   try {
-    const { buyer_phone, seller_phone, amount } = req.body;
+    const { buyer_phone, seller_phone, amount, buyer_txid, seller_txid } = req.body;
     const f = req.files;
     const b_front = f['buyer_id_front'] ? f['buyer_id_front'][0].filename : null;
     const b_back = f['buyer_id_back'] ? f['buyer_id_back'][0].filename : null;
     const s_front = f['seller_id_front'] ? f['seller_id_front'][0].filename : null;
     const s_back = f['seller_id_back'] ? f['seller_id_back'][0].filename : null;
 
-    const info = db.prepare("INSERT INTO shield_requests (buyer_phone, seller_phone, amount, buyer_id_front, buyer_id_back, seller_id_front, seller_id_back) VALUES (?, ?, ?, ?, ?, ?, ?)").run(buyer_phone, seller_phone, amount, b_front, b_back, s_front, s_back);
+    const info = db.prepare("INSERT INTO shield_requests (buyer_phone, seller_phone, amount, buyer_id_front, buyer_id_back, seller_id_front, seller_id_back, buyer_txid, seller_txid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(buyer_phone, seller_phone, amount, b_front, b_back, s_front, s_back, buyer_txid || null, seller_txid || null);
     const requestId = info.lastInsertRowid;
 
     sendTelegram(`🛡️ <b>طلب وساطة جديد!</b>\n\n👤 المشتري: ${buyer_phone}\n🏪 البائع: ${seller_phone}\n💰 المبلغ: ${amount}\n\nيرجى مراجعة لوحة الإدارة لفحص الهويات.`);

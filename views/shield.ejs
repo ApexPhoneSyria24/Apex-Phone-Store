@@ -34,19 +34,24 @@
         <i class="fa-solid fa-shield-halved text-2xl text-white"></i>
       </div>
       <h1 class="text-xl font-black text-white">درع Apex للوساطة الآمنة</h1>
-      <p class="text-slate-400 text-xs mt-1">نحن نحفظ أموالك حتى تستلم جهازك. أمان 100%.</p>
+      <p class="text-slate-400 text-xs mt-1">نحن نحفظ أموال المشتري، ونضمن جدية البائع. أمان 100%.</p>
     </div>
 
-    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 11px; text-align: center;">
-      ⚠️ مطلوب رفع الهوية (أمامي وخلفي) للمشتري والبائع لتأكيد الجدية ومنع الاحتيال.
+    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 11px; text-align: center; line-height: 1.6;">
+      ⚠️ <b>رسوم الوساطة:</b> 1.5$ من المشتري + 1.5$ من البائع (تُحول إلى محفظة Apex).<br>
+      مطلوب رفع الهوية ورقم عملية التحويل لإصدار الشهادة.
     </div>
 
     <form id="shieldForm" enctype="multipart/form-data">
       <!-- المشتري -->
-      <div class="section-title"><i class="fa-solid fa-user-tag"></i> بيانات المشتري</div>
+      <div class="section-title"><i class="fa-solid fa-user-tag"></i> بيانات المشتري (يدفع 1.5$ رسوم + سعر الهاتف)</div>
       <div class="input-group">
         <label>رقم هاتف المشتري *</label>
         <input type="tel" name="buyer_phone" required placeholder="09xxxxxxxx" dir="ltr" class="text-right">
+      </div>
+      <div class="input-group">
+        <label>رقم عملية تحويل رسوم المشتري (1.5$) *</label>
+        <input type="text" name="buyer_txid" required placeholder="TXID أو رقم العملية">
       </div>
       <div class="grid grid-cols-2 gap-2 mb-3">
         <label class="file-upload">
@@ -62,10 +67,14 @@
       </div>
 
       <!-- البائع -->
-      <div class="section-title mt-4"><i class="fa-solid fa-store"></i> بيانات البائع</div>
+      <div class="section-title mt-4"><i class="fa-solid fa-store"></i> بيانات البائع (يدفع 1.5$ رسوم فقط)</div>
       <div class="input-group">
         <label>رقم هاتف البائع *</label>
         <input type="tel" name="seller_phone" required placeholder="09xxxxxxxx" dir="ltr" class="text-right">
+      </div>
+      <div class="input-group">
+        <label>رقم عملية تحويل رسوم البائع (1.5$) *</label>
+        <input type="text" name="seller_txid" required placeholder="TXID أو رقم العملية">
       </div>
       <div class="grid grid-cols-2 gap-2 mb-3">
         <label class="file-upload">
@@ -83,7 +92,7 @@
       <!-- المبلغ -->
       <div class="section-title mt-4"><i class="fa-solid fa-money-bill-wave"></i> تفاصيل الصفقة</div>
       <div class="input-group">
-        <label>المبلغ المتفق عليه (بالدولار أو الليرة) *</label>
+        <label>سعر الهاتف المتفق عليه (الذي سيحوله المشتري لـ Apex) *</label>
         <input type="text" name="amount" required placeholder="مثال: 500$">
       </div>
 
@@ -105,10 +114,10 @@
       </div>
       <h2 class="text-xl font-black text-white mb-2">تم استلام طلب الوساطة!</h2>
       <p class="text-slate-400 text-sm mb-6 leading-relaxed">
-        فريق Apex سيقوم بمراجعة الهويات والتأكد من وصول المبلغ.<br>يرجى التواصل معنا عبر الواتساب لإتمام تحويل المبلغ (500$ + 2$ رسوم).
+        يرجى التواصل معنا عبر الواتساب لإرسال أرقام العمليات والتأكد من وصول المبلغ.<br>سيتم إصدار الشهادة فور مراجعة البيانات.
       </p>
-      <a href="https://wa.me/963980259127?text=مرحباً،%20أنا%20طلبت%20وساطة%20Apex%20عبر%20الموقع%20وأريد%20إتمام%20تحويل%20المبلغ" target="_blank" class="w-full bg-[#25D366] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg mb-3">
-        <i class="fa-brands fa-whatsapp text-xl"></i> تواصل لإتمام التحويل
+      <a href="https://wa.me/963980259127?text=مرحباً،%20أنا%20طلبت%20وساطة%20Apex%20وأريد%20إرسال%20أرقام%20العمليات" target="_blank" class="w-full bg-[#25D366] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg mb-3">
+        <i class="fa-brands fa-whatsapp text-xl"></i> تواصل لإتمام التحقق
       </a>
       <a href="/" class="block w-full bg-slate-800 text-slate-300 font-bold py-3 rounded-xl text-sm">العودة للمتجر</a>
     </div>

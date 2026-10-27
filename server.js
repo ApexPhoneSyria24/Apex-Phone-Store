@@ -787,6 +787,7 @@ app.get('/admin/diaspora-orders', requireAuth, (req, res) => {
 
 
 
+
 // ===== Apex Shield Routes =====
 try {
   db.exec(`CREATE TABLE IF NOT EXISTS shield_requests (
@@ -802,7 +803,6 @@ try {
     tracking_status TEXT DEFAULT 'waiting_payment',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
-  // إضافة الأعمدة الجديدة إذا كان الجدول قديماً
   const cols = db.prepare("PRAGMA table_info(shield_requests)").all().map(c => c.name);
   if (!cols.includes('buyer_id_front')) db.exec("ALTER TABLE shield_requests ADD COLUMN buyer_id_front TEXT");
   if (!cols.includes('buyer_id_back')) db.exec("ALTER TABLE shield_requests ADD COLUMN buyer_id_back TEXT");
@@ -815,7 +815,6 @@ app.get('/shield', (req, res) => {
   res.render('shield');
 });
 
-// استلام طلب الوساطة (مع رفع الهويات في المجلد السري)
 app.post('/api/shield/request', uploadPrivate.fields([
   { name: 'buyer_id_front', maxCount: 1 }, { name: 'buyer_id_back', maxCount: 1 },
   { name: 'seller_id_front', maxCount: 1 }, { name: 'seller_id_back', maxCount: 1 }
@@ -823,7 +822,6 @@ app.post('/api/shield/request', uploadPrivate.fields([
   try {
     const { buyer_phone, seller_phone, amount } = req.body;
     const f = req.files;
-    
     const b_front = f['buyer_id_front'] ? f['buyer_id_front'][0].filename : null;
     const b_back = f['buyer_id_back'] ? f['buyer_id_back'][0].filename : null;
     const s_front = f['seller_id_front'] ? f['seller_id_front'][0].filename : null;
@@ -833,12 +831,10 @@ app.post('/api/shield/request', uploadPrivate.fields([
     const requestId = info.lastInsertRowid;
 
     sendTelegram(`🛡️ <b>طلب وساطة جديد!</b>\n\n👤 المشتري: ${buyer_phone}\n🏪 البائع: ${seller_phone}\n💰 المبلغ: ${amount}\n\nيرجى مراجعة لوحة الإدارة لفحص الهويات.`);
-
     res.json({ success: true, requestId: requestId });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// صفحة تتبع الطلب للزبائن
 app.get('/shield/track', (req, res) => {
   let order = null;
   const phone = req.query.phone;
@@ -847,22 +843,18 @@ app.get('/shield/track', (req, res) => {
   }
   res.render('shield-track', { order, phone: phone || '' });
 });
-});
 
-// صفحة الإدارة
 app.get('/admin/shield-requests', requireAuth, (req, res) => {
   const requests = db.prepare("SELECT * FROM shield_requests ORDER BY id DESC").all();
   res.render('admin-shield-requests', { requests });
 });
 
-// تحديث حالة الطلب من الإدارة
 app.post('/admin/shield/update-status/:id', requireAuth, (req, res) => {
   const { status } = req.body;
   db.prepare("UPDATE shield_requests SET tracking_status = ?, status = 'approved' WHERE id = ?").run(status, req.params.id);
   res.redirect('/admin/shield-requests');
 });
 
-// حذف الهويات نهائياً بعد انتهاء الصفقة
 app.post('/admin/shield/delete-ids/:id', requireAuth, (req, res) => {
   const order = db.prepare("SELECT * FROM shield_requests WHERE id = ?").get(req.params.id);
   if (order) {
@@ -875,14 +867,12 @@ app.post('/admin/shield/delete-ids/:id', requireAuth, (req, res) => {
   res.redirect('/admin/shield-requests');
 });
 
-// الشهادة
 app.get('/certificate-shield/:id', (req, res) => {
   const request = db.prepare("SELECT * FROM shield_requests WHERE id = ?").get(req.params.id);
   if (!request || request.status !== 'approved') return res.send('الشهادة غير متاحة أو لم يتم التحقق منها بعد.');
   res.render('certificate-shield', { request });
 });
 
-// عرض الهويات السرية للأدمن فقط
 app.get('/admin/view-private/:filename', requireAuth, (req, res) => {
   const p = path.resolve('./private_docs', req.params.filename);
   if (fs.existsSync(p)) res.sendFile(p); else res.status(404).send('Not found');

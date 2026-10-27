@@ -254,7 +254,7 @@
 
         
         <!-- زر الألعاب -->
-        <a href="/games" class="w-full bg-purple-600 text-white font-bold py-1.5 rounded-lg hover:bg-purple-700 transition shadow-sm flex items-center justify-center gap-1.5 text-xs">
+        <a href="/games" class="w-full bg-purple-600 text-white font-bold py-1.5 rounded-lg hover:bg-purple-700 transition shadow-sm flex items-center justify-center gap-1.5 text-xs" id="gamesEntryBtn">
           <i class="fa-solid fa-gamepad text-xs"></i> شحن الألعاب الآن
         </a>
       </div>
@@ -663,6 +663,103 @@
       if (verifModal) {
         verifModal.querySelectorAll('button, a').forEach(el => {
           el.addEventListener('pointerdown', playOriginalClick);
+        });
+      }
+    });
+  </script>
+  
+
+  <!-- شاشة التحميل السينمائية لقسم الألعاب -->
+  <div id="cinematicLoader" style="display: none; position: fixed; inset: 0; background: #050505; z-index: 999999; flex-direction: column; align-items: center; justify-content: center; font-family: 'Cairo', sans-serif;">
+    <div style="position: relative; margin-bottom: 30px;">
+      <div style="position: absolute; inset: -20px; border: 2px solid rgba(0, 243, 255, 0.3); border-radius: 50%; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+      <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #00f3ff, #0055ff); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(0, 243, 255, 0.6);">
+        <i class="fa-solid fa-gamepad" style="font-size: 35px; color: #050505;"></i>
+      </div>
+    </div>
+    
+    <h2 style="color: white; font-size: 24px; font-weight: 900; margin-bottom: 10px; text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);">APEX GAMING</h2>
+    
+    <div style="width: 250px; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden; margin-top: 20px;">
+      <div id="loaderProgress" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00f3ff, #ff00e5); box-shadow: 0 0 15px #00f3ff; transition: width 0.1s linear;"></div>
+    </div>
+    
+    <p style="color: #8892b0; font-size: 13px; font-weight: bold; margin-top: 15px; letter-spacing: 1px;">جاري تهيئة ساحة المعركة...</p>
+  </div>
+
+  <style>
+    @keyframes ping {
+      75%, 100% { transform: scale(1.5); opacity: 0; }
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const gamesBtn = document.getElementById('gamesEntryBtn');
+      const loader = document.getElementById('cinematicLoader');
+      const progress = document.getElementById('loaderProgress');
+
+      if (gamesBtn) {
+        gamesBtn.addEventListener('click', function(e) {
+          e.preventDefault(); // منع الانتقال الفوري
+          
+          // إظهار الشاشة السينمائية
+          loader.style.display = 'flex';
+          
+          // بدء حركة شريط التحميل الوهمي
+          let width = 0;
+          const progressInterval = setInterval(() => {
+            if (width >= 90) clearInterval(progressInterval);
+            else { width += 2; progress.style.width = width + '%'; }
+          }, 50);
+
+          // إعداد الصوت
+          let redirected = false;
+          const doRedirect = () => {
+            if (redirected) return;
+            redirected = true;
+            progress.style.width = '100%';
+            setTimeout(() => { window.location.href = '/games'; }, 300);
+          };
+
+          // مؤقت احتياطي: إذا لم يعمل الصوت خلال 4 ثواني، انتقل فوراً
+          const fallbackTimeout = setTimeout(doRedirect, 4000);
+
+          try {
+            if ('speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+              const text = "جاري تحويلك إلى قسم شحن الألعاب";
+              const utterance = new SpeechSynthesisUtterance(text);
+              
+              utterance.lang = 'ar-SA';
+              utterance.rate = 0.85; // سرعة هادئة وواثقة
+              utterance.pitch = 0.5; // نبرة عميقة جداً (صوت ضخم)
+              utterance.volume = 1;
+
+              // محاولة اختيار أعمق صوت عربي متاح في الجهاز
+              const voices = window.speechSynthesis.getVoices();
+              const deepMaleVoice = voices.find(v => v.lang.startsWith('ar') && (v.name.includes('Maged') || v.name.includes('Tarik') || v.name.includes('Male')));
+              if (deepMaleVoice) utterance.voice = deepMaleVoice;
+
+              utterance.onend = () => {
+                clearTimeout(fallbackTimeout);
+                doRedirect();
+              };
+              
+              utterance.onerror = () => {
+                clearTimeout(fallbackTimeout);
+                doRedirect();
+              };
+
+              window.speechSynthesis.speak(utterance);
+            } else {
+              clearTimeout(fallbackTimeout);
+              doRedirect();
+            }
+          } catch(e) {
+            clearTimeout(fallbackTimeout);
+            doRedirect();
+          }
         });
       }
     });

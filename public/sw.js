@@ -1,23 +1,24 @@
-const CACHE_NAME = 'apex-store-v8000';
-self.addEventListener('install', event => { self.skipWaiting(); });
-self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(cacheNames => {
-    return Promise.all(cacheNames.map(cacheName => {
-      if (cacheName !== CACHE_NAME) return caches.delete(cacheName);
-    }));
-  }));
+// Self-destructing Service Worker to clear all old caches
+self.addEventListener('install', (e) => {
+  self.skipWaiting();
 });
-self.addEventListener('fetch', event => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).then(response => {
-        return caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, response.clone());
-          return response;
-        });
-      }).catch(() => caches.match(event.request))
-    );
-  } else {
-    event.respondWith(caches.match(event.request).then(response => response || fetch(event.request)));
-  }
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keyList) => {
+      return Promise.all(keyList.map((key) => {
+        return caches.delete(key);
+      }));
+    }).then(() => {
+      return self.registration.unregister();
+    }).then(() => {
+      return self.clients.matchAll();
+    }).then((clients) => {
+      clients.forEach((client) => {
+        if (client.url && 'navigate' in client) {
+          client.navigate(client.url);
+        }
+      });
+    })
+  );
 });

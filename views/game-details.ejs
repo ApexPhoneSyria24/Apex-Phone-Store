@@ -166,16 +166,21 @@
         </form>
       </div>
 
-      <!-- Order History -->
+      <!-- Order History (Collapsible) -->
       <div>
-        <h2 class="text-base font-black text-white mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> سجل طلباتك
-        </h2>
-        <div id="orderHistory" class="space-y-2">
-          <div class="text-center py-6 bg-slate-900/50 rounded-xl border border-slate-800">
-            <p class="text-slate-500 text-xs font-bold">جاري تحميل السجل...</p>
+        <details class="bg-slate-900/80 rounded-xl border border-slate-800 overflow-hidden group">
+          <summary class="p-3 text-sm font-black text-white cursor-pointer flex items-center justify-between select-none hover:bg-slate-800/50 transition">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> سجل طلباتك
+            </div>
+            <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 group-open:bg-cyan-900/50 group-open:text-cyan-300 transition">اضغط للعرض</span>
+          </summary>
+          <div id="orderHistory" class="p-3 space-y-2 max-h-64 overflow-y-auto border-t border-slate-800">
+            <div class="text-center py-6 bg-slate-900/50 rounded-xl border border-slate-800">
+              <p class="text-slate-500 text-xs font-bold">جاري تحميل السجل...</p>
+            </div>
           </div>
-        </div>
+        </details>
       </div>
     </div>
   </div>

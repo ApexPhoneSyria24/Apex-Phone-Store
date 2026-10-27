@@ -618,48 +618,74 @@
   
   
 
+  
+  
+
   <script>
-    // REAL_PIANO_SOUND
-    let realPianoCtx;
+    // SINGING_BOWL_SOUND - Tibetan Singing Bowl
+    let bowlCtx;
     
-    function playRealPiano() {
+    function playSingingBowl() {
       try {
-        if (!realPianoCtx) realPianoCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (realPianoCtx.state === 'suspended') realPianoCtx.resume();
+        if (!bowlCtx) bowlCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (bowlCtx.state === 'suspended') bowlCtx.resume();
         
-        const now = realPianoCtx.currentTime;
-        const fundamental = 523.25; // نغمة C5 (نغمة بيانو مشرقة)
+        const now = bowlCtx.currentTime;
+        const fundamental = 432; // التردد المتناغم مع الطبيعة
         
-        // طبقة فلتر لتنعيم الصوت
-        const masterGain = realPianoCtx.createGain();
-        masterGain.gain.value = 1.0;
-        masterGain.connect(realPianoCtx.destination);
+        // فلتر ناعم جداً يزيل أي حدة
+        const filter = bowlCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 1800;
+        filter.Q.value = 0.5;
+        filter.connect(bowlCtx.destination);
         
-        // إنشاء 3 طبقات صوتية (Harmonics) لتقليد رنين البيانو
-        const harmonics = [
-          { freq: fundamental, gain: 0.5, type: 'triangle' },      // النغمة الأساسية
-          { freq: fundamental * 2, gain: 0.25, type: 'sine' },     // الأوكتاف الأعلى
-          { freq: fundamental * 3, gain: 0.12, type: 'triangle' }  // الطبقة الثالثة
+        // 3 طبقات من الاهتزازات (Partials) كما في أطباق التبت
+        const partials = [
+          { freq: fundamental, gain: 0.18, decay: 3.5 },        // الأساسي - رنين طويل
+          { freq: fundamental * 2.7, gain: 0.06, decay: 2.8 },  // الطبقة الثانية
+          { freq: fundamental * 5.4, gain: 0.025, decay: 2.0 }  // الطبقة الثالثة الناعمة
         ];
         
-        harmonics.forEach(h => {
-          const osc = realPianoCtx.createOscillator();
-          const gain = realPianoCtx.createGain();
+        partials.forEach(p => {
+          const osc = bowlCtx.createOscillator();
+          const gain = bowlCtx.createGain();
           
-          osc.type = h.type;
-          osc.frequency.value = h.freq;
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(p.freq, now);
+          // اهتزاز خفيف جداً يعطي إحساس الدفء
+          osc.detune.setValueAtTime(0, now);
+          osc.detune.linearRampToValueAtTime(3, now + p.decay);
           
-          // شكل الموجة الصوتية للبيانو (Attack سريع، Decay طويل)
+          // Envelope ناعم جداً (دخول بطيء، رنين طويل)
           gain.gain.setValueAtTime(0, now);
-          gain.gain.linearRampToValueAtTime(h.gain, now + 0.01);    // ضربة سريعة
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2); // رنين طويل
+          gain.gain.linearRampToValueAtTime(p.gain, now + 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + p.decay);
           
           osc.connect(gain);
-          gain.connect(masterGain);
-          
+          gain.connect(filter);
           osc.start(now);
-          osc.stop(now + 1.2);
+          osc.stop(now + p.decay);
         });
+        
+        // نغمة ثانية ناعمة بعد 0.3 ثانية (تأثير الصدى)
+        setTimeout(() => {
+          const now2 = bowlCtx.currentTime;
+          const osc2 = bowlCtx.createOscillator();
+          const gain2 = bowlCtx.createGain();
+          osc2.type = 'sine';
+          osc2.frequency.setValueAtTime(fundamental * 1.5, now2);
+          
+          gain2.gain.setValueAtTime(0, now2);
+          gain2.gain.linearRampToValueAtTime(0.05, now2 + 0.1);
+          gain2.gain.exponentialRampToValueAtTime(0.0001, now2 + 2.5);
+          
+          osc2.connect(gain2);
+          gain2.connect(filter);
+          osc2.start(now2);
+          osc2.stop(now2 + 2.5);
+        }, 300);
+        
       } catch(e) {}
     }
 
@@ -669,12 +695,12 @@
       
       if (scamModal) {
         scamModal.querySelectorAll('button, a').forEach(el => {
-          el.addEventListener('pointerdown', playRealPiano);
+          el.addEventListener('pointerdown', playSingingBowl);
         });
       }
       if (verifModal) {
         verifModal.querySelectorAll('button, a').forEach(el => {
-          el.addEventListener('pointerdown', playRealPiano);
+          el.addEventListener('pointerdown', playSingingBowl);
         });
       }
     });

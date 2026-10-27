@@ -776,6 +776,7 @@
   </script>
   
 
+  
   <script>
     // SCAM_MODAL_VOICE
     let scamVoicePlayed = false;
@@ -786,30 +787,48 @@
 
       try {
         if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-          
-          const text = "أهلاً وسهلاً بك في متجر أبيكس فون، المتجر الأول والموثوق في سوريا. نحن سعداء بوجودك هنا.";
-          const utterance = new SpeechSynthesisUtterance(text);
-          
-          utterance.lang = 'ar-SA';
-          utterance.rate = 0.92;
-          utterance.pitch = 1.15;
-          utterance.volume = 1.0;
+          const doSpeak = () => {
+            window.speechSynthesis.cancel();
+            
+            // استخدام النطق العربي لاسم الموقع
+            const text = "أهلاً وسهلاً بك في متجر أبيكس فون. المتجر الأول والموثوق في سوريا.";
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            utterance.lang = 'ar-SA';
+            utterance.rate = 1.05;   // سرعة طبيعية (أسرع من السابق)
+            utterance.pitch = 1.4;   // نبرة أعلى لتبدو أنثوية
+            utterance.volume = 1.0;
 
-          const voices = window.speechSynthesis.getVoices();
-          const femaleVoice = voices.find(v => 
-            v.lang.startsWith('ar') && 
-            (v.name.toLowerCase().includes('female') || 
-             v.name.includes('Layla') || 
-             v.name.includes('Salma') || 
-             v.name.includes('Hoda'))
-          );
-          
-          if (femaleVoice) {
-            utterance.voice = femaleVoice;
+            const voices = window.speechSynthesis.getVoices();
+            const arabicVoices = voices.filter(v => v.lang && v.lang.startsWith('ar'));
+
+            // بحث موسع عن أي صوت عربي نسائي
+            let femaleVoice = arabicVoices.find(v => {
+              const name = (v.name || '').toLowerCase();
+              const uri = (v.voiceURI || '').toLowerCase();
+              return name.includes('female') || name.includes('laila') || 
+                     name.includes('layla') || name.includes('salma') || 
+                     name.includes('hala') || name.includes('hoda') ||
+                     name.includes('zariyah') || name.includes('amany') ||
+                     name.includes('heba') || name.includes('sana') ||
+                     uri.includes('female') || uri.includes('woman');
+            });
+
+            if (femaleVoice) {
+              utterance.voice = femaleVoice;
+            } else if (arabicVoices.length > 0) {
+              // إذا لم يجد صوتاً نسائياً، يستخدم أي صوت عربي
+              utterance.voice = arabicVoices[0];
+            }
+
+            window.speechSynthesis.speak(utterance);
+          };
+
+          if (window.speechSynthesis.getVoices().length === 0) {
+            window.speechSynthesis.onvoiceschanged = doSpeak;
+          } else {
+            doSpeak();
           }
-
-          window.speechSynthesis.speak(utterance);
         }
       } catch(e) {
         console.log('Voice error:', e);
@@ -818,12 +837,12 @@
 
     document.addEventListener('DOMContentLoaded', function() {
       const scamModal = document.getElementById('scamWarningModal');
-      
       if (scamModal) {
         scamModal.addEventListener('pointerdown', speakScamWarning, { once: true });
       }
     });
   </script>
+  
   
 </body>
     

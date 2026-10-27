@@ -13,9 +13,53 @@
   <style>
     body { background-color: #050505; background-image: radial-gradient(circle at 50% 50%, rgba(0,243,255,0.1) 0%, transparent 60%); color: #fff; overflow-x: hidden; }
     .cyber-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(0,243,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,243,255,0.05) 1px, transparent 1px); background-size: 20px 20px; z-index: -1; pointer-events: none; }
+    
+    /* تأثير الكرت الأساسي */
     .hub-card { background: linear-gradient(135deg, #111 0%, #0a0a0a 100%); border: 1px solid #222; position: relative; transition: all 0.3s ease; border-radius: 12px; overflow: hidden; }
-    .hub-card:hover { transform: translateY(-2px); border-color: #00f3ff; box-shadow: 0 10px 25px -10px rgba(0,243,255,0.4); }
-    .hub-card.apps:hover { border-color: #ff00e5; box-shadow: 0 10px 25px -10px rgba(255,0,229,0.4); }
+    
+    /* 1. نبض الإطار النيوني (الأزرق للألعاب) */
+    .hub-card.games { animation: pulseBlue 3s infinite; }
+    @keyframes pulseBlue {
+      0% { box-shadow: 0 0 8px rgba(0,243,255,0.1); border-color: rgba(0,243,255,0.3); }
+      50% { box-shadow: 0 0 18px rgba(0,243,255,0.5); border-color: rgba(0,243,255,0.8); }
+      100% { box-shadow: 0 0 8px rgba(0,243,255,0.1); border-color: rgba(0,243,255,0.3); }
+    }
+
+    /* 1. نبض الإطار النيوني (الوردي للتطبيقات) */
+    .hub-card.apps { animation: pulsePink 3s infinite; }
+    @keyframes pulsePink {
+      0% { box-shadow: 0 0 8px rgba(255,0,229,0.1); border-color: rgba(255,0,229,0.3); }
+      50% { box-shadow: 0 0 18px rgba(255,0,229,0.5); border-color: rgba(255,0,229,0.8); }
+      100% { box-shadow: 0 0 8px rgba(255,0,229,0.1); border-color: rgba(255,0,229,0.3); }
+    }
+
+    /* إيقاف النبض عند التمرير (Hover) وإعطاء توهج ثابت قوي */
+    .hub-card:hover { transform: translateY(-2px); }
+    .hub-card.games:hover { animation: none; box-shadow: 0 10px 25px -10px rgba(0,243,255,0.6); border-color: #00f3ff; }
+    .hub-card.apps:hover { animation: none; box-shadow: 0 10px 25px -10px rgba(255,0,229,0.6); border-color: #ff00e5; }
+
+    /* 2. اللمعة الزجاجية */
+    .hub-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%; width: 50%; height: 100%;
+      background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+      transform: skewX(-25deg);
+      animation: shine 4s infinite;
+    }
+    @keyframes shine {
+      0% { left: -100%; }
+      20% { left: 200%; }
+      100% { left: 200%; }
+    }
+
+    /* 3. طفو الأيقونات */
+    .icon-float { animation: float 3s ease-in-out infinite; }
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-4px); }
+      100% { transform: translateY(0px); }
+    }
   </style>
 </head>
 <body class="font-sans antialiased min-h-screen flex flex-col justify-center items-center p-4">
@@ -28,35 +72,35 @@
 
   <div class="w-full max-w-sm flex flex-col gap-3">
     <!-- كرت الألعاب -->
-    <a href="/games/list?type=games" class="hub-card p-4 flex items-center justify-between group">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-neon-blue/10 border border-neon-blue/30 flex items-center justify-center group-hover:bg-neon-blue/20 transition">
-          <i class="fa-solid fa-gamepad text-neon-blue text-lg"></i>
+    <a href="/games/list?type=games" class="hub-card games p-4 flex items-center justify-between group">
+      <div class="flex items-center gap-3 relative z-10">
+        <div class="w-10 h-10 rounded-lg bg-neon-blue/10 border border-neon-blue/30 flex items-center justify-center transition">
+          <i class="fa-solid fa-gamepad text-neon-blue text-lg icon-float"></i>
         </div>
         <div>
           <h2 class="text-sm font-black text-white group-hover:text-neon-blue transition">شحن الألعاب</h2>
           <p class="text-[10px] text-slate-500 font-bold">Free Fire, PUBG, Jawaker</p>
         </div>
       </div>
-      <i class="fa-solid fa-chevron-left text-slate-600 group-hover:text-neon-blue transition text-xs"></i>
+      <i class="fa-solid fa-chevron-left text-slate-600 group-hover:text-neon-blue transition text-xs relative z-10"></i>
     </a>
 
     <!-- كرت التطبيقات والدردشة -->
     <a href="/games/list?type=apps" class="hub-card apps p-4 flex items-center justify-between group">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-neon-pink/10 border border-neon-pink/30 flex items-center justify-center group-hover:bg-neon-pink/20 transition">
-          <i class="fa-solid fa-comment-dots text-neon-pink text-lg"></i>
+      <div class="flex items-center gap-3 relative z-10">
+        <div class="w-10 h-10 rounded-lg bg-neon-pink/10 border border-neon-pink/30 flex items-center justify-center transition">
+          <i class="fa-solid fa-comment-dots text-neon-pink text-lg icon-float" style="animation-delay: 1.5s;"></i>
         </div>
         <div>
           <h2 class="text-sm font-black text-white group-hover:text-neon-pink transition">تطبيقات ودردشة</h2>
           <p class="text-[10px] text-slate-500 font-bold">Bigo Live, Tango, Lama Chat</p>
         </div>
       </div>
-      <i class="fa-solid fa-chevron-left text-slate-600 group-hover:text-neon-pink transition text-xs"></i>
+      <i class="fa-solid fa-chevron-left text-slate-600 group-hover:text-neon-pink transition text-xs relative z-10"></i>
     </a>
   </div>
 
-  <div class="mt-8">
+  <div class="mt-8 relative z-10">
     <a href="/" class="text-[10px] font-bold text-slate-500 hover:text-white transition flex items-center gap-1">
       <i class="fa-solid fa-arrow-right"></i> العودة للمتجر الرئيسي
     </a>

@@ -783,6 +783,48 @@ function redirectToGames(e) {
     }
   </script>
 
+
+  <script>
+    // MODAL_SOUND_SCRIPT
+    let modalAudioCtx;
+    function playModalClickSound() {
+      try {
+        if (!modalAudioCtx) modalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (modalAudioCtx.state === 'suspended') modalAudioCtx.resume();
+        const osc = modalAudioCtx.createOscillator();
+        const gain = modalAudioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(modalAudioCtx.destination);
+        const now = modalAudioCtx.currentTime;
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } catch(e) {}
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const scamModal = document.getElementById('scamWarningModal');
+      const verifModal = document.getElementById('verificationModal');
+      
+      // إضافة الصوت لأزرار نافذة التنبيه
+      if (scamModal) {
+        scamModal.querySelectorAll('button, a').forEach(el => {
+          el.addEventListener('pointerdown', playModalClickSound);
+        });
+      }
+      // إضافة الصوت لأزرار نافذة التوثيق
+      if (verifModal) {
+        verifModal.querySelectorAll('button, a').forEach(el => {
+          el.addEventListener('pointerdown', playModalClickSound);
+        });
+      }
+    });
+  </script>
+  
 </body>
     
 </html>

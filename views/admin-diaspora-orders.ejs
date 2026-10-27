@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><title>طلبات المغتربين</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } } } }</script>
+</head>
+<body class="bg-slate-100 p-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-black text-slate-800"><i class="fa-solid fa-plane-departure text-yellow-600"></i> طلبات المغتربين (الهدايا)</h1>
+      <a href="/admin" class="bg-slate-800 text-white px-4 py-2 rounded-lg font-bold">عودة للإدارة</a>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border overflow-x-auto">
+      <table class="w-full text-right text-sm whitespace-nowrap">
+        <thead class="bg-slate-100 text-slate-600">
+          <tr>
+            <th class="p-3">#</th>
+            <th class="p-3">المشتري (المغترب)</th>
+            <th class="p-3">الجهاز</th>
+            <th class="p-3">المستلم (سوريا)</th>
+            <th class="p-3">المحافظة</th>
+            <th class="p-3">العنوان</th>
+            <th class="p-3">التاريخ</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <% orders.forEach(o => { %>
+            <tr class="hover:bg-slate-50">
+              <td class="p-3 text-slate-500"><%= o.id %></td>
+              <td class="p-3">
+                <div class="font-bold text-slate-800"><%= o.expat_name %></div>
+                <a href="https://wa.me/<%= o.expat_phone.replace(/\+/g, '') %>" target="_blank" class="text-xs text-green-600 font-bold hover:underline" dir="ltr"><i class="fa-brands fa-whatsapp"></i> <%= o.expat_phone %></a>
+              </td>
+              <td class="p-3 font-bold text-indigo-700"><%= o.device_name %></td>
+              <td class="p-3">
+                <div class="font-bold"><%= o.recipient_name %></div>
+                <div class="text-xs text-slate-500" dir="ltr"><%= o.recipient_phone %></div>
+              </td>
+              <td class="p-3"><%= o.governorate %></td>
+              <td class="p-3 text-xs text-slate-600 max-w-[150px] truncate" title="<%= o.address %>"><%= o.address %></td>
+              <td class="p-3 text-xs text-slate-400"><%= o.created_at %></td>
+            </tr>
+          <% }) %>
+          <% if(orders.length === 0) { %>
+            <tr><td colspan="7" class="p-6 text-center text-slate-500 font-bold">لا توجد طلبات حتى الآن.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

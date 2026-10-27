@@ -113,6 +113,22 @@ try {
   if (!spCols.includes('delivery_method')) db.exec("ALTER TABLE special_orders ADD COLUMN delivery_method TEXT");
 } catch(e) {}
 
+
+try {
+  db.exec(`CREATE TABLE IF NOT EXISTS diaspora_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    expat_name TEXT NOT NULL,
+    expat_phone TEXT NOT NULL,
+    device_name TEXT NOT NULL,
+    recipient_name TEXT NOT NULL,
+    recipient_phone TEXT NOT NULL,
+    governorate TEXT NOT NULL,
+    address TEXT NOT NULL,
+    status TEXT DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+} catch(e) {}
+
 const app = express();
 const PORT = 3000;
 
@@ -743,6 +759,30 @@ app.get('/certificate/:id', (req, res) => {
     if (!order) return res.status(404).send('الشهادة غير موجودة');
     res.render('certificate', { order });
   } catch(e) { res.status(500).send('حدث خطأ في عرض الشهادة'); }
+});
+
+
+// ===== Diaspora Routes =====
+app.get('/diaspora', (req, res) => {
+  const phones = db.prepare("SELECT name, price FROM phones WHERE status = 'approved' ORDER BY id DESC LIMIT 10").all();
+  res.render('diaspora', { phones });
+});
+
+app.post('/api/diaspora-order', (req, res) => {
+  try {
+    const { expat_name, expat_phone, device_name, recipient_name, recipient_phone, governorate, address } = req.body;
+    
+    db.prepare("INSERT INTO diaspora_orders (expat_name, expat_phone, device_name, recipient_name, recipient_phone, governorate, address) VALUES (?, ?, ?, ?, ?, ?, ?)").run(expat_name, expat_phone, device_name, recipient_name, recipient_phone, governorate, address);
+    
+    sendTelegram(`🌍 <b>طلب هدية من مغترب جديد!</b>\n\n👤 المشتري: ${expat_name}\n📞 هاتف المشتري: ${expat_phone}\n\n🎁 الجهاز: ${device_name}\n\n📦 المستلم في سوريا: ${recipient_name}\n📞 هاتف المستلم: ${recipient_phone}\n📍 المحافظة: ${governorate}\n🏠 العنوان: ${address}`);
+    
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/admin/diaspora-orders', requireAuth, (req, res) => {
+  const orders = db.prepare("SELECT * FROM diaspora_orders ORDER BY id DESC").all();
+  res.render('admin-diaspora-orders', { orders });
 });
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

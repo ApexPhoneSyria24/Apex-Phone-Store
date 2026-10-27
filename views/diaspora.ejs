@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>هدية من المغترب | Apex Phone</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+    body {
+      background-color: #050505;
+      background-image: radial-gradient(circle at 50% 0%, rgba(191, 149, 63, 0.15), transparent 60%),
+                        radial-gradient(circle at 10% 80%, rgba(0, 85, 255, 0.08), transparent 40%);
+      color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 15px; margin: 0;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(191, 149, 63, 0.3); box-shadow: 0 0 40px rgba(191, 149, 63, 0.1);
+      border-radius: 20px; width: 100%; max-width: 450px; padding: 30px 25px; position: relative; overflow: hidden;
+      animation: floatIn 0.6s ease-out forwards;
+    }
+    @keyframes floatIn { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .input-group { position: relative; margin-bottom: 15px; }
+    .input-group label { display: block; font-size: 12px; font-weight: 700; color: #FCF6B5; margin-bottom: 5px; }
+    .input-group i { position: absolute; right: 12px; bottom: 12px; color: #8892b0; font-size: 14px; transition: 0.3s; }
+    .input-group input, .input-group select, .input-group textarea {
+      width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(191, 149, 63, 0.3); border-radius: 10px;
+      padding: 12px 35px 12px 12px; color: white; font-size: 13px; outline: none; transition: all 0.3s ease;
+    }
+    .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: #BF953F; box-shadow: 0 0 15px rgba(191, 149, 63, 0.3); }
+    .submit-btn {
+      width: 100%; background: linear-gradient(135deg, #BF953F, #FCF6B5, #B38728); color: #000; font-weight: 900; font-size: 15px;
+      padding: 15px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(191, 149, 63, 0.4); margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(191, 149, 63, 0.6); }
+    
+    #successModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+    .modal-content { background: #0f172a; border: 2px solid #BF953F; border-radius: 20px; padding: 30px 20px; text-align: center; max-width: 350px; width: 100%; box-shadow: 0 0 50px rgba(191, 149, 63, 0.3); }
+  </style>
+</head>
+<body>
+  <div class="glass-card">
+    <div class="text-center mb-6">
+      <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(191,149,63,0.6)]">
+        <i class="fa-solid fa-gift text-2xl text-black"></i>
+      </div>
+      <h1 class="text-xl font-black text-[#FCF6B5]">أرسل هدية لأهلك في سوريا</h1>
+      <p class="text-slate-400 text-xs mt-1">نحن نوصلها لباب المنزل بأمان تامة وبأفضل الأسعار.</p>
+    </div>
+
+    <form id="diasporaForm" autocomplete="off">
+      <!-- بيانات المشتري (المغترب) -->
+      <div class="border-b border-slate-700 pb-3 mb-3">
+        <h3 class="text-xs font-bold text-yellow-500 mb-2"><i class="fa-solid fa-plane"></i> بياناتك أنت (المغترب)</h3>
+        <div class="input-group">
+          <label>اسمك الكريم</label>
+          <input type="text" name="expat_name" required placeholder="الاسم">
+          <i class="fa-solid fa-user"></i>
+        </div>
+        <div class="input-group">
+          <label>رقم واتساب الخاص بك (للتواصل)</label>
+          <input type="tel" name="expat_phone" required placeholder="+966..." dir="ltr" class="text-right">
+          <i class="fa-brands fa-whatsapp"></i>
+        </div>
+      </div>
+
+      <!-- الهدية -->
+      <div class="border-b border-slate-700 pb-3 mb-3">
+        <h3 class="text-xs font-bold text-yellow-500 mb-2"><i class="fa-solid fa-mobile-screen"></i> الهدية والجهاز</h3>
+        <div class="input-group">
+          <label>الجهاز الذي تريد إرساله</label>
+          <select name="device_name" required>
+            <option value="" disabled selected hidden>اختر الجهاز...</option>
+            <% phones.forEach(p => { %>
+              <option value="<%= p.name %> - $<%= p.price %>"><%= p.name %> ($<%= p.price %>)</option>
+            <% }) %>
+            <option value="جهاز آخر (سأكتبه للمستلم)">جهاز آخر / غير موجود في القائمة</option>
+          </select>
+          <i class="fa-solid fa-list"></i>
+        </div>
+      </div>
+
+      <!-- بيانات المستلم (في سوريا) -->
+      <div>
+        <h3 class="text-xs font-bold text-yellow-500 mb-2"><i class="fa-solid fa-location-dot"></i> بيانات المستلم في سوريا</h3>
+        <div class="input-group">
+          <label>اسم المستلم الثلاثي</label>
+          <input type="text" name="recipient_name" required placeholder="اسم المستلم">
+          <i class="fa-solid fa-user-check"></i>
+        </div>
+        <div class="input-group">
+          <label>رقم هاتف المستلم</label>
+          <input type="tel" name="recipient_phone" required placeholder="09xxxxxxxx" dir="ltr" class="text-right">
+          <i class="fa-solid fa-phone"></i>
+        </div>
+        <div class="input-group">
+          <label>المحافظة</label>
+          <select name="governorate" required>
+            <option value="" disabled selected hidden>اختر المحافظة...</option>
+            <option value="دمشق">دمشق</option><option value="ريف دمشق">ريف دمشق</option>
+            <option value="حلب">حلب</option><option value="حمص">حمص</option>
+            <option value="حماة">حماة</option><option value="اللاذقية">اللاذقية</option>
+            <option value="طرطوس">طرطوس</option><option value="إدلب">إدلب</option>
+            <option value="درعا">درعا</option><option value="السويداء">السويداء</option>
+            <option value="القنيطرة">القنيطرة</option><option value="دير الزور">دير الزور</option>
+            <option value="الرقة">الرقة</option><option value="الحسكة">الحسكة</option>
+          </select>
+          <i class="fa-solid fa-map-location-dot"></i>
+        </div>
+        <div class="input-group">
+          <label>العنوان بالتفصيل (الحي، الشارع)</label>
+          <textarea name="address" rows="2" required placeholder="مثال: المزة، شارع الجلاء، بناء 5، طابق 2"></textarea>
+          <i class="fa-solid fa-house"></i>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn mt-4">
+        <i class="fa-solid fa-paper-plane"></i> إرسال الطلب
+      </button>
+    </form>
+    
+    <div class="text-center mt-4">
+      <a href="/" class="text-xs text-slate-500 hover:text-yellow-400 transition-colors"><i class="fa-solid fa-arrow-right ml-1"></i> العودة للمتجر</a>
+    </div>
+  </div>
+
+  <!-- النافذة الملكية بعد الإرسال -->
+  <div id="successModal">
+    <div class="modal-content">
+      <div class="w-20 h-20 bg-yellow-500/10 border-2 border-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(191,149,63,0.5)]">
+        <i class="fa-solid fa-check text-4xl text-yellow-500"></i>
+      </div>
+      <h2 class="text-xl font-black text-white mb-2">تم استلام طلب الهدية! 🎁</h2>
+      <p class="text-slate-400 text-sm mb-6 leading-relaxed">
+        تم تحويل طلبك إلى قسم الإدارة.<br>لتأكيد الدفع وطريقة التوصيل، يرجى التواصل معنا مباشرة عبر زر الواتساب أدناه.
+      </p>
+      
+      <a href="https://wa.me/963980259127?text=مرحباً،%20أنا%20أرسلت%20طلب%20هدية%20من%20المغترب%20عبر%20الموقع%20وأريد%20إتمام%20الدفع%20والتوصيل" target="_blank" class="w-full bg-[#25D366] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-[0_4px_15px_rgba(37,211,102,0.4)] hover:scale-105 transition-transform mb-3">
+        <i class="fa-brands fa-whatsapp text-xl"></i> تواصل مع الإدارة (واتساب)
+      </a>
+      
+      <a href="/" class="block w-full bg-slate-800 border border-slate-700 text-slate-300 font-bold py-3 rounded-xl hover:bg-slate-700 transition-colors text-sm">
+        العودة للمتجر
+      </a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('diasporaForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = this.querySelector('button');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...';
+      
+      const data = Object.fromEntries(new FormData(this).entries());
+
+      try {
+        const res = await fetch('/api/diaspora-order', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          document.getElementById('successModal').style.display = 'flex';
+          this.reset();
+          btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> إرسال الطلب';
+        } else {
+          alert('حدث خطأ، يرجى المحاولة لاحقاً');
+          btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> إرسال الطلب';
+        }
+      } catch(e) {
+        alert('حدث خطأ في الاتصال');
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> إرسال الطلب';
+      }
+    });
+  </script>
+</body>
+</html>

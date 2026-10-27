@@ -585,7 +585,7 @@ app.get('/games/:gameName', async (req, res) => {
         });
         const details = await detailsRes.json();
         
-        const exchangeRate = 142;
+        const exchangeRate = 170;
         
         
         samacardPackages = details.map(p => {
@@ -1060,12 +1060,12 @@ app.get('/api/samacard/freefire', async (req, res) => {
     const details = await detailsRes.json();
 
     // معالجة الأسعار: تحويل من ليرة سورية إلى دولار + إضافة 15% ربح
-    const exchangeRate = 142; // 1 دولار = 142 ليرة جديدة
-    const profitMargin = 1.15; // +15%
+    const exchangeRate = 170; // 1 دولار = 142 ليرة جديدة
+     // +15%
 
     const packages = details.map(p => {
       const priceSYP = parseFloat(p.price);
-      const priceUSD = (priceSYP / exchangeRate) * profitMargin;
+      const priceUSD = (priceSYP / exchangeRate) + 0.10;
       return {
         id: p.id,
         name: p.name,

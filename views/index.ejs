@@ -777,71 +777,32 @@
   
 
   
+  
   <script>
-    // SCAM_MODAL_VOICE
+    // SCAM_MODAL_VOICE_MP3
     let scamVoicePlayed = false;
-
-    function speakScamWarning() {
-      if (scamVoicePlayed) return;
-      scamVoicePlayed = true;
-
-      try {
-        if ('speechSynthesis' in window) {
-          const doSpeak = () => {
-            window.speechSynthesis.cancel();
-            
-            // استخدام النطق العربي لاسم الموقع
-            const text = "أهلاً وسهلاً بك في متجر أبيكس فون. المتجر الأول والموثوق في سوريا.";
-            const utterance = new SpeechSynthesisUtterance(text);
-            
-            utterance.lang = 'ar-SA';
-            utterance.rate = 1.05;   // سرعة طبيعية (أسرع من السابق)
-            utterance.pitch = 1.4;   // نبرة أعلى لتبدو أنثوية
-            utterance.volume = 1.0;
-
-            const voices = window.speechSynthesis.getVoices();
-            const arabicVoices = voices.filter(v => v.lang && v.lang.startsWith('ar'));
-
-            // بحث موسع عن أي صوت عربي نسائي
-            let femaleVoice = arabicVoices.find(v => {
-              const name = (v.name || '').toLowerCase();
-              const uri = (v.voiceURI || '').toLowerCase();
-              return name.includes('female') || name.includes('laila') || 
-                     name.includes('layla') || name.includes('salma') || 
-                     name.includes('hala') || name.includes('hoda') ||
-                     name.includes('zariyah') || name.includes('amany') ||
-                     name.includes('heba') || name.includes('sana') ||
-                     uri.includes('female') || uri.includes('woman');
-            });
-
-            if (femaleVoice) {
-              utterance.voice = femaleVoice;
-            } else if (arabicVoices.length > 0) {
-              // إذا لم يجد صوتاً نسائياً، يستخدم أي صوت عربي
-              utterance.voice = arabicVoices[0];
-            }
-
-            window.speechSynthesis.speak(utterance);
-          };
-
-          if (window.speechSynthesis.getVoices().length === 0) {
-            window.speechSynthesis.onvoiceschanged = doSpeak;
-          } else {
-            doSpeak();
-          }
-        }
-      } catch(e) {
-        console.log('Voice error:', e);
-      }
-    }
 
     document.addEventListener('DOMContentLoaded', function() {
       const scamModal = document.getElementById('scamWarningModal');
+      
       if (scamModal) {
-        scamModal.addEventListener('pointerdown', speakScamWarning, { once: true });
+        // تشغيل الصوت عند النقر على أي زر أو رابط داخل النافذة الأولى فقط
+        const modalButtons = scamModal.querySelectorAll('button, a');
+        
+        modalButtons.forEach(btn => {
+          btn.addEventListener('pointerdown', function() {
+            if (scamVoicePlayed) return;
+            scamVoicePlayed = true;
+
+            // ⚠️ تأكد أن اسم الملف هنا يطابق اسم ملفك في مجلد public
+            const audio = new Audio('/welcome-voice.mp3');
+            audio.play().catch(e => console.log('Audio playback failed:', e));
+          });
+        });
       }
     });
   </script>
+  
   
   
 </body>

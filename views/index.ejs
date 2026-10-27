@@ -614,6 +614,51 @@
 
   
   
+
+  <script>
+    // PIANO_SOUND_SCRIPT
+    let pianoAudioCtx;
+    function playPianoSound() {
+      try {
+        if (!pianoAudioCtx) pianoAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (pianoAudioCtx.state === 'suspended') pianoAudioCtx.resume();
+        
+        const now = pianoAudioCtx.currentTime;
+        const osc = pianoAudioCtx.createOscillator();
+        const gain = pianoAudioCtx.createGain();
+        
+        osc.type = 'sine'; // موجة ناعمة تعطي صوت البيانو
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+        
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        
+        osc.connect(gain);
+        gain.connect(pianoAudioCtx.destination);
+        
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } catch(e) {}
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const scamModal = document.getElementById('scamWarningModal');
+      const verifModal = document.getElementById('verificationModal');
+      
+      if (scamModal) {
+        scamModal.querySelectorAll('button, a').forEach(el => {
+          el.addEventListener('pointerdown', playPianoSound);
+        });
+      }
+      if (verifModal) {
+        verifModal.querySelectorAll('button, a').forEach(el => {
+          el.addEventListener('pointerdown', playPianoSound);
+        });
+      }
+    });
+  </script>
+  
 </body>
     
 </html>

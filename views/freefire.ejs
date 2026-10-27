@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>شحن فري فاير | Apex Gaming</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Tajawal', 'sans-serif'] }, colors: { neon: { blue: '#00f3ff' } } } } }</script>
+  <style>
+    body { background-color: #050505; color: white; background-image: radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.1), transparent 60%); }
+    .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(0, 243, 255, 0.2); transition: all 0.3s; }
+    .glass-card:hover { border-color: #00f3ff; transform: translateY(-2px); box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); }
+    .glass-card.selected { border-color: #00f3ff; box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); background: rgba(0, 243, 255, 0.1); }
+  </style>
+</head>
+<body class="font-sans antialiased min-h-screen">
+  
+  <nav class="bg-black/50 backdrop-blur-md border-b border-cyan-500/20 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
+      <a href="/games" class="flex items-center gap-2 text-sm font-bold text-cyan-300 hover:text-white transition"><i class="fa-solid fa-arrow-right"></i> العودة للألعاب</a>
+      <div class="flex items-center gap-3">
+        <span id="balanceBadge" class="hidden text-xs font-black bg-green-500/20 border border-green-500/50 text-green-400 px-3 py-1.5 rounded-lg" dir="ltr">$0.00</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    
+    <!-- رأس الصفحة -->
+    <div class="text-center mb-8">
+      <div class="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_30px_rgba(249,115,22,0.5)]">
+        <i class="fa-solid fa-fire text-4xl text-white"></i>
+      </div>
+      <h1 class="text-3xl font-black text-white mb-2">شحن <span class="text-orange-500">فري فاير</span> فوري</h1>
+      <p class="text-slate-400">اختر الباقة، أدخل الآي دي، وسيصلك الشحن خلال ثوانٍ.</p>
+    </div>
+
+    <form id="ffForm" class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 shadow-2xl">
+      
+      <div class="mb-6">
+        <label class="block text-sm font-bold text-slate-300 mb-2">معرف اللاعب (Player ID)</label>
+        <input type="text" id="playerId" required class="w-full bg-black border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-orange-500 outline-none transition" placeholder="أدخل الآي دي الخاص بك">
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-sm font-bold text-slate-300 mb-3">اختر الباقة</label>
+        <div id="packagesGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div class="text-center col-span-full text-slate-500 font-bold py-4">
+            <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>جاري تحميل الباقات...
+          </div>
+        </div>
+      </div>
+
+      <input type="hidden" id="selectedProductId" required>
+      <input type="hidden" id="selectedPackageName" required>
+      <input type="hidden" id="selectedPrice" required>
+
+      <div class="mb-6">
+        <label class="block text-sm font-bold text-slate-300 mb-2">رقم هاتفك (للخصم من المحفظة)</label>
+        <input type="tel" id="userPhone" required class="w-full bg-black border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none" placeholder="09xxxxxxxx" dir="ltr">
+      </div>
+
+      <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] transition text-lg" disabled>
+        اختر باقة للمتابعة
+      </button>
+    </form>
+  </div>
+
+  <script>
+    let selectedPkg = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const userPhone = localStorage.getItem('apex_user_phone');
+      if (userPhone) document.getElementById('userPhone').value = userPhone;
+
+      // جلب الباقات
+      fetch('/api/samacard/freefire')
+        .then(r => r.json())
+        .then(data => {
+          const grid = document.getElementById('packagesGrid');
+          if (!data.success || data.packages.length === 0) {
+            grid.innerHTML = '<div class="text-center col-span-full text-red-400 font-bold py-4">لا توجد باقات متاحة حالياً.</div>';
+            return;
+          }
+          
+          grid.innerHTML = '';
+          data.packages.forEach(pkg => {
+            const card = document.createElement('div');
+            card.className = 'glass-card rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer';
+            card.innerHTML = \`
+              <div class="text-2xl mb-1 text-orange-500"><i class="fa-solid fa-gem"></i></div>
+              <h3 class="text-xs font-black text-white mb-1">\${pkg.name.replace('FreeFire By ID', '').trim()}</h3>
+              <div class="text-lg font-black text-green-400 font-mono">$\${pkg.price_usd}</div>
+            \`;
+            
+            card.onclick = () => {
+              document.querySelectorAll('.glass-card').forEach(c => c.classList.remove('selected'));
+              card.classList.add('selected');
+              selectedPkg = pkg;
+              document.getElementById('selectedProductId').value = pkg.id;
+              document.getElementById('selectedPackageName').value = pkg.name;
+              document.getElementById('selectedPrice').value = pkg.price_usd;
+              
+              const btn = document.getElementById('submitBtn');
+              btn.disabled = false;
+              btn.innerHTML = \`تأكيد الشراء - $\${pkg.price_usd}\`;
+            };
+            
+            grid.appendChild(card);
+          });
+        });
+    });
+
+    document.getElementById('ffForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if (!selectedPkg) return;
+
+      const phone = document.getElementById('userPhone').value;
+      localStorage.setItem('apex_user_phone', phone);
+
+      const btn = document.getElementById('submitBtn');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الشحن...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/samacard/buy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_phone: phone,
+            player_id: document.getElementById('playerId').value,
+            product_id: selectedPkg.id,
+            package_name: selectedPkg.name,
+            price_usd: selectedPkg.price_usd
+          })
+        });
+
+        const result = await res.json();
+        if (result.success) {
+          alert('✅ ' + result.message);
+          window.location.reload();
+        } else {
+          alert('❌ ' + result.message);
+          btn.innerHTML = \`تأكيد الشراء - $\${selectedPkg.price_usd}\`;
+          btn.disabled = false;
+        }
+      } catch(e) {
+        alert('حدث خطأ في الاتصال');
+        btn.innerHTML = \`تأكيد الشراء - $\${selectedPkg.price_usd}\`;
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

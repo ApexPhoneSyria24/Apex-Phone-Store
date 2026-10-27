@@ -130,6 +130,21 @@ try {
   )`);
 } catch(e) {}
 
+
+try {
+  db.exec(`CREATE TABLE IF NOT EXISTS samacard_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_phone TEXT NOT NULL,
+    player_id TEXT NOT NULL,
+    product_id TEXT NOT NULL,
+    package_name TEXT NOT NULL,
+    price_usd REAL NOT NULL,
+    status TEXT DEFAULT 'pending',
+    samacard_order_id TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+} catch(e) { console.error('Samacard Table Error:', e.message); }
+
 const app = express();
 const PORT = 3000;
 
@@ -966,4 +981,98 @@ app.post('/api/shield/buyer-confirm/:id', (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+
+// ===== Samacard API Integration =====
+const SAMACARD_TOKEN = '4914b781cb7b9760f105ff2fba3b27d3ff71a2b0a622c6f4';
+const SAMACARD_API = 'https://api.samacard.com/client/api';
+
+// جلب باقات فري فاير مع حساب السعر بالدولار + 15% ربح
+app.get('/api/samacard/freefire', async (req, res) => {
+  try {
+    const response = await fetch(SAMACARD_API + '/products?base=1', {
+      headers: { 'api-token': SAMACARD_TOKEN }
+    });
+    const products = await response.json();
+    
+    // فلترة باقات فري فاير (By ID فقط)
+    const ffPackages = products.filter(p => 
+      p.name && p.name.includes('FreeFire By ID')
+    );
+
+    if (ffPackages.length === 0) return res.json({ success: false, message: 'لا توجد باقات متاحة' });
+
+    // جلب تفاصيل الباقات
+    const ids = ffPackages.map(p => p.id).join(',');
+    const detailsRes = await fetch(SAMACARD_API + '/products?products_id=' + ids, {
+      headers: { 'api-token': SAMACARD_TOKEN }
+    });
+    const details = await detailsRes.json();
+
+    // معالجة الأسعار: تحويل من ليرة سورية إلى دولار + إضافة 15% ربح
+    const exchangeRate = 142; // 1 دولار = 142 ليرة جديدة
+    const profitMargin = 1.15; // +15%
+
+    const packages = details.map(p => {
+      const priceSYP = parseFloat(p.price);
+      const priceUSD = (priceSYP / exchangeRate) * profitMargin;
+      return {
+        id: p.id,
+        name: p.name,
+        price_usd: priceUSD.toFixed(2),
+        params: p.params
+      };
+    });
+
+    res.json({ success: true, packages });
+  } catch (e) {
+    res.json({ success: false, message: 'خطأ في الاتصال بمزود الخدمة' });
+  }
+});
+
+// تنفيذ طلب الشحن
+app.post('/api/samacard/buy', async (req, res) => {
+  const { user_phone, player_id, product_id, package_name, price_usd } = req.body;
+  const priceNum = parseFloat(price_usd);
+
+  try {
+    // 1. التحقق من الرصيد
+    const user = db.prepare('SELECT balance FROM users WHERE phone = ?').get(user_phone);
+    if (!user) return res.json({ success: false, message: 'رقم الهاتف غير مسجل' });
+    if (user.balance < priceNum) return res.json({ success: false, message: 'رصيدك غير كافٍ' });
+
+    // 2. خصم الرصيد مبدئياً
+    db.prepare('UPDATE users SET balance = balance - ? WHERE phone = ?').run(priceNum, user_phone);
+
+    // 3. إرسال الطلب إلى Samacard
+    const order_uuid = require('crypto').randomUUID();
+    const orderUrl = `${SAMACARD_API}/newOrder/${product_id}?playerId=${player_id}&order_uuid=${order_uuid}`;
+    
+    const orderRes = await fetch(orderUrl, {
+      method: 'GET',
+      headers: { 'api-token': SAMACARD_TOKEN }
+    });
+    const orderData = await orderRes.json();
+
+    // 4. معالجة النتيجة
+    if (orderData.status === 'success' || orderData.status === 'accept' || orderData.code === 200) {
+      // نجاح
+      db.prepare(`INSERT INTO samacard_orders (user_phone, player_id, product_id, package_name, price_usd, status, samacard_order_id) VALUES (?, ?, ?, ?, ?, 'approved', ?)`)
+        .run(user_phone, player_id, product_id, package_name, priceNum, orderData.order_id || order_uuid);
+      
+      db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(user_phone, `✅ تم شحن ${package_name} لحسابك بنجاح!`);
+      
+      res.json({ success: true, message: 'تم الشحن بنجاح!' });
+    } else {
+      // فشل -> إعادة الرصيد
+      db.prepare('UPDATE users SET balance = balance + ? WHERE phone = ?').run(priceNum, user_phone);
+      res.json({ success: false, message: 'فشل الشحن: ' + (orderData.msg || 'خطأ غير معروف') });
+    }
+  } catch (e) {
+    // إعادة الرصيد في حال حدوث خطأ تقني
+    db.prepare('UPDATE users SET balance = balance + ? WHERE phone = ?').run(priceNum, user_phone);
+    res.json({ success: false, message: 'حدث خطأ في الاتصال، تم إعادة المبلغ لمحفظتك' });
+  }
+});
+
+app.get('/freefire', (req, res) => { res.render('freefire'); });
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

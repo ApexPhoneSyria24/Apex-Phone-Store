@@ -3,39 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>درع Apex للتحقق | حماية أموالك</title>
+  <title>الوسيط الآمن | Apex Shield</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-    body {
-      background-color: #050505;
-      background-image: radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.15), transparent 60%);
-      color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 15px; margin: 0;
-    }
-    .glass-card {
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px);
-      border: 1px solid rgba(0, 243, 255, 0.3); box-shadow: 0 0 40px rgba(0, 243, 255, 0.1);
-      border-radius: 20px; width: 100%; max-width: 450px; padding: 30px 25px;
-      animation: floatIn 0.6s ease-out forwards;
-    }
+    body { background-color: #050505; background-image: radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.15), transparent 60%); color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 15px; margin: 0; }
+    .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(0, 243, 255, 0.3); box-shadow: 0 0 40px rgba(0, 243, 255, 0.1); border-radius: 20px; width: 100%; max-width: 500px; padding: 30px 25px; animation: floatIn 0.6s ease-out forwards; }
     @keyframes floatIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    .input-group { position: relative; margin-bottom: 15px; }
-    .input-group label { display: block; font-size: 12px; font-weight: 700; color: #00f3ff; margin-bottom: 5px; }
-    .input-group i { position: absolute; right: 12px; bottom: 12px; color: #8892b0; font-size: 14px; }
-    .input-group input {
-      width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 10px;
-      padding: 12px 35px 12px 12px; color: white; font-size: 13px; outline: none; transition: 0.3s;
-    }
-    .input-group input:focus { border-color: #00f3ff; box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); }
-    .submit-btn {
-      width: 100%; background: linear-gradient(135deg, #00f3ff, #0055ff); color: white; font-weight: 900; font-size: 15px;
-      padding: 15px; border-radius: 10px; border: none; cursor: pointer; transition: 0.3s;
-      box-shadow: 0 4px 15px rgba(0, 243, 255, 0.4); margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;
-    }
+    .section-title { background: rgba(0, 243, 255, 0.1); color: #00f3ff; padding: 8px 12px; border-radius: 8px; font-weight: 900; font-size: 13px; margin-bottom: 15px; border-right: 3px solid #00f3ff; }
+    .input-group { position: relative; margin-bottom: 12px; }
+    .input-group label { display: block; font-size: 11px; font-weight: 700; color: #8892b0; margin-bottom: 4px; }
+    .input-group input { width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 10px 12px; color: white; font-size: 13px; outline: none; transition: 0.3s; }
+    .input-group input:focus { border-color: #00f3ff; }
+    .file-upload { border: 1px dashed rgba(0, 243, 255, 0.4); background: rgba(0, 243, 255, 0.05); padding: 10px; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.3s; }
+    .file-upload:hover { background: rgba(0, 243, 255, 0.1); border-color: #00f3ff; }
+    .file-upload input { display: none; }
+    .file-upload span { font-size: 11px; color: #00f3ff; font-weight: bold; }
+    .submit-btn { width: 100%; background: linear-gradient(135deg, #00f3ff, #0055ff); color: white; font-weight: 900; font-size: 15px; padding: 15px; border-radius: 10px; border: none; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 243, 255, 0.4); margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(0, 243, 255, 0.6); }
-    
     #successModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
     .modal-content { background: #0f172a; border: 2px solid #00f3ff; border-radius: 20px; padding: 30px 20px; text-align: center; max-width: 350px; width: 100%; box-shadow: 0 0 50px rgba(0, 243, 255, 0.3); }
   </style>
@@ -46,45 +33,67 @@
       <div class="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(0,243,255,0.6)]">
         <i class="fa-solid fa-shield-halved text-2xl text-white"></i>
       </div>
-      <h1 class="text-xl font-black text-white">درع Apex للتحقق</h1>
-      <p class="text-slate-400 text-xs mt-1">احمِ أموالك من التحويلات الوهمية والنصب. نحن نتحقق لك!</p>
+      <h1 class="text-xl font-black text-white">درع Apex للوساطة الآمنة</h1>
+      <p class="text-slate-400 text-xs mt-1">نحن نحفظ أموالك حتى تستلم جهازك. أمان 100%.</p>
+    </div>
+
+    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 11px; text-align: center;">
+      ⚠️ مطلوب رفع الهوية (أمامي وخلفي) للمشتري والبائع لتأكيد الجدية ومنع الاحتيال.
     </div>
 
     <form id="shieldForm" enctype="multipart/form-data">
+      <!-- المشتري -->
+      <div class="section-title"><i class="fa-solid fa-user-tag"></i> بيانات المشتري</div>
       <div class="input-group">
-        <label>رقم هاتفك (المشتري) *</label>
+        <label>رقم هاتف المشتري *</label>
         <input type="tel" name="buyer_phone" required placeholder="09xxxxxxxx" dir="ltr" class="text-right">
-        <i class="fa-brands fa-whatsapp"></i>
       </div>
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <label class="file-upload">
+          <input type="file" name="buyer_id_front" accept="image/*" required>
+          <i class="fa-solid fa-id-card text-xl mb-1 text-slate-400"></i>
+          <br><span>هوية المشتري (أمامي) *</span>
+        </label>
+        <label class="file-upload">
+          <input type="file" name="buyer_id_back" accept="image/*" required>
+          <i class="fa-solid fa-id-card text-xl mb-1 text-slate-400"></i>
+          <br><span>هوية المشتري (خلفي) *</span>
+        </label>
+      </div>
+
+      <!-- البائع -->
+      <div class="section-title mt-4"><i class="fa-solid fa-store"></i> بيانات البائع</div>
       <div class="input-group">
-        <label>رقم هاتف البائع (الذي حولت له) *</label>
+        <label>رقم هاتف البائع *</label>
         <input type="tel" name="seller_phone" required placeholder="09xxxxxxxx" dir="ltr" class="text-right">
-        <i class="fa-solid fa-user"></i>
       </div>
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <label class="file-upload">
+          <input type="file" name="seller_id_front" accept="image/*" required>
+          <i class="fa-solid fa-id-card text-xl mb-1 text-slate-400"></i>
+          <br><span>هوية البائع (أمامي) *</span>
+        </label>
+        <label class="file-upload">
+          <input type="file" name="seller_id_back" accept="image/*" required>
+          <i class="fa-solid fa-id-card text-xl mb-1 text-slate-400"></i>
+          <br><span>هوية البائع (خلفي) *</span>
+        </label>
+      </div>
+
+      <!-- المبلغ -->
+      <div class="section-title mt-4"><i class="fa-solid fa-money-bill-wave"></i> تفاصيل الصفقة</div>
       <div class="input-group">
-        <label>المبلغ المحول ($ أو ل.س) *</label>
+        <label>المبلغ المتفق عليه (بالدولار أو الليرة) *</label>
         <input type="text" name="amount" required placeholder="مثال: 500$">
-        <i class="fa-solid fa-money-bill-wave"></i>
-      </div>
-      <div class="input-group">
-        <label>رقم عملية التحويل (إن وجد)</label>
-        <input type="text" name="tx_id" placeholder="Transaction ID">
-        <i class="fa-solid fa-hashtag"></i>
-      </div>
-      <div class="input-group">
-        <label>صورة إشعار التحويل (اختياري)</label>
-        <input type="file" name="receipt" accept="image/*" class="pt-2">
       </div>
 
       <button type="submit" class="submit-btn">
-        <i class="fa-solid fa-shield-check"></i> طلب التحقق الآن
+        <i class="fa-solid fa-paper-plane"></i> إرسال طلب الوساطة
       </button>
     </form>
-    
-    <div class="text-center mt-4 text-xs text-slate-500">
-      خدمة التحقق تضمن لك مطابقة الإشعار مع حساب البائع. رسم الخدمة: <span class="text-cyan-400 font-bold">1$</span>
-    </div>
-    <div class="text-center mt-2">
+
+    <div class="text-center mt-5 flex justify-between px-2">
+      <a href="/shield/track" class="text-xs text-cyan-400 hover:underline"><i class="fa-solid fa-magnifying-glass"></i> تتبع حالة الطلب</a>
       <a href="/" class="text-xs text-slate-500 hover:text-cyan-400 transition-colors"><i class="fa-solid fa-arrow-right ml-1"></i> العودة للمتجر</a>
     </div>
   </div>
@@ -94,12 +103,12 @@
       <div class="w-20 h-20 bg-cyan-500/10 border-2 border-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(0,243,255,0.5)]">
         <i class="fa-solid fa-check text-4xl text-cyan-500"></i>
       </div>
-      <h2 class="text-xl font-black text-white mb-2">تم استلام طلب التحقق!</h2>
+      <h2 class="text-xl font-black text-white mb-2">تم استلام طلب الوساطة!</h2>
       <p class="text-slate-400 text-sm mb-6 leading-relaxed">
-        فريق Apex يقوم الآن بالتواصل مع البائع للتحقق من وصول المبلغ.<br>يرجى التواصل معنا عبر الواتساب لإتمام رسم الخدمة (1$) والحصول على الشهادة.
+        فريق Apex سيقوم بمراجعة الهويات والتأكد من وصول المبلغ.<br>يرجى التواصل معنا عبر الواتساب لإتمام تحويل المبلغ (500$ + 2$ رسوم).
       </p>
-      <a href="https://wa.me/963980259127?text=مرحباً،%20أنا%20طلبت%20خدمة%20درع%20التحقق%20عبر%20الموقع%20وأريد%20إتمام%20العملية" target="_blank" class="w-full bg-[#25D366] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg mb-3">
-        <i class="fa-brands fa-whatsapp text-xl"></i> تواصل لإتمام التحقق
+      <a href="https://wa.me/963980259127?text=مرحباً،%20أنا%20طلبت%20وساطة%20Apex%20عبر%20الموقع%20وأريد%20إتمام%20تحويل%20المبلغ" target="_blank" class="w-full bg-[#25D366] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg mb-3">
+        <i class="fa-brands fa-whatsapp text-xl"></i> تواصل لإتمام التحويل
       </a>
       <a href="/" class="block w-full bg-slate-800 text-slate-300 font-bold py-3 rounded-xl text-sm">العودة للمتجر</a>
     </div>
@@ -109,7 +118,7 @@
     document.getElementById('shieldForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const btn = this.querySelector('button');
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...';
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الرفع...';
       
       const formData = new FormData(this);
 
@@ -118,14 +127,14 @@
         if (res.ok) {
           document.getElementById('successModal').style.display = 'flex';
           this.reset();
-          btn.innerHTML = '<i class="fa-solid fa-shield-check"></i> طلب التحقق الآن';
+          btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> إرسال طلب الوساطة';
         } else {
           alert('حدث خطأ، حاول لاحقاً');
-          btn.innerHTML = '<i class="fa-solid fa-shield-check"></i> طلب التحقق الآن';
+          btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> إرسال طلب الوساطة';
         }
       } catch(e) {
         alert('حدث خطأ في الاتصال');
-        btn.innerHTML = '<i class="fa-solid fa-shield-check"></i> طلب التحقق الآن';
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> إرسال طلب الوساطة';
       }
     });
   </script>

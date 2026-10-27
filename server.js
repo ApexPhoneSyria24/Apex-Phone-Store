@@ -786,6 +786,7 @@ app.get('/admin/diaspora-orders', requireAuth, (req, res) => {
 });
 
 
+
 // ===== Apex Shield Routes =====
 try {
   db.exec(`CREATE TABLE IF NOT EXISTS shield_requests (
@@ -793,56 +794,93 @@ try {
     buyer_phone TEXT NOT NULL,
     seller_phone TEXT NOT NULL,
     amount TEXT NOT NULL,
-    tx_id TEXT,
-    receipt_image TEXT,
+    buyer_id_front TEXT,
+    buyer_id_back TEXT,
+    seller_id_front TEXT,
+    seller_id_back TEXT,
     status TEXT DEFAULT 'pending',
+    tracking_status TEXT DEFAULT 'waiting_payment',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
+  // إضافة الأعمدة الجديدة إذا كان الجدول قديماً
+  const cols = db.prepare("PRAGMA table_info(shield_requests)").all().map(c => c.name);
+  if (!cols.includes('buyer_id_front')) db.exec("ALTER TABLE shield_requests ADD COLUMN buyer_id_front TEXT");
+  if (!cols.includes('buyer_id_back')) db.exec("ALTER TABLE shield_requests ADD COLUMN buyer_id_back TEXT");
+  if (!cols.includes('seller_id_front')) db.exec("ALTER TABLE shield_requests ADD COLUMN seller_id_front TEXT");
+  if (!cols.includes('seller_id_back')) db.exec("ALTER TABLE shield_requests ADD COLUMN seller_id_back TEXT");
+  if (!cols.includes('tracking_status')) db.exec("ALTER TABLE shield_requests ADD COLUMN tracking_status TEXT DEFAULT 'waiting_payment'");
 } catch(e) { console.error('Shield Table Error:', e.message); }
 
-// صفحة درع التحقق للزبون
 app.get('/shield', (req, res) => {
   res.render('shield');
 });
 
-// استلام طلب التحقق
-app.post('/api/shield/request', upload.single('receipt'), (req, res) => {
+// استلام طلب الوساطة (مع رفع الهويات في المجلد السري)
+app.post('/api/shield/request', uploadPrivate.fields([
+  { name: 'buyer_id_front', maxCount: 1 }, { name: 'buyer_id_back', maxCount: 1 },
+  { name: 'seller_id_front', maxCount: 1 }, { name: 'seller_id_back', maxCount: 1 }
+]), (req, res) => {
   try {
-    const { buyer_phone, seller_phone, amount, tx_id } = req.body;
-    const receipt_image = req.file ? '/uploads/' + req.file.filename : null;
+    const { buyer_phone, seller_phone, amount } = req.body;
+    const f = req.files;
+    
+    const b_front = f['buyer_id_front'] ? f['buyer_id_front'][0].filename : null;
+    const b_back = f['buyer_id_back'] ? f['buyer_id_back'][0].filename : null;
+    const s_front = f['seller_id_front'] ? f['seller_id_front'][0].filename : null;
+    const s_back = f['seller_id_back'] ? f['seller_id_back'][0].filename : null;
 
-    const info = db.prepare("INSERT INTO shield_requests (buyer_phone, seller_phone, amount, tx_id, receipt_image) VALUES (?, ?, ?, ?, ?)").run(buyer_phone, seller_phone, amount, tx_id, receipt_image);
+    const info = db.prepare("INSERT INTO shield_requests (buyer_phone, seller_phone, amount, buyer_id_front, buyer_id_back, seller_id_front, seller_id_back) VALUES (?, ?, ?, ?, ?, ?, ?)").run(buyer_phone, seller_phone, amount, b_front, b_back, s_front, s_back);
     const requestId = info.lastInsertRowid;
 
-    sendTelegram(`🛡️ <b>طلب تحقق جديد (Apex Shield)!</b>\n\n👤 المشتري: ${buyer_phone}\n🏪 البائع: ${seller_phone}\n💰 المبلغ: ${amount}\n🔢 رقم العملية: ${tx_id || 'غير مذكور'}\n\nيرجى مراجعة الطلب في لوحة الإدارة.`);
+    sendTelegram(`🛡️ <b>طلب وساطة جديد!</b>\n\n👤 المشتري: ${buyer_phone}\n🏪 البائع: ${seller_phone}\n💰 المبلغ: ${amount}\n\nيرجى مراجعة لوحة الإدارة لفحص الهويات.`);
 
     res.json({ success: true, requestId: requestId });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// صفحة الإدارة لعرض الطلبات
+// صفحة تتبع الطلب للزبائن
+app.get('/shield/track/:phone', (req, res) => {
+  const order = db.prepare("SELECT * FROM shield_requests WHERE buyer_phone = ? OR seller_phone = ? ORDER BY id DESC LIMIT 1").get(req.params.phone, req.params.phone);
+  res.render('shield-track', { order, phone: req.params.phone });
+});
+
+// صفحة الإدارة
 app.get('/admin/shield-requests', requireAuth, (req, res) => {
   const requests = db.prepare("SELECT * FROM shield_requests ORDER BY id DESC").all();
   res.render('admin-shield-requests', { requests });
 });
 
-// الموافقة على التحقق
-app.post('/admin/shield/approve/:id', requireAuth, (req, res) => {
-  db.prepare("UPDATE shield_requests SET status = 'approved' WHERE id = ?").run(req.params.id);
+// تحديث حالة الطلب من الإدارة
+app.post('/admin/shield/update-status/:id', requireAuth, (req, res) => {
+  const { status } = req.body;
+  db.prepare("UPDATE shield_requests SET tracking_status = ?, status = 'approved' WHERE id = ?").run(status, req.params.id);
   res.redirect('/admin/shield-requests');
 });
 
-// رفض التحقق
-app.post('/admin/shield/reject/:id', requireAuth, (req, res) => {
-  db.prepare("UPDATE shield_requests SET status = 'rejected' WHERE id = ?").run(req.params.id);
+// حذف الهويات نهائياً بعد انتهاء الصفقة
+app.post('/admin/shield/delete-ids/:id', requireAuth, (req, res) => {
+  const order = db.prepare("SELECT * FROM shield_requests WHERE id = ?").get(req.params.id);
+  if (order) {
+    const files = [order.buyer_id_front, order.buyer_id_back, order.seller_id_front, order.seller_id_back];
+    files.forEach(file => {
+      if (file) { const p = './private_docs/' + file; if (fs.existsSync(p)) fs.unlinkSync(p); }
+    });
+    db.prepare("UPDATE shield_requests SET buyer_id_front=NULL, buyer_id_back=NULL, seller_id_front=NULL, seller_id_back=NULL, tracking_status='completed' WHERE id = ?").run(req.params.id);
+  }
   res.redirect('/admin/shield-requests');
 });
 
-// شهادة التحقق الملكية
+// الشهادة
 app.get('/certificate-shield/:id', (req, res) => {
   const request = db.prepare("SELECT * FROM shield_requests WHERE id = ?").get(req.params.id);
   if (!request || request.status !== 'approved') return res.send('الشهادة غير متاحة أو لم يتم التحقق منها بعد.');
   res.render('certificate-shield', { request });
+});
+
+// عرض الهويات السرية للأدمن فقط
+app.get('/admin/view-private/:filename', requireAuth, (req, res) => {
+  const p = path.resolve('./private_docs', req.params.filename);
+  if (fs.existsSync(p)) res.sendFile(p); else res.status(404).send('Not found');
 });
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

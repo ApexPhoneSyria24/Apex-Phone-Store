@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><title>تتبع الوساطة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #050505; background-image: radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.15), transparent 60%); font-family: 'Tajawal', sans-serif; color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 15px; margin: 0; }
+    .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 20px; width: 100%; max-width: 450px; padding: 30px 25px; text-align: center; }
+    .step { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; text-align: right; opacity: 0.5; transition: 0.3s; }
+    .step.active { opacity: 1; }
+    .step-icon { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #112240; border: 2px solid #334155; flex-shrink: 0; }
+    .step.active .step-icon { background: rgba(0, 243, 255, 0.1); border-color: #00f3ff; color: #00f3ff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.3); }
+  </style>
+</head>
+<body>
+  <div class="glass-card">
+    <h1 class="text-xl font-black text-white mb-6"><i class="fa-solid fa-magnifying-glass text-cyan-400"></i> تتبع طلب الوساطة</h1>
+    
+    <% if(!order) { %>
+      <p class="text-slate-400 text-sm mb-4">لم يتم العثور على طلب بهذا الرقم.</p>
+      <a href="/shield" class="text-cyan-400 font-bold text-sm">العودة لصفحة الوساطة</a>
+    <% } else { %>
+      <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 mb-6 text-sm">
+        <p class="mb-2">الطلب رقم: <span class="font-bold text-white">#<%= order.id %></span></p>
+        <p>المبلغ: <span class="font-bold text-green-400"><%= order.amount %></span></p>
+      </div>
+
+      <div class="space-y-4">
+        <div class="step <%= ['waiting_payment', 'funds_held', 'shipped', 'completed'].includes(order.tracking_status) ? 'active' : '' %>">
+          <div class="step-icon"><i class="fa-solid fa-file-invoice"></i></div>
+          <div><h3 class="font-bold text-sm">بانتظار التحقق</h3><p class="text-[10px] text-slate-400">تم رفع الهويات</p></div>
+        </div>
+        <div class="step <%= ['funds_held', 'shipped', 'completed'].includes(order.tracking_status) ? 'active' : '' %>">
+          <div class="step-icon"><i class="fa-solid fa-lock"></i></div>
+          <div><h3 class="font-bold text-sm">الأموال محجوزة</h3><p class="text-[10px] text-slate-400">البائع يمكنه الشحن الآن</p></div>
+        </div>
+        <div class="step <%= ['shipped', 'completed'].includes(order.tracking_status) ? 'active' : '' %>">
+          <div class="step-icon"><i class="fa-solid fa-truck-fast"></i></div>
+          <div><h3 class="font-bold text-sm">الجهاز في الطريق</h3><p class="text-[10px] text-slate-400">البائع قام بالشحن</p></div>
+        </div>
+        <div class="step <%= order.tracking_status === 'completed' ? 'active' : '' %>">
+          <div class="step-icon"><i class="fa-solid fa-check-double"></i></div>
+          <div><h3 class="font-bold text-sm">مكتمل</h3><p class="text-[10px] text-slate-400">تم التسليم بنجاح</p></div>
+        </div>
+      </div>
+
+      <% if(order.tracking_status === 'funds_held') { %>
+        <a href="/certificate-shield/<%= order.id %>" target="_blank" class="mt-6 block w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black py-3 rounded-xl shadow-lg">عرض شهادة الضمان</a>
+      <% } %>
+    <% } %>
+    
+    <div class="mt-4"><a href="/shield" class="text-xs text-slate-500 hover:text-white">العودة</a></div>
+  </div>
+</body>
+</html>

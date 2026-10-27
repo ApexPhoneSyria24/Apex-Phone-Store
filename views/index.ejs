@@ -621,71 +621,33 @@
   
   
 
+  
+  
+
   <script>
-    // SINGING_BOWL_SOUND - Tibetan Singing Bowl
-    let bowlCtx;
-    
-    function playSingingBowl() {
+    // ORIGINAL_MODAL_CLICK
+    let originalAudioCtx;
+    function playOriginalClick() {
       try {
-        if (!bowlCtx) bowlCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (bowlCtx.state === 'suspended') bowlCtx.resume();
+        if (!originalAudioCtx) originalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (originalAudioCtx.state === 'suspended') originalAudioCtx.resume();
         
-        const now = bowlCtx.currentTime;
-        const fundamental = 432; // التردد المتناغم مع الطبيعة
+        const now = originalAudioCtx.currentTime;
+        const osc = originalAudioCtx.createOscillator();
+        const gain = originalAudioCtx.createGain();
         
-        // فلتر ناعم جداً يزيل أي حدة
-        const filter = bowlCtx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.value = 1800;
-        filter.Q.value = 0.5;
-        filter.connect(bowlCtx.destination);
+        osc.type = 'sine'; // الموجة الناعمة
+        osc.frequency.setValueAtTime(800, now); // تبدأ بـ 800
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.1); // تنزل لـ 400
         
-        // 3 طبقات من الاهتزازات (Partials) كما في أطباق التبت
-        const partials = [
-          { freq: fundamental, gain: 0.18, decay: 3.5 },        // الأساسي - رنين طويل
-          { freq: fundamental * 2.7, gain: 0.06, decay: 2.8 },  // الطبقة الثانية
-          { freq: fundamental * 5.4, gain: 0.025, decay: 2.0 }  // الطبقة الثالثة الناعمة
-        ];
+        gain.gain.setValueAtTime(0.15, now); // صوت واضح
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); // يتلاشى بسرعة
         
-        partials.forEach(p => {
-          const osc = bowlCtx.createOscillator();
-          const gain = bowlCtx.createGain();
-          
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(p.freq, now);
-          // اهتزاز خفيف جداً يعطي إحساس الدفء
-          osc.detune.setValueAtTime(0, now);
-          osc.detune.linearRampToValueAtTime(3, now + p.decay);
-          
-          // Envelope ناعم جداً (دخول بطيء، رنين طويل)
-          gain.gain.setValueAtTime(0, now);
-          gain.gain.linearRampToValueAtTime(p.gain, now + 0.08);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + p.decay);
-          
-          osc.connect(gain);
-          gain.connect(filter);
-          osc.start(now);
-          osc.stop(now + p.decay);
-        });
+        osc.connect(gain);
+        gain.connect(originalAudioCtx.destination);
         
-        // نغمة ثانية ناعمة بعد 0.3 ثانية (تأثير الصدى)
-        setTimeout(() => {
-          const now2 = bowlCtx.currentTime;
-          const osc2 = bowlCtx.createOscillator();
-          const gain2 = bowlCtx.createGain();
-          osc2.type = 'sine';
-          osc2.frequency.setValueAtTime(fundamental * 1.5, now2);
-          
-          gain2.gain.setValueAtTime(0, now2);
-          gain2.gain.linearRampToValueAtTime(0.05, now2 + 0.1);
-          gain2.gain.exponentialRampToValueAtTime(0.0001, now2 + 2.5);
-          
-          osc2.connect(gain2);
-          gain2.connect(filter);
-          osc2.start(now2);
-          osc2.stop(now2 + 2.5);
-        }, 300);
-        
+        osc.start(now);
+        osc.stop(now + 0.1);
       } catch(e) {}
     }
 
@@ -695,12 +657,12 @@
       
       if (scamModal) {
         scamModal.querySelectorAll('button, a').forEach(el => {
-          el.addEventListener('pointerdown', playSingingBowl);
+          el.addEventListener('pointerdown', playOriginalClick);
         });
       }
       if (verifModal) {
         verifModal.querySelectorAll('button, a').forEach(el => {
-          el.addEventListener('pointerdown', playSingingBowl);
+          el.addEventListener('pointerdown', playOriginalClick);
         });
       }
     });

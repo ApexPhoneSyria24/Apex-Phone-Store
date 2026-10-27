@@ -43,6 +43,8 @@
     </div>
 
     <form id="shieldForm" enctype="multipart/form-data">
+      <!-- الحقل المخفي (لا يراه البشر، البوتات تملأه فيتم حظرها) -->
+      <input type="text" name="website_url" style="display:none !important" tabindex="-1" autocomplete="off">
       <!-- المشتري -->
       <div class="section-title"><i class="fa-solid fa-user-tag"></i> بيانات المشتري (يدفع 1.5$ رسوم + سعر الهاتف)</div>
       <div class="input-group">

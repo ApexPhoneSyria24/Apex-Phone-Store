@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const db = require('./database');
 const compression = require('compression');
+const rateLimit = require('express-rate-limit');
 
 // ===== Auto-Migrate (Safe) =====
 try {
@@ -160,6 +161,27 @@ app.use(express.json());
 app.use('/uploads', express.static('public/uploads', { maxAge: '30d', immutable: true }));
 app.use('/css', express.static('public/css', { maxAge: '7d' }));
 app.use(express.static('public'));
+
+
+// ===== SECURITY: Rate Limiting =====
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 دقيقة
+  max: 300, // 300 طلب لكل IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: '⚠️ عذراً، قمت بإرسال طلبات كثيرة جداً. يرجى المحاولة بعد 15 دقيقة.'
+});
+app.use(globalLimiter);
+
+const strictLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10, // 10 طلبات فقط للأقسام الحساسة
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: '⚠️ محاولات كثيرة جداً على هذا القسم. يرجى المحاولة لاحقاً.'
+});
+app.use('/admin/login', strictLimiter);
+app.use('/api/shield/request', strictLimiter);
 
 // ===== Visitor Tracking (Silent) =====
 app.use((req, res, next) => {
@@ -585,7 +607,7 @@ app.get('/admin/login', (req, res) => {
   if (req.session.isAdmin) return res.redirect('/admin'); 
   res.render('admin-login', { error: null }); 
 });
-app.post('/admin/login', (req, res) => { 
+app.post('/admin/login', (req, res) => { if (req.body.admin_hp) return res.status(400).send('Bot Detected'); 
   const ipHeader = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
   const cleanIp = ipHeader.split(',')[0].trim();
   
@@ -854,7 +876,7 @@ app.get('/shield', (req, res) => {
   res.render('shield');
 });
 
-app.post('/api/shield/request', uploadPrivate.fields([
+app.post('/api/shield/request', (req, res, next) => { if (req.body.website_url) return res.status(400).json({ error: 'Bot Detected' }); next(); }, uploadPrivate.fields([
   { name: 'buyer_id_front', maxCount: 1 }, { name: 'buyer_id_back', maxCount: 1 },
   { name: 'seller_id_front', maxCount: 1 }, { name: 'seller_id_back', maxCount: 1 }
 ]), (req, res) => {

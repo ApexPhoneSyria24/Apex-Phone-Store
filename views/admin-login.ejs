@@ -31,6 +31,7 @@
     <% } %>
 
     <form action="/admin/login" method="POST" class="space-y-5">
+      <input type="text" name="admin_hp" style="display:none !important" tabindex="-1" autocomplete="off">
       <div class="relative">
         <i class="fa-solid fa-lock absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
         <input type="password" name="password" required placeholder="أدخل كلمة المرور السرية" class="w-full pl-4 pr-12 py-4 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 outline-none bg-slate-50 text-lg font-bold text-center" dir="ltr">

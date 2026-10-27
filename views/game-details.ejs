@@ -111,15 +111,15 @@
             
             <% if (samacardPackages && samacardPackages.length > 0) { %>
               <!-- باقات Samacard (Free Fire) -->
-              <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div class="grid grid-cols-3 md:grid-cols-4 gap-2">
                 <% samacardPackages.forEach((pkg, index) => { %>
-                  <div class="package-card p-3 flex flex-col items-center justify-center text-center <%= index === 0 ? 'active' : '' %>" 
+                  <div class="package-card p-2 flex flex-col items-center justify-center text-center <%= index === 0 ? 'active' : '' %>" 
                        data-id="<%= pkg.id %>"
                        data-name="<%= pkg.name %>" 
                        data-price="<%= pkg.price %>">
-                    <div class="text-2xl mb-1 text-orange-500"><i class="fa-solid fa-gem"></i></div>
-                    <h3 class="text-xs font-black text-white mb-1 truncate w-full"><%= pkg.name %></h3>
-                    <div class="price text-lg font-black text-slate-300 font-mono">$<%= pkg.price %></div>
+                    <div class="text-lg mb-0.5 text-orange-500"><i class="fa-solid fa-gem"></i></div>
+                    <h3 class="text-[10px] font-black text-white mb-0.5 truncate w-full"><%= pkg.name %></h3>
+                    <div class="price text-sm font-black text-slate-300 font-mono">$<%= pkg.price %></div>
                   </div>
                 <% }) %>
               </div>
@@ -129,15 +129,15 @@
               <input type="hidden" id="isSamacard" value="true">
             <% } else if (packages.length > 0) { %>
               <!-- باقات عادية -->
-              <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div class="grid grid-cols-3 md:grid-cols-4 gap-2">
                 <% packages.forEach((pkg, index) => { %>
-                  <div class="package-card p-3 flex flex-col items-center justify-center text-center <%= index === 0 ? 'active' : '' %>" 
+                  <div class="package-card p-2 flex flex-col items-center justify-center text-center <%= index === 0 ? 'active' : '' %>" 
                        data-id="<%= pkg.id %>"
                        data-name="<%= pkg.package_name %>" 
                        data-price="<%= pkg.price %>">
-                    <div class="text-2xl mb-1 text-cyan-400"><i class="fa-solid fa-coins"></i></div>
-                    <h3 class="text-xs font-black text-white mb-1 truncate w-full"><%= pkg.package_name %></h3>
-                    <div class="price text-lg font-black text-slate-300 font-mono">$<%= pkg.price %></div>
+                    <div class="text-lg mb-0.5 text-cyan-400"><i class="fa-solid fa-coins"></i></div>
+                    <h3 class="text-[10px] font-black text-white mb-0.5 truncate w-full"><%= pkg.package_name %></h3>
+                    <div class="price text-sm font-black text-slate-300 font-mono">$<%= pkg.price %></div>
                   </div>
                 <% }) %>
               </div>

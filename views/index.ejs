@@ -615,30 +615,51 @@
   
   
 
+  
+  
+
   <script>
-    // PIANO_SOUND_SCRIPT
-    let pianoAudioCtx;
-    function playPianoSound() {
+    // REAL_PIANO_SOUND
+    let realPianoCtx;
+    
+    function playRealPiano() {
       try {
-        if (!pianoAudioCtx) pianoAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (pianoAudioCtx.state === 'suspended') pianoAudioCtx.resume();
+        if (!realPianoCtx) realPianoCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (realPianoCtx.state === 'suspended') realPianoCtx.resume();
         
-        const now = pianoAudioCtx.currentTime;
-        const osc = pianoAudioCtx.createOscillator();
-        const gain = pianoAudioCtx.createGain();
+        const now = realPianoCtx.currentTime;
+        const fundamental = 523.25; // نغمة C5 (نغمة بيانو مشرقة)
         
-        osc.type = 'sine'; // موجة ناعمة تعطي صوت البيانو
-        osc.frequency.setValueAtTime(800, now);
-        osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+        // طبقة فلتر لتنعيم الصوت
+        const masterGain = realPianoCtx.createGain();
+        masterGain.gain.value = 1.0;
+        masterGain.connect(realPianoCtx.destination);
         
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        // إنشاء 3 طبقات صوتية (Harmonics) لتقليد رنين البيانو
+        const harmonics = [
+          { freq: fundamental, gain: 0.5, type: 'triangle' },      // النغمة الأساسية
+          { freq: fundamental * 2, gain: 0.25, type: 'sine' },     // الأوكتاف الأعلى
+          { freq: fundamental * 3, gain: 0.12, type: 'triangle' }  // الطبقة الثالثة
+        ];
         
-        osc.connect(gain);
-        gain.connect(pianoAudioCtx.destination);
-        
-        osc.start(now);
-        osc.stop(now + 0.1);
+        harmonics.forEach(h => {
+          const osc = realPianoCtx.createOscillator();
+          const gain = realPianoCtx.createGain();
+          
+          osc.type = h.type;
+          osc.frequency.value = h.freq;
+          
+          // شكل الموجة الصوتية للبيانو (Attack سريع، Decay طويل)
+          gain.gain.setValueAtTime(0, now);
+          gain.gain.linearRampToValueAtTime(h.gain, now + 0.01);    // ضربة سريعة
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2); // رنين طويل
+          
+          osc.connect(gain);
+          gain.connect(masterGain);
+          
+          osc.start(now);
+          osc.stop(now + 1.2);
+        });
       } catch(e) {}
     }
 
@@ -648,12 +669,12 @@
       
       if (scamModal) {
         scamModal.querySelectorAll('button, a').forEach(el => {
-          el.addEventListener('pointerdown', playPianoSound);
+          el.addEventListener('pointerdown', playRealPiano);
         });
       }
       if (verifModal) {
         verifModal.querySelectorAll('button, a').forEach(el => {
-          el.addEventListener('pointerdown', playPianoSound);
+          el.addEventListener('pointerdown', playRealPiano);
         });
       }
     });

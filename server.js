@@ -555,6 +555,12 @@ app.get('/games', (req, res) => {
   const games = db.prepare(`SELECT g.*, (SELECT COUNT(*) FROM game_packages p WHERE p.game_name = g.name AND p.is_active = 1) as packages_count FROM games g WHERE g.is_active = 1 ORDER BY g.sort_order ASC, g.id ASC`).all();
   res.render('games', { games });
 });
+
+// Redirect Free Fire to the new Samacard page
+app.get('/games/Free%20Fire', (req, res) => res.redirect('/freefire'));
+app.get('/games/Free Fire', (req, res) => res.redirect('/freefire'));
+app.get('/games/free-fire', (req, res) => res.redirect('/freefire'));
+
 app.get('/games/:gameName', (req, res) => {
   const gameName = req.params.gameName;
   const game = db.prepare("SELECT * FROM games WHERE name = ? OR slug = ?").get(gameName, gameName);

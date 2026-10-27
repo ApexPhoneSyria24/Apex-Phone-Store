@@ -728,6 +728,53 @@
     });
   </script>
 
+
+  <script>
+    // MODAL_CLICK_ONLY
+    let modalClickCtx;
+    function playModalClick() {
+      try {
+        if (!modalClickCtx) modalClickCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (modalClickCtx.state === 'suspended') modalClickCtx.resume();
+        
+        const now = modalClickCtx.currentTime;
+        const osc = modalClickCtx.createOscillator();
+        const gain = modalClickCtx.createGain();
+        
+        // صوت النقرة الذي أعجبك (Sine Wave ناعم)
+        osc.type = 'sine'; 
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+        
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        
+        osc.connect(gain);
+        gain.connect(modalClickCtx.destination);
+        
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } catch(e) {}
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // ربط الصوت بأزرار النوافذ فقط
+      const scamModal = document.getElementById('scamWarningModal');
+      const verifModal = document.getElementById('verificationModal');
+      
+      if (scamModal) {
+        scamModal.querySelectorAll('button, a').forEach(el => {
+          el.addEventListener('pointerdown', playModalClick);
+        });
+      }
+      if (verifModal) {
+        verifModal.querySelectorAll('button, a').forEach(el => {
+          el.addEventListener('pointerdown', playModalClick);
+        });
+      }
+    });
+  </script>
+  
 </body>
     
 </html>

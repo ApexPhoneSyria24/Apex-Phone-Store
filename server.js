@@ -710,15 +710,12 @@ app.post('/api/special-order', (req, res) => {
     const info = db.prepare("INSERT INTO special_orders (device_name, budget, customer_name, phone, governorate, delivery_method) VALUES (?, ?, ?, ?, ?, ?)").run(device_name, budget || 'غير محدد', customer_name, phone, governorate, delivery_method);
     const orderId = info.lastInsertRowid;
     
-    sendTelegram(`📱 <b>طلب جهاز خاص (غير موجود)!</b>\n\n📱 الجهاز: ${device_name}\n💰 الميزانية: ${budget || 'غير محدد'}\n👤 الاسم: ${customer_name}\n📞 الهاتف: ${phone}\n📍 المحافظة: ${governorate}\n🚚 التوصيل: ${delivery_method}`);
+    if (typeof sendTelegram === 'function') {
+      sendTelegram(`📱 <b>طلب جهاز خاص!</b>\n\n📱 الجهاز: ${device_name}\n💰 الميزانية: ${budget || 'غير محدد'}\n👤 الاسم: ${customer_name}\n📞 الهاتف: ${phone}\n📍 المحافظة: ${governorate}\n🚚 التوصيل: ${delivery_method}`);
+    }
     
     res.json({ success: true, orderId: orderId });
   } catch(e) { res.status(500).json({ error: e.message }); }
-});
-  } catch(e) { 
-    console.error('Special Order Error:', e.message);
-    res.status(500).json({ error: e.message }); 
-  }
 });
 
 app.get('/admin/special-orders', requireAuth, (req, res) => {

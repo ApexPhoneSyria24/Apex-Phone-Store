@@ -707,26 +707,14 @@ app.post('/api/special-order', (req, res) => {
       delivery_method = 'شحن عبر شركات النقل (هرم / قدموس)';
     }
 
-    // التأكد من وجود الجدول قبل الإدخال
-    db.exec(`CREATE TABLE IF NOT EXISTS special_orders (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      device_name TEXT NOT NULL,
-      budget TEXT,
-      customer_name TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      governorate TEXT NOT NULL,
-      delivery_method TEXT,
-      status TEXT DEFAULT 'pending',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
-
     const info = db.prepare("INSERT INTO special_orders (device_name, budget, customer_name, phone, governorate, delivery_method) VALUES (?, ?, ?, ?, ?, ?)").run(device_name, budget || 'غير محدد', customer_name, phone, governorate, delivery_method);
     const orderId = info.lastInsertRowid;
     
-    // إرسال الإشعار إلى تيليجرام
     sendTelegram(`📱 <b>طلب جهاز خاص (غير موجود)!</b>\n\n📱 الجهاز: ${device_name}\n💰 الميزانية: ${budget || 'غير محدد'}\n👤 الاسم: ${customer_name}\n📞 الهاتف: ${phone}\n📍 المحافظة: ${governorate}\n🚚 التوصيل: ${delivery_method}`);
-
-    res.json({ success: true });
+    
+    res.json({ success: true, orderId: orderId });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
   } catch(e) { 
     console.error('Special Order Error:', e.message);
     res.status(500).json({ error: e.message }); 

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><title>شهادة تحقق Apex</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #050505; background-image: radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.15), transparent 60%); font-family: 'Tajawal', sans-serif; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; margin: 0; }
+    .certificate-box { background: linear-gradient(135deg, #0f172a 0%, #050505 100%); border: 2px solid #00f3ff; border-radius: 20px; padding: 30px; width: 100%; max-width: 450px; position: relative; box-shadow: 0 0 40px rgba(0, 243, 255, 0.2); text-align: center; }
+    .corner { position: absolute; width: 40px; height: 40px; border-color: #00f3ff; border-style: solid; }
+    .corner-tl { top: 10px; left: 10px; border-width: 2px 0 0 2px; border-top-left-radius: 10px; }
+    .corner-tr { top: 10px; right: 10px; border-width: 2px 2px 0 0; border-top-right-radius: 10px; }
+    .corner-bl { bottom: 10px; left: 10px; border-width: 0 0 2px 2px; border-bottom-left-radius: 10px; }
+    .corner-br { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; border-bottom-right-radius: 10px; }
+    .cyan-text { color: #00f3ff; text-shadow: 0 0 10px rgba(0, 243, 255, 0.5); }
+    .cyan-seal { width: 100px; height: 100px; border-radius: 50%; border: 3px dashed #00f3ff; display: flex; align-items: center; justify-content: center; margin: 20px auto; background: rgba(0, 243, 255, 0.05); box-shadow: 0 0 20px rgba(0, 243, 255, 0.3); }
+    .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 80px; font-weight: 900; color: rgba(0,243,255,0.02); pointer-events: none; white-space: nowrap; font-family: 'Amiri', serif; }
+  </style>
+</head>
+<body>
+  <div class="certificate-box">
+    <div class="corner corner-tl"></div><div class="corner corner-tr"></div><div class="corner corner-bl"></div><div class="corner corner-br"></div>
+    <div class="watermark">APEX SHIELD</div>
+
+    <div class="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(0,243,255,0.6)]">
+      <i class="fa-solid fa-shield-halved text-3xl text-white"></i>
+    </div>
+
+    <h1 class="text-2xl font-black cyan-text mb-1">شهادة تحقق مالية</h1>
+    <p class="text-xs text-slate-400 mb-6 font-bold tracking-widest">FINANCIAL VERIFICATION CERTIFICATE</p>
+
+    <div class="bg-black/40 border border-slate-800 rounded-xl p-4 text-right space-y-3 mb-6">
+      <div class="flex justify-between border-b border-slate-800 pb-2">
+        <span class="text-slate-400 text-sm">تم التحقق لصالح:</span>
+        <span class="font-bold text-white text-sm" dir="ltr"><%= request.buyer_phone %></span>
+      </div>
+      <div class="flex justify-between border-b border-slate-800 pb-2">
+        <span class="text-slate-400 text-sm">البائع:</span>
+        <span class="font-bold text-white text-sm" dir="ltr"><%= request.seller_phone %></span>
+      </div>
+      <div class="flex justify-between border-b border-slate-800 pb-2">
+        <span class="text-slate-400 text-sm">المبلغ المحول:</span>
+        <span class="font-bold text-green-400 text-sm"><%= request.amount %></span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-slate-400 text-sm">تاريخ التحقق:</span>
+        <span class="font-bold text-white text-xs font-mono"><%= new Date().toLocaleDateString('ar-EG') %></span>
+      </div>
+    </div>
+
+    <div class="cyan-seal">
+      <div class="text-center">
+        <i class="fa-solid fa-check-double text-3xl cyan-text mb-1"></i>
+        <p class="text-[10px] font-black cyan-text leading-tight">تم التحقق<br>بواسطة APEX</p>
+      </div>
+    </div>
+
+    <p class="text-[11px] text-slate-400 leading-relaxed mt-4">
+      تشهد إدارة <b>Apex Phone Syria</b> بأنها قامت بالتحقق من وصول المبلغ المذكور أعلاه إلى حساب البائع. هذه الشهادة لا تعفي البائع من مسؤولية إرسال المنتج.
+    </p>
+
+    <button onclick="window.print()" class="mt-6 w-full bg-slate-800 border border-slate-700 text-white font-bold py-2.5 rounded-xl hover:bg-slate-700 transition text-sm flex items-center justify-center gap-2">
+      <i class="fa-solid fa-print"></i> طباعة الشهادة
+    </button>
+  </div>
+</body>
+</html>

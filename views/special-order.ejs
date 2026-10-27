@@ -118,12 +118,18 @@
       </p>
       
       <div style="display: flex; flex-direction: column; gap: 10px;">
+        
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <a id="viewCertBtn" href="#" style="display: none; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #BF953F, #FCF6B5, #B38728); color: #000; padding: 14px; border-radius: 12px; font-weight: 900; text-decoration: none; transition: 0.3s; box-shadow: 0 4px 15px rgba(191,149,63,0.4);">
+          <i class="fa-solid fa-shield-halved"></i> عرض شهادة الضمان
+        </a>
         <a href="https://wa.me/963980259127?text=مرحباً،%20أنا%20أرسلت%20طلب%20جهاز%20خاص%20عبر%20الموقع%20وأريد%20متابعة%20الطلب" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #25D366; color: white; padding: 14px; border-radius: 12px; font-weight: 700; text-decoration: none; transition: 0.3s; box-shadow: 0 4px 15px rgba(37,211,102,0.3);">
           <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> تواصل معنا عبر واتساب
         </a>
         <a href="/" style="display: block; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 14px; border-radius: 12px; font-weight: 700; text-decoration: none; transition: 0.3s;">
           العودة للمتجر
         </a>
+      </div>
       </div>
     </div>
   </div>
@@ -175,6 +181,12 @@
         });
 
         if (res.ok) {
+          const result = await res.json();
+          const certBtn = document.getElementById('viewCertBtn');
+          if (certBtn && result.orderId) {
+            certBtn.href = '/certificate/' + result.orderId;
+            certBtn.style.display = 'flex';
+          }
           document.getElementById('successModal').style.display = 'flex';
           this.reset();
           deliveryInfo.style.display = 'none';

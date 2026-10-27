@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>شهادة ضمان Apex | طلب #<%= order.id %></title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #050505;
+      background-image: radial-gradient(circle at 50% 0%, rgba(191, 149, 63, 0.15), transparent 60%);
+      font-family: 'Tajawal', sans-serif;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      margin: 0;
+    }
+    .certificate-box {
+      background: linear-gradient(135deg, #0f172a 0%, #050505 100%);
+      border: 2px solid #BF953F;
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 450px;
+      position: relative;
+      box-shadow: 0 0 40px rgba(191, 149, 63, 0.2), inset 0 0 20px rgba(191, 149, 63, 0.05);
+      overflow: hidden;
+      text-align: center;
+    }
+    /* زخرفة الزوايا */
+    .corner { position: absolute; width: 40px; height: 40px; border-color: #BF953F; border-style: solid; }
+    .corner-tl { top: 10px; left: 10px; border-width: 2px 0 0 2px; border-top-left-radius: 10px; }
+    .corner-tr { top: 10px; right: 10px; border-width: 2px 2px 0 0; border-top-right-radius: 10px; }
+    .corner-bl { bottom: 10px; left: 10px; border-width: 0 0 2px 2px; border-bottom-left-radius: 10px; }
+    .corner-br { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; border-bottom-right-radius: 10px; }
+    
+    .gold-text { color: #FCF6B5; text-shadow: 0 0 10px rgba(191, 149, 63, 0.5); }
+    .gold-seal {
+      width: 100px; height: 100px; border-radius: 50%;
+      border: 3px dashed #BF953F;
+      display: flex; align-items: center; justify-content: center;
+      margin: 20px auto; position: relative;
+      background: rgba(191, 149, 63, 0.1);
+      box-shadow: 0 0 20px rgba(191, 149, 63, 0.3);
+    }
+    .gold-seal::before {
+      content: ''; position: absolute; inset: 5px; border-radius: 50%; border: 1px solid rgba(191, 149, 63, 0.5);
+    }
+    .watermark {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 80px; font-weight: 900; color: rgba(255,255,255,0.02); pointer-events: none; white-space: nowrap; font-family: 'Amiri', serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="certificate-box">
+    <!-- الزخارف -->
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+    <div class="watermark">APEX PHONE</div>
+
+    <!-- الشعار -->
+    <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(191,149,63,0.6)]">
+      <i class="fa-solid fa-shield-halved text-3xl text-black"></i>
+    </div>
+
+    <h1 class="text-2xl font-black gold-text mb-1">شهادة ضمان رسمية</h1>
+    <p class="text-xs text-slate-400 mb-6 font-bold tracking-widest">OFFICIAL GUARANTEE CERTIFICATE</p>
+
+    <!-- التفاصيل -->
+    <div class="bg-black/40 border border-slate-800 rounded-xl p-4 text-right space-y-3 mb-6">
+      <div class="flex justify-between border-b border-slate-800 pb-2">
+        <span class="text-slate-400 text-sm">اسم العميل:</span>
+        <span class="font-bold text-white text-sm"><%= order.customer_name %></span>
+      </div>
+      <div class="flex justify-between border-b border-slate-800 pb-2">
+        <span class="text-slate-400 text-sm">رقم الطلب:</span>
+        <span class="font-bold gold-text font-mono text-sm" dir="ltr">#APX-<%= order.id %>00<%= order.id %></span>
+      </div>
+      <div class="flex justify-between border-b border-slate-800 pb-2">
+        <span class="text-slate-400 text-sm">الجهاز المطلوب:</span>
+        <span class="font-bold text-white text-sm truncate max-w-[150px]"><%= order.device_name %></span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-slate-400 text-sm">تاريخ الإصدار:</span>
+        <span class="font-bold text-white text-xs font-mono"><%= new Date().toLocaleDateString('ar-EG') %></span>
+      </div>
+    </div>
+
+    <!-- الختم الذهبي -->
+    <div class="gold-seal">
+      <div class="text-center">
+        <i class="fa-solid fa-check-circle text-3xl gold-text mb-1"></i>
+        <p class="text-[10px] font-black gold-text leading-tight">مضمون من<br>APEX</p>
+      </div>
+    </div>
+
+    <p class="text-[11px] text-slate-400 leading-relaxed mt-4">
+      هذه الوثيقة تؤكد أن طلبك مسجل لدى إدارة <b>Apex Phone Syria</b>، ونضمن لك حقوقك كاملة وفقاً لسياسة المتجر. احتفظ بهذه الشهادة.
+    </p>
+
+    <!-- زر الطباعة -->
+    <button onclick="window.print()" class="mt-6 w-full bg-slate-800 border border-slate-700 text-white font-bold py-2.5 rounded-xl hover:bg-slate-700 transition text-sm flex items-center justify-center gap-2">
+      <i class="fa-solid fa-print"></i> طباعة / حفظ PDF
+    </button>
+  </div>
+</body>
+</html>

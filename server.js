@@ -316,7 +316,7 @@ app.post('/api/human-chat/init', (req, res) => {
       db.prepare("INSERT INTO chat_messages (visitor_id, sender, message) VALUES (?, 'admin', ?)").run(visitor_id, welcomeMsg);
       sendTelegram(`🔔 <b>زبون بدأ محادثة جديدة!</b>\\nالزائر: ${visitor_id}`);
     }
-    res.json({ success: true });
+    res.json({ success: true, orderId: orderId });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -720,7 +720,8 @@ app.post('/api/special-order', (req, res) => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    db.prepare("INSERT INTO special_orders (device_name, budget, customer_name, phone, governorate, delivery_method) VALUES (?, ?, ?, ?, ?, ?)").run(device_name, budget || 'غير محدد', customer_name, phone, governorate, delivery_method);
+    const info = db.prepare("INSERT INTO special_orders (device_name, budget, customer_name, phone, governorate, delivery_method) VALUES (?, ?, ?, ?, ?, ?)").run(device_name, budget || 'غير محدد', customer_name, phone, governorate, delivery_method);
+    const orderId = info.lastInsertRowid;
     
     // إرسال الإشعار إلى تيليجرام
     sendTelegram(`📱 <b>طلب جهاز خاص (غير موجود)!</b>\n\n📱 الجهاز: ${device_name}\n💰 الميزانية: ${budget || 'غير محدد'}\n👤 الاسم: ${customer_name}\n📞 الهاتف: ${phone}\n📍 المحافظة: ${governorate}\n🚚 التوصيل: ${delivery_method}`);
@@ -747,6 +748,16 @@ app.get('/api/test-special-telegram', (req, res) => {
 // ===== Installments Maintenance Page =====
 app.get('/installments', (req, res) => {
   res.render('installments');
+});
+
+
+// ===== Certificate Route =====
+app.get('/certificate/:id', (req, res) => {
+  try {
+    const order = db.prepare("SELECT * FROM special_orders WHERE id = ?").get(req.params.id);
+    if (!order) return res.status(404).send('الشهادة غير موجودة');
+    res.render('certificate', { order });
+  } catch(e) { res.status(500).send('حدث خطأ في عرض الشهادة'); }
 });
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

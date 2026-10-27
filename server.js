@@ -133,7 +133,7 @@ const app = express();
 const PORT = 3000;
 
 app.use(compression());
-app.use(session({ secret: 'apex-secret', resave: false, saveUninitialized: true, cookie: { maxAge: 86400000 } }));
+app.use(session({ secret: 'xK9mP2qL7vN4wR8tY3uB6nJ5hG1fD0sAq8zXc4vB2nM6kL9jH3gF7dS1aP0oI5u', resave: false, saveUninitialized: true, cookie: { maxAge: 86400000 } }));
 
 const uploadDir = './public/uploads';
 const privateDir = './private_docs';
@@ -570,11 +570,47 @@ app.post('/topup-balance', upload.single('receipt'), (req, res) => {
 });
 
 // ===== Admin Login =====
+// ===== Security Gate =====
+const loginAttempts = new Map();
+const SECRET_ADMIN_GATE = '/apex-gate-8472';
+
+app.get(SECRET_ADMIN_GATE, (req, res) => {
+  req.session.adminGate = true;
+  res.redirect('/admin/login');
+});
+
 const ADMIN_PASSWORD = "0962730078@0962";
-app.get('/admin/login', (req, res) => { if (req.session.isAdmin) return res.redirect('/admin'); res.render('admin-login', { error: null }); });
-app.post('/admin/login', (req, res) => { if (req.body.password === ADMIN_PASSWORD) { req.session.isAdmin = true; return res.redirect('/admin'); } res.render('admin-login', { error: '❌ كلمة المرور غير صحيحة.' }); });
+app.get('/admin/login', (req, res) => { 
+  if (!req.session.adminGate && !req.session.isAdmin) return res.status(404).send('Cannot GET /admin/login'); 
+  if (req.session.isAdmin) return res.redirect('/admin'); 
+  res.render('admin-login', { error: null }); 
+});
+app.post('/admin/login', (req, res) => { 
+  const ipHeader = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+  const cleanIp = ipHeader.split(',')[0].trim();
+  
+  if (req.body.password === ADMIN_PASSWORD) { 
+    req.session.isAdmin = true;
+    loginAttempts.delete(cleanIp);
+    return res.redirect('/admin'); 
+  } 
+  
+  const record = loginAttempts.get(cleanIp) || { count: 0 };
+  record.count++;
+  loginAttempts.set(cleanIp, record);
+  
+  if (record.count === 3 && typeof sendTelegram === 'function') {
+    sendTelegram('🚨 تحذير أمني: 3 محاولات دخول فاشلة للوحة الإدارة من IP: ' + cleanIp);
+  }
+  
+  res.render('admin-login', { error: '❌ كلمة المرور غير صحيحة.' }); 
+});
 app.get('/admin/logout', (req, res) => { req.session.destroy(); res.redirect('/'); });
-function requireAuth(req, res, next) { if (req.session.isAdmin) return next(); res.redirect('/admin/login'); }
+function requireAuth(req, res, next) { 
+  if (req.session.isAdmin) return next(); 
+  if (!req.session.adminGate) return res.status(404).send('Not Found');
+  res.redirect('/admin/login'); 
+}
 
 // ===== Admin Dashboard =====
 app.get('/admin', requireAuth, (req, res) => {

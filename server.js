@@ -591,7 +591,7 @@ app.get('/games/:gameName', async (req, res) => {
         samacardPackages = details.map(p => {
           const priceSYP = parseFloat(p.price);
           const basePriceUSD = priceSYP / 142; // سعر التكلفة بالدولار
-          const finalPriceUSD = basePriceUSD + 0.15; // إضافة ربح ثابت 15 سنت
+          const finalPriceUSD = basePriceUSD + 0.10; // إضافة ربح ثابت 15 سنت
           
           let cleanName = p.name.replace('FreeFire By ID', '').trim();
           

@@ -354,21 +354,21 @@
 
 
     <script>
-      window.femaleAudio = new Audio('/sounds/welcome_female.mp3');
-      window.femaleAudio.volume = 1.0;
-      window.femaleAudioPlayed = false;
+      /* removed */ = new Audio('/sounds/');
+      /* removed */.volume = 1.0;
+      /* removed */Played = false;
 
       window.playWelcomeVoice = function() {
-        if (window.femaleAudioPlayed) return;
-        window.femaleAudioPlayed = true;
-        window.femaleAudio.play().catch(e => {
+        if (/* removed */Played) return;
+        /* removed */Played = true;
+        /* removed */.play().catch(e => {
             console.log('Audio play failed:', e);
         });
       };
 
       // تشغيل الصوت بمجرد النقر في أي مكان (لتجاوز قيود المتصفح)
       document.addEventListener('click', function(e) {
-        if (!window.femaleAudioPlayed) {
+        if (!/* removed */Played) {
             window.playWelcomeVoice();
         }
       }, { capture: true, once: true });

@@ -839,9 +839,14 @@ app.post('/api/shield/request', uploadPrivate.fields([
 });
 
 // صفحة تتبع الطلب للزبائن
-app.get('/shield/track/:phone', (req, res) => {
-  const order = db.prepare("SELECT * FROM shield_requests WHERE buyer_phone = ? OR seller_phone = ? ORDER BY id DESC LIMIT 1").get(req.params.phone, req.params.phone);
-  res.render('shield-track', { order, phone: req.params.phone });
+app.get('/shield/track', (req, res) => {
+  let order = null;
+  const phone = req.query.phone;
+  if (phone) {
+    order = db.prepare("SELECT * FROM shield_requests WHERE buyer_phone = ? OR seller_phone = ? ORDER BY id DESC LIMIT 1").get(phone, phone);
+  }
+  res.render('shield-track', { order, phone: phone || '' });
+});
 });
 
 // صفحة الإدارة

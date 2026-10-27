@@ -1,57 +1,75 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8"><title>تتبع الوساطة</title>
+  <meta charset="UTF-8"><title>تتبع الوساطة | Apex</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background-color: #050505; background-image: radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.15), transparent 60%); font-family: 'Tajawal', sans-serif; color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 15px; margin: 0; }
-    .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 20px; width: 100%; max-width: 450px; padding: 30px 25px; text-align: center; }
-    .step { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; text-align: right; opacity: 0.5; transition: 0.3s; }
+    .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 20px; width: 100%; max-width: 450px; padding: 30px 25px; }
+    .step { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; text-align: right; opacity: 0.4; transition: 0.3s; }
     .step.active { opacity: 1; }
-    .step-icon { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #112240; border: 2px solid #334155; flex-shrink: 0; }
+    .step-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #112240; border: 2px solid #334155; flex-shrink: 0; font-size: 16px; }
     .step.active .step-icon { background: rgba(0, 243, 255, 0.1); border-color: #00f3ff; color: #00f3ff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.3); }
   </style>
 </head>
 <body>
   <div class="glass-card">
-    <h1 class="text-xl font-black text-white mb-6"><i class="fa-solid fa-magnifying-glass text-cyan-400"></i> تتبع طلب الوساطة</h1>
+    <div class="text-center mb-6">
+      <div class="w-14 h-14 bg-cyan-500/10 border border-cyan-500/30 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fa-solid fa-magnifying-glass text-2xl text-cyan-400"></i>
+      </div>
+      <h1 class="text-xl font-black text-white">تتبع طلب الوساطة</h1>
+      <p class="text-slate-400 text-xs mt-1">أدخل رقم هاتفك (المشتري أو البائع) لمعرفة حالة الطلب</p>
+    </div>
     
-    <% if(!order) { %>
-      <p class="text-slate-400 text-sm mb-4">لم يتم العثور على طلب بهذا الرقم.</p>
-      <a href="/shield" class="text-cyan-400 font-bold text-sm">العودة لصفحة الوساطة</a>
-    <% } else { %>
+    <form method="GET" action="/shield/track" class="mb-6">
+      <div class="relative">
+        <input type="tel" name="phone" value="<%= phone %>" required placeholder="09xxxxxxxx" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 pl-12 text-white focus:border-cyan-400 outline-none text-center font-bold" dir="ltr">
+        <button type="submit" class="absolute left-2 top-2 bottom-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 rounded-lg transition">
+          <i class="fa-solid fa-search"></i>
+        </button>
+      </div>
+    </form>
+
+    <% if(phone && !order) { %>
+      <div class="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-sm mb-4 text-center font-bold">
+        <i class="fa-solid fa-circle-exclamation"></i> لم يتم العثور على طلب بهذا الرقم.
+      </div>
+    <% } else if(order) { %>
       <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 mb-6 text-sm">
-        <p class="mb-2">الطلب رقم: <span class="font-bold text-white">#<%= order.id %></span></p>
-        <p>المبلغ: <span class="font-bold text-green-400"><%= order.amount %></span></p>
+        <p class="mb-2 flex justify-between"><span class="text-slate-400">الطلب رقم:</span> <span class="font-bold text-white">#<%= order.id %></span></p>
+        <p class="flex justify-between"><span class="text-slate-400">المبلغ:</span> <span class="font-bold text-green-400"><%= order.amount %></span></p>
       </div>
 
       <div class="space-y-4">
         <div class="step <%= ['waiting_payment', 'funds_held', 'shipped', 'completed'].includes(order.tracking_status) ? 'active' : '' %>">
           <div class="step-icon"><i class="fa-solid fa-file-invoice"></i></div>
-          <div><h3 class="font-bold text-sm">بانتظار التحقق</h3><p class="text-[10px] text-slate-400">تم رفع الهويات</p></div>
+          <div><h3 class="font-bold text-sm text-white">بانتظار التحقق</h3><p class="text-[10px] text-slate-400">تم رفع الهويات بنجاح</p></div>
         </div>
         <div class="step <%= ['funds_held', 'shipped', 'completed'].includes(order.tracking_status) ? 'active' : '' %>">
           <div class="step-icon"><i class="fa-solid fa-lock"></i></div>
-          <div><h3 class="font-bold text-sm">الأموال محجوزة</h3><p class="text-[10px] text-slate-400">البائع يمكنه الشحن الآن</p></div>
+          <div><h3 class="font-bold text-sm text-white">الأموال محجوزة</h3><p class="text-[10px] text-slate-400">البائع يمكنه الشحن الآن بأمان</p></div>
         </div>
         <div class="step <%= ['shipped', 'completed'].includes(order.tracking_status) ? 'active' : '' %>">
           <div class="step-icon"><i class="fa-solid fa-truck-fast"></i></div>
-          <div><h3 class="font-bold text-sm">الجهاز في الطريق</h3><p class="text-[10px] text-slate-400">البائع قام بالشحن</p></div>
+          <div><h3 class="font-bold text-sm text-white">الجهاز في الطريق</h3><p class="text-[10px] text-slate-400">البائع قام بالشحن</p></div>
         </div>
         <div class="step <%= order.tracking_status === 'completed' ? 'active' : '' %>">
           <div class="step-icon"><i class="fa-solid fa-check-double"></i></div>
-          <div><h3 class="font-bold text-sm">مكتمل</h3><p class="text-[10px] text-slate-400">تم التسليم بنجاح</p></div>
+          <div><h3 class="font-bold text-sm text-white">مكتمل</h3><p class="text-[10px] text-slate-400">تم التسليم بنجاح</p></div>
         </div>
       </div>
 
       <% if(order.tracking_status === 'funds_held') { %>
-        <a href="/certificate-shield/<%= order.id %>" target="_blank" class="mt-6 block w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black py-3 rounded-xl shadow-lg">عرض شهادة الضمان</a>
+        <a href="/certificate-shield/<%= order.id %>" target="_blank" class="mt-6 block w-full text-center bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black py-3 rounded-xl shadow-lg hover:scale-[1.02] transition">عرض شهادة الحجز</a>
       <% } %>
     <% } %>
     
-    <div class="mt-4"><a href="/shield" class="text-xs text-slate-500 hover:text-white">العودة</a></div>
+    <div class="text-center mt-6">
+      <a href="/shield" class="text-xs text-slate-500 hover:text-cyan-400 transition-colors"><i class="fa-solid fa-arrow-right ml-1"></i> العودة لصفحة الوساطة</a>
+    </div>
   </div>
 </body>
 </html>

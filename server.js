@@ -590,8 +590,8 @@ app.get('/games/:gameName', async (req, res) => {
         
         samacardPackages = details.map(p => {
           const priceSYP = parseFloat(p.price);
-          const basePriceUSD = priceSYP / 142; // سعر التكلفة بالدولار
-          const finalPriceUSD = basePriceUSD + 0.10; // إضافة ربح ثابت 15 سنت
+          const basePriceUSD = priceSYP / exchangeRate; // سعر التكلفة بالدولار
+          const finalPriceUSD = basePriceUSD + 0.10; // إضافة ربح ثابت 0.10$
           
           let cleanName = p.name.replace('FreeFire By ID', '').trim();
           
@@ -1060,7 +1060,7 @@ app.get('/api/samacard/freefire', async (req, res) => {
     const details = await detailsRes.json();
 
     // معالجة الأسعار: تحويل من ليرة سورية إلى دولار + إضافة 15% ربح
-    const exchangeRate = 170; // 1 دولار = 142 ليرة جديدة
+    const exchangeRate = 170; // 1 دولار = 170 ليرة جديدة
      // +15%
 
     const packages = details.map(p => {

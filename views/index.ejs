@@ -784,43 +784,88 @@ function redirectToGames(e) {
   </script>
 
 
+  
+  
+
   <script>
-    // MODAL_SOUND_SCRIPT
+    // CORRECT_MODAL_SOUNDS
+    // 1. محرك صوت النقرات (Gaming Click - نفس الصوت الأصلي)
     let modalAudioCtx;
-    function playModalClickSound() {
+    function playGamingClick() {
       try {
         if (!modalAudioCtx) modalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (modalAudioCtx.state === 'suspended') modalAudioCtx.resume();
-        const osc = modalAudioCtx.createOscillator();
-        const gain = modalAudioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(modalAudioCtx.destination);
+        
         const now = modalAudioCtx.currentTime;
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(800, now);
-        osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-        osc.start(now);
-        osc.stop(now + 0.1);
+        
+        // الطبقة الأولى: النقرة الرقمية الحادة
+        const o1 = modalAudioCtx.createOscillator(), g1 = modalAudioCtx.createGain();
+        o1.type = 'square';
+        o1.frequency.setValueAtTime(2800, now);
+        o1.frequency.exponentialRampToValueAtTime(1000, now + 0.03);
+        g1.gain.setValueAtTime(0.07, now);
+        g1.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        o1.connect(g1); g1.connect(modalAudioCtx.destination);
+        o1.start(now); o1.stop(now + 0.04);
+        
+        // الطبقة الثانية: الباس الخفيف
+        const o2 = modalAudioCtx.createOscillator(), g2 = modalAudioCtx.createGain();
+        o2.type = 'sine';
+        o2.frequency.setValueAtTime(160, now);
+        o2.frequency.exponentialRampToValueAtTime(60, now + 0.06);
+        g2.gain.setValueAtTime(0.08, now);
+        g2.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        o2.connect(g2); g2.connect(modalAudioCtx.destination);
+        o2.start(now); o2.stop(now + 0.08);
       } catch(e) {}
+    }
+
+    // 2. محرك صوت الفتاة (Text-to-Speech)
+    function speakGirlVoice(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // إلغاء أي صوت سابق
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ar-SA'; // اللغة العربية
+        utterance.rate = 0.95; // سرعة متوسطة
+        utterance.pitch = 1.3; // نبرة صوت أنثوية
+        window.speechSynthesis.speak(utterance);
+      }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
       const scamModal = document.getElementById('scamWarningModal');
       const verifModal = document.getElementById('verificationModal');
       
-      // إضافة الصوت لأزرار نافذة التنبيه
+      // إضافة صوت النقرات لأزرار النوافذ
+      if (scamModal) scamModal.querySelectorAll('button, a').forEach(el => el.addEventListener('pointerdown', playGamingClick));
+      if (verifModal) verifModal.querySelectorAll('button, a').forEach(el => el.addEventListener('pointerdown', playGamingClick));
+
+      // تشغيل صوت الفتاة عند فتح نافذة التنبيه (بعد ثانية ونصف)
       if (scamModal) {
-        scamModal.querySelectorAll('button, a').forEach(el => {
-          el.addEventListener('pointerdown', playModalClickSound);
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'class' && !scamModal.classList.contains('hidden')) {
+              setTimeout(() => {
+                speakGirlVoice("تنبيه سيادي هام. يرجى العلم أنه يمنع منعا باتا تحويل أي مبالغ كرعبون إلا بعد موافقة الإدارة.");
+              }, 500);
+            }
+          });
         });
+        observer.observe(scamModal, { attributes: true });
       }
-      // إضافة الصوت لأزرار نافذة التوثيق
+
+      // تشغيل صوت الفتاة عند فتح نافذة التوثيق
       if (verifModal) {
-        verifModal.querySelectorAll('button, a').forEach(el => {
-          el.addEventListener('pointerdown', playModalClickSound);
+        const observer2 = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'class' && !verifModal.classList.contains('hidden')) {
+              setTimeout(() => {
+                speakGirlVoice("وثق حسابك الآن، لتحصل على شارة البائع الموثوق، وزد من ثقة زبائنك.");
+              }, 500);
+            }
+          });
         });
+        observer2.observe(verifModal, { attributes: true });
       }
     });
   </script>

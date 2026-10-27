@@ -557,16 +557,54 @@ app.get('/games', (req, res) => {
 });
 
 // Redirect Free Fire to the new Samacard page
-app.get('/games/Free%20Fire', (req, res) => res.redirect('/freefire'));
-app.get('/games/Free Fire', (req, res) => res.redirect('/freefire'));
-app.get('/games/free-fire', (req, res) => res.redirect('/freefire'));
 
-app.get('/games/:gameName', (req, res) => {
+
+app.get('/games/:gameName', async (req, res) => {
   const gameName = req.params.gameName;
   const game = db.prepare("SELECT * FROM games WHERE name = ? OR slug = ?").get(gameName, gameName);
   if (!game) return res.redirect('/games');
-  const packages = db.prepare("SELECT * FROM game_packages WHERE game_name = ? AND is_active = 1 ORDER BY sort_order ASC, price ASC").all(game.name);
-  res.render('game-details', { game, packages });
+  
+  let packages = [];
+  let samacardPackages = null;
+  
+  // التحقق مما إذا كانت اللعبة هي Free Fire
+  if (game.name.toLowerCase().includes('free fire') || game.name.toLowerCase().includes('freefire')) {
+    try {
+      const token = '4914b781cb7b9760f105ff2fba3b27d3ff71a2b0a622c6f4';
+      const productsRes = await fetch('https://api.samacard.com/client/api/products?base=1', {
+        headers: { 'api-token': token }
+      });
+      const products = await productsRes.json();
+      
+      const ffProducts = products.filter(p => p.name && p.name.includes('FreeFire By ID'));
+      
+      if (ffProducts.length > 0) {
+        const ids = ffProducts.map(p => p.id).join(',');
+        const detailsRes = await fetch('https://api.samacard.com/client/api/products?products_id=' + ids, {
+          headers: { 'api-token': token }
+        });
+        const details = await detailsRes.json();
+        
+        const exchangeRate = 142;
+        const profitMargin = 1.15;
+        
+        samacardPackages = details.map(p => {
+          const priceSYP = parseFloat(p.price);
+          const priceUSD = (priceSYP / exchangeRate) * profitMargin;
+          return {
+            id: p.id,
+            name: p.name.replace('FreeFire By ID', '').trim(),
+            price: priceUSD.toFixed(2)
+          };
+        });
+      }
+    } catch(e) { console.error('Samacard Fetch Error:', e.message); }
+  } else {
+    packages = db.prepare("SELECT * FROM game_packages WHERE game_name = ? AND is_active = 1 ORDER BY sort_order ASC, price ASC").all(game.name);
+  }
+  
+  res.render('game-details', { game, packages, samacardPackages });
+});
 });
 app.post('/games/:gameName/order', (req, res) => {
   const { player_id, package_name, price, user_phone, payment_method } = req.body;

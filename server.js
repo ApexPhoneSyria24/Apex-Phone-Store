@@ -605,7 +605,7 @@ app.get('/games/:gameName', async (req, res) => {
   
   res.render('game-details', { game, packages, samacardPackages });
 });
-});
+
 app.post('/games/:gameName/order', (req, res) => {
   const { player_id, package_name, price, user_phone, payment_method } = req.body;
   const priceNum = parseFloat(price);

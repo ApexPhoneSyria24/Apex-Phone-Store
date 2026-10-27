@@ -811,6 +811,7 @@ try {
   if (!cols.includes('tracking_status')) db.exec("ALTER TABLE shield_requests ADD COLUMN tracking_status TEXT DEFAULT 'waiting_payment'");
   if (!cols.includes('buyer_txid')) db.exec("ALTER TABLE shield_requests ADD COLUMN buyer_txid TEXT");
   if (!cols.includes('seller_txid')) db.exec("ALTER TABLE shield_requests ADD COLUMN seller_txid TEXT");
+  if (!cols.includes('buyer_confirmed')) db.exec("ALTER TABLE shield_requests ADD COLUMN buyer_confirmed INTEGER DEFAULT 0");
 } catch(e) { console.error('Shield Table Error:', e.message); }
 
 app.get('/shield', (req, res) => {
@@ -878,6 +879,21 @@ app.get('/certificate-shield/:id', (req, res) => {
 app.get('/admin/view-private/:filename', requireAuth, (req, res) => {
   const p = path.resolve('./private_docs', req.params.filename);
   if (fs.existsSync(p)) res.sendFile(p); else res.status(404).send('Not found');
+});
+
+
+// المشتري يؤكد استلام الجهاز
+app.post('/api/shield/buyer-confirm/:id', (req, res) => {
+  try {
+    const order = db.prepare("SELECT * FROM shield_requests WHERE id = ?").get(req.params.id);
+    if (!order) return res.status(404).json({ error: 'الطلب غير موجود' });
+    
+    db.prepare("UPDATE shield_requests SET buyer_confirmed = 1 WHERE id = ?").run(req.params.id);
+    
+    sendTelegram(`✅ <b>المشتري أكد استلام الجهاز!</b>\n\nالطلب رقم: #${order.id}\nالمشتري: ${order.buyer_phone}\nالبائع: ${order.seller_phone}\nالمبلغ: ${order.amount}\n\nيرجى تحويل الأموال للبائع وإغلاق الطلب.`);
+    
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

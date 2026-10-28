@@ -1187,4 +1187,17 @@ app.post('/api/samacard/buy', async (req, res) => {
 });
 
 app.get('/freefire', (req, res) => { res.render('freefire'); });
+
+// مسار مؤقت لمزامنة التطبيقات (سيتم حذفه لاحقاً)
+app.get('/api/sync-apps', (req, res) => {
+  const apps = ['Bigo Live', 'Tango', 'Yalla', 'Lama Chat', 'Hami Party', 'Ligo Live', 'Oohla Chat', 'Yoho', 'Soul Chill', 'Azal Live'];
+  const stmt = db.prepare(`INSERT OR IGNORE INTO games (name, name_ar, slug, is_active, sort_order) VALUES (?, ?, ?, 1, 0)`);
+  let count = 0;
+  apps.forEach(app => {
+    const result = stmt.run(app, app, app.toLowerCase().replace(/ /g, '-'));
+    if (result.changes > 0) count++;
+  });
+  res.send('✅ تمت إضافة ' + count + ' تطبيق إلى قاعدة بيانات الموقع الفعلي! يمكنك الآن العودة للوحة الإدارة.');
+});
+
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

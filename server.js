@@ -599,7 +599,7 @@ app.get('/games/:gameName', async (req, res) => {
   let game = db.prepare("SELECT * FROM games WHERE name = ? OR slug = ?").get(gameName, gameName);
   
   if (!game) {
-    game = { name: gameName, name_ar: gameName, instructions: 'أدخل الـ ID الخاص بك', delivery_time: 'فوري', description: 'شحن فوري وآمن عبر Samacard' };
+    game = { name: gameName, name_ar: gameName, instructions: 'أدخل الـ ID الخاص بك', delivery_time: 'فوري', description: 'شحن فوري، آمن، وبأسعار منافسة لا تقبل المنافسة' };
   }
 
   let packages = [];

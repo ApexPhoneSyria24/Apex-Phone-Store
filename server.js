@@ -639,11 +639,28 @@ app.get('/games/:gameName', async (req, res) => {
         const finalPriceUSD = basePriceUSD + 0.10;
 
         let cleanName = p.name;
-        if (gameName === 'Free Fire' || gameName === 'فري فاير' || gameName.toLowerCase().includes('freefire')) {
-          cleanName = p.name.replace('FreeFire By ID', '').trim();
-        }
+            if (gameName === 'Free Fire' || gameName === 'فري فاير' || gameName.toLowerCase().includes('freefire')) {
+              cleanName = p.name.replace('FreeFire By ID', '').trim();
+            }
 
-        return {
+            // ترجمة أسماء الباقات إلى العربية
+            cleanName = cleanName
+              .replaceAll('Pubg Lite', 'ببجي لايت')
+              .replaceAll('PUBG Lite', 'ببجي لايت')
+              .replaceAll('PUBG', 'ببجي')
+              .replaceAll('Pubg', 'ببجي')
+              .replaceAll('UC', 'شدة')
+              .replaceAll('Diamonds', 'ألماس')
+              .replaceAll('Gold', 'ذهب')
+              .replaceAll('MANUEL', 'يدوي')
+              .replaceAll('MANAUL', 'يدوي')
+              .replaceAll('MANUAL', 'يدوي')
+              .replaceAll('By ID', 'عبر الآي دي')
+              .replaceAll('By ld', 'عبر الآي دي')
+              .replaceAll('##', '')
+              .trim();
+
+            return {
           id: p.id,
           name: cleanName,
           price: finalPriceUSD.toFixed(2)

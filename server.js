@@ -602,6 +602,14 @@ app.get('/games/:gameName', async (req, res) => {
     game = { name: gameName, name_ar: gameName, instructions: 'أدخل الـ ID الخاص بك', delivery_time: 'فوري', description: 'شحن فوري، آمن، وبأسعار منافسة لا تقبل المنافسة' };
   }
 
+  // --- التحقق من الأقسام التي تحت الصيانة ---
+  const maintenanceGames = ['icloud', 'ايكلود', 'حساب ايكلود', 'google play', 'جوجل بلاي', 'itunes', 'ايتونز', 'أي تيونز'];
+  const isMaintenance = maintenanceGames.some(m => gameName.toLowerCase().includes(m.toLowerCase()));
+  if (isMaintenance) {
+    return res.render('game-details', { game, packages: [], samacardPackages: null, isMaintenance: true });
+  }
+  // -------------------------------------------
+
   let packages = [];
   let samacardPackages = null;
   

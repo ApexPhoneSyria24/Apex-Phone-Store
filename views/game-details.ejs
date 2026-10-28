@@ -12,7 +12,6 @@
     body { background-color: #050505; color: white; background-image: radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.1), transparent 50%); }
     .neon-text { text-shadow: 0 0 8px rgba(0, 243, 255, 0.8), 0 0 15px rgba(0, 243, 255, 0.4); }
     
-    /* إصلاح القائمة المنسدلة الملكية لتعمل على الهواتف */
     .royal-select {
       appearance: none;
       -webkit-appearance: none;
@@ -93,93 +92,108 @@
       </div>
     <% } %>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <div>
-        <form id="orderForm" class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 shadow-2xl">
-          <h2 class="text-base font-black text-white mb-3"><i class="fa-solid fa-bolt text-cyan-400"></i> إتمام الشحن</h2>
-
-          <div class="mb-3">
-            <label class="block text-[11px] font-bold text-slate-300 mb-1">معرف اللاعب (Player ID)</label>
-            <input type="text" name="player_id" required class="w-full bg-black border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:border-cyan-400 outline-none transition" placeholder="أدخل الـ ID الخاص بك">
-          </div>
-
-          <div class="mb-3">
-            <label class="block text-[11px] font-bold text-amber-400 mb-1.5 flex items-center gap-1">
-              <i class="fa-solid fa-crown"></i> اختر الباقة
-            </label>
-            <% if (samacardPackages && samacardPackages.length > 0) { %>
-              <div class="relative">
-                <select id="packageSelect" onchange="updateSelectedPackage(this)" class="royal-select rounded-lg py-2 text-xs font-bold outline-none cursor-pointer transition-all">
-                  <% samacardPackages.forEach((pkg, index) => { %>
-                    <option value="<%= pkg.id %>" data-name="<%= pkg.name %>" data-price="<%= pkg.price %>" <%= index === 0 ? 'selected' : '' %>>
-                      <%= pkg.name %> - $<%= pkg.price %>
-                    </option>
-                  <% }) %>
-                </select>
-              </div>
-              <input type="hidden" id="selectedProductId" value="<%= samacardPackages[0].id %>">
-              <input type="hidden" id="selectedPackageName" value="<%= samacardPackages[0].name %>">
-              <input type="hidden" id="selectedPrice" value="<%= samacardPackages[0].price %>">
-              <input type="hidden" id="isSamacard" value="true">
-            <% } else if (packages.length > 0) { %>
-              <div class="relative">
-                <select id="packageSelect" onchange="updateSelectedPackage(this)" class="royal-select rounded-lg py-2 text-xs font-bold outline-none cursor-pointer transition-all">
-                  <% packages.forEach((pkg, index) => { %>
-                    <option value="<%= pkg.id %>" data-name="<%= pkg.package_name %>" data-price="<%= pkg.price %>" <%= index === 0 ? 'selected' : '' %>>
-                      <%= pkg.package_name %> - $<%= pkg.price %>
-                    </option>
-                  <% }) %>
-                </select>
-              </div>
-              <input type="hidden" id="selectedProductId" value="<%= packages[0].id %>">
-              <input type="hidden" id="selectedPackageName" value="<%= packages[0].package_name %>">
-              <input type="hidden" id="selectedPrice" value="<%= packages[0].price %>">
-              <input type="hidden" id="isSamacard" value="false">
-            <% } else { %>
-              <div class="text-center py-3 bg-slate-800 rounded-lg text-slate-400 text-[11px] font-bold border border-slate-700">لا توجد باقات متاحة حالياً</div>
-            <% } %>
-          </div>
-
-          <div class="mb-3">
-            <label class="block text-[11px] font-bold text-slate-300 mb-1">رقم هاتفك (لمتابعة الطلب)</label>
-            <input type="tel" name="user_phone" id="userPhone" required class="w-full bg-black border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:border-cyan-400 outline-none transition" placeholder="09xxxxxxxx" dir="ltr">
-          </div>
-
-          <div class="mb-3 bg-gradient-to-r from-amber-900/20 to-slate-900/50 p-3 rounded-lg border border-amber-500/30">
-            <label class="block text-[11px] font-bold text-amber-400 mb-2 flex items-center gap-1">
-              <i class="fa-solid fa-crown"></i> طريقة الدفع
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <div class="w-4 h-4 rounded-full border-2 border-amber-500 flex items-center justify-center">
-                <div class="w-2 h-2 rounded-full bg-amber-500"></div>
-              </div>
-              <span class="text-amber-100 font-bold text-[11px]">الدفع من رصيد المحفظة</span>
-            </label>
-            <input type="hidden" name="payment_method" value="wallet">
-          </div>
-
-          <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-black py-2 rounded-lg hover:shadow-[0_0_20px_rgba(251,191,36,0.4)] transition text-xs" <%= packages.length === 0 && (!samacardPackages || samacardPackages.length === 0) ? 'disabled' : '' %>>
-            <%= packages.length === 0 && (!samacardPackages || samacardPackages.length === 0) ? 'غير متاح حالياً' : 'تأكيد الطلب' %>
-          </button>
-        </form>
+    <!-- التحقق من الصيانة -->
+    <% if (typeof isMaintenance !== 'undefined' && isMaintenance) { %>
+      <div class="bg-slate-900/80 p-8 rounded-2xl border border-amber-500/30 text-center my-6 shadow-[0_0_30px_rgba(251,191,36,0.1)]">
+        <div class="w-20 h-20 mx-auto bg-amber-500/10 rounded-full flex items-center justify-center mb-4">
+          <i class="fa-solid fa-wrench text-4xl text-amber-500 animate-pulse"></i>
+        </div>
+        <h2 class="text-2xl font-black text-white mb-2">قيد الصيانة حالياً</h2>
+        <p class="text-slate-400 text-sm mb-6">نعتذر عن عدم توفر هذه الخدمة مؤقتاً. نحن نقوم بتحديث الباقات لتقديم أفضل خدمة لك.</p>
+        <a href="/games/list?type=games" class="inline-block bg-amber-500 hover:bg-amber-600 text-black font-bold py-2 px-8 rounded-lg transition text-sm shadow-lg">
+          العودة للأقسام
+        </a>
       </div>
+    <% } else { %>
+      <!-- نموذج الدفع وسجل الطلبات -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div>
+          <form id="orderForm" class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 shadow-2xl">
+            <h2 class="text-base font-black text-white mb-3"><i class="fa-solid fa-bolt text-cyan-400"></i> إتمام الشحن</h2>
 
-      <div>
-        <details class="bg-slate-900/80 rounded-xl border border-slate-800 overflow-hidden group">
-          <summary class="p-3 text-sm font-black text-white cursor-pointer flex items-center justify-between select-none hover:bg-slate-800/50 transition">
-            <div class="flex items-center gap-2">
-              <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> سجل طلباتك
+            <div class="mb-3">
+              <label class="block text-[11px] font-bold text-slate-300 mb-1">معرف اللاعب (Player ID)</label>
+              <input type="text" name="player_id" required class="w-full bg-black border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:border-cyan-400 outline-none transition" placeholder="أدخل الـ ID الخاص بك">
             </div>
-            <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 group-open:bg-cyan-900/50 group-open:text-cyan-300 transition">اضغط للعرض</span>
-          </summary>
-          <div id="orderHistory" class="p-3 space-y-2 max-h-64 overflow-y-auto border-t border-slate-800">
-            <div class="text-center py-6 bg-slate-900/50 rounded-xl border border-slate-800">
-              <p class="text-slate-500 text-xs font-bold">جاري تحميل السجل...</p>
+
+            <div class="mb-3">
+              <label class="block text-[11px] font-bold text-amber-400 mb-1.5 flex items-center gap-1">
+                <i class="fa-solid fa-crown"></i> اختر الباقة
+              </label>
+              <% if (samacardPackages && samacardPackages.length > 0) { %>
+                <div class="relative">
+                  <select id="packageSelect" onchange="updateSelectedPackage(this)" class="royal-select rounded-lg py-2 text-xs font-bold outline-none cursor-pointer transition-all">
+                    <% samacardPackages.forEach((pkg, index) => { %>
+                      <option value="<%= pkg.id %>" data-name="<%= pkg.name %>" data-price="<%= pkg.price %>" <%= index === 0 ? 'selected' : '' %>>
+                        <%= pkg.name %> - $<%= pkg.price %>
+                      </option>
+                    <% }) %>
+                  </select>
+                </div>
+                <input type="hidden" id="selectedProductId" value="<%= samacardPackages[0].id %>">
+                <input type="hidden" id="selectedPackageName" value="<%= samacardPackages[0].name %>">
+                <input type="hidden" id="selectedPrice" value="<%= samacardPackages[0].price %>">
+                <input type="hidden" id="isSamacard" value="true">
+              <% } else if (packages.length > 0) { %>
+                <div class="relative">
+                  <select id="packageSelect" onchange="updateSelectedPackage(this)" class="royal-select rounded-lg py-2 text-xs font-bold outline-none cursor-pointer transition-all">
+                    <% packages.forEach((pkg, index) => { %>
+                      <option value="<%= pkg.id %>" data-name="<%= pkg.package_name %>" data-price="<%= pkg.price %>" <%= index === 0 ? 'selected' : '' %>>
+                        <%= pkg.package_name %> - $<%= pkg.price %>
+                      </option>
+                    <% }) %>
+                  </select>
+                </div>
+                <input type="hidden" id="selectedProductId" value="<%= packages[0].id %>">
+                <input type="hidden" id="selectedPackageName" value="<%= packages[0].package_name %>">
+                <input type="hidden" id="selectedPrice" value="<%= packages[0].price %>">
+                <input type="hidden" id="isSamacard" value="false">
+              <% } else { %>
+                <div class="text-center py-3 bg-slate-800 rounded-lg text-slate-400 text-[11px] font-bold border border-slate-700">لا توجد باقات متاحة حالياً</div>
+              <% } %>
             </div>
-          </div>
-        </details>
+
+            <div class="mb-3">
+              <label class="block text-[11px] font-bold text-slate-300 mb-1">رقم هاتفك (لمتابعة الطلب)</label>
+              <input type="tel" name="user_phone" id="userPhone" required class="w-full bg-black border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:border-cyan-400 outline-none transition" placeholder="09xxxxxxxx" dir="ltr">
+            </div>
+
+            <div class="mb-3 bg-gradient-to-r from-amber-900/20 to-slate-900/50 p-3 rounded-lg border border-amber-500/30">
+              <label class="block text-[11px] font-bold text-amber-400 mb-2 flex items-center gap-1">
+                <i class="fa-solid fa-crown"></i> طريقة الدفع
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer">
+                <div class="w-4 h-4 rounded-full border-2 border-amber-500 flex items-center justify-center">
+                  <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+                </div>
+                <span class="text-amber-100 font-bold text-[11px]">الدفع من رصيد المحفظة</span>
+              </label>
+              <input type="hidden" name="payment_method" value="wallet">
+            </div>
+
+            <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-black py-2 rounded-lg hover:shadow-[0_0_20px_rgba(251,191,36,0.4)] transition text-xs" <%= packages.length === 0 && (!samacardPackages || samacardPackages.length === 0) ? 'disabled' : '' %>>
+              <%= packages.length === 0 && (!samacardPackages || samacardPackages.length === 0) ? 'غير متاح حالياً' : 'تأكيد الطلب' %>
+            </button>
+          </form>
+        </div>
+
+        <div>
+          <details class="bg-slate-900/80 rounded-xl border border-slate-800 overflow-hidden group">
+            <summary class="p-3 text-sm font-black text-white cursor-pointer flex items-center justify-between select-none hover:bg-slate-800/50 transition">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> سجل طلباتك
+              </div>
+              <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 group-open:bg-cyan-900/50 group-open:text-cyan-300 transition">اضغط للعرض</span>
+            </summary>
+            <div id="orderHistory" class="p-3 space-y-2 max-h-64 overflow-y-auto border-t border-slate-800">
+              <div class="text-center py-6 bg-slate-900/50 rounded-xl border border-slate-800">
+                <p class="text-slate-500 text-xs font-bold">جاري تحميل السجل...</p>
+              </div>
+            </div>
+          </details>
+        </div>
       </div>
-    </div>
+    <% } %>
   </div>
 
   <script>

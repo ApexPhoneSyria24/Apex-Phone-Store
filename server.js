@@ -614,6 +614,7 @@ app.get('/games/:gameName', async (req, res) => {
   }
 
     // --- التحقق من الأقسام التي تحت الصيانة ---
+  const lowerName = gameName.toLowerCase();
   const maintenanceGames = ['google play', 'جوجل بلاي', 'itunes', 'ايتونز', 'أي تيونز'];
   const isMaintenance = maintenanceGames.some(m => lowerName.includes(m.toLowerCase()));
   if (isMaintenance) {

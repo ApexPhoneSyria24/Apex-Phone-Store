@@ -546,6 +546,12 @@ app.post('/post-ad', upload.array('images', 8), (req, res) => {
   const user = getOrCreateUser(b.seller_name, b.seller_phone);
   const images = req.files ? req.files.map(f => '/uploads/' + f.filename) : [];
   db.prepare(`INSERT INTO phones (name, brand, price, description, images, availability, is_admin, status, seller_name, seller_phone) VALUES (?, ?, ?, ?, ?, 'متوفر', 0, 'pending', ?, ?)`).run(b.name, b.brand, b.price, b.description, JSON.stringify(images), b.seller_name, b.seller_phone);
+  
+  // إرسال إشعار تيليجرام بوجود إعلان جديد
+  if (typeof sendTelegram === 'function') {
+    sendTelegram(`📱 <b>إعلان جديد بانتظار المراجعة!</b>\n\n📦 الجهاز: ${b.name}\n🏷️ الماركة: ${b.brand || 'غير محدد'}\n💰 السعر: ${b.price}\n👤 البائع: ${b.seller_name}\n📞 الهاتف: ${b.seller_phone}\n\nيرجى مراجعة لوحة الإدارة.`);
+  }
+
   res.render('ad-success', { sellerPhone: b.seller_phone, userCode: user.user_code });
 });
 app.get('/policy', (req, res) => { res.render('policy'); });

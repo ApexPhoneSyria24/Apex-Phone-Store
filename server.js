@@ -555,56 +555,21 @@ app.get('/games', (req, res) => {
   res.render('gaming-hub');
 });
 
-app.get('/games/list', async (req, res) => {
+app.get('/games/list', (req, res) => {
   const type = req.query.type || 'games';
+  const allGames = db.prepare(`SELECT g.*, (SELECT COUNT(*) FROM game_packages p WHERE p.game_name = g.name AND p.is_active = 1) as packages_count FROM games g WHERE g.is_active = 1 ORDER BY g.sort_order ASC, g.id ASC`).all();
+  
+  const appNames = ['Bigo Live', 'Tango', 'Yalla', 'Lama Chat', 'Hami Party', 'Ligo Live', 'Oohla Chat', 'Yoho', 'Soul Chill', 'Azal Live', 'Bigo', 'Yalla Ludo'];
+  
+  let filteredGames = [];
   if (type === 'apps') {
-    try {
-      const productsRes = await fetch('https://api.samacard.com/client/api/products?base=1', { headers: { 'api-token': process.env.SAMACARD_TOKEN || '4914b781cb7b9760f105ff2fba3b27d3ff71a2b0a622c6f4' } });
-      const products = await productsRes.json();
-      let appsMap = {};
-      products.forEach(p => {
-        if (!p.name) return;
-        let appName = null;
-        const name = p.name;
-        if (name.includes('Bigo') || name.includes('BIGO')) appName = 'Bigo Live';
-        else if (name.includes('Tango')) appName = 'Tango';
-        else if (name.includes('Yalla') || name.includes('YALLA')) appName = 'Yalla';
-        else if (name.includes('Lama') || name.includes('LAMA')) appName = 'Lama Chat';
-        else if (name.includes('HAMI')) appName = 'Hami Party';
-        else if (name.includes('Ligo') || name.includes('LIGO')) appName = 'Ligo Live';
-        else if (name.includes('Oohla') || name.includes('OOHLA')) appName = 'Oohla Chat';
-        else if (name.includes('Yoho') || name.includes('YOHO')) appName = 'Yoho';
-        else if (name.includes('Soulchil') || name.includes('SOUL CHILL') || name.includes('SOULCHIL')) appName = 'Soul Chill';
-        else if (name.includes('AZAL')) appName = 'Azal Live';
-
-        if (appName) {
-          const imgMap = {
-            'Bigo Live': 'https://logo.clearbit.com/bigo.tv',
-            'Tango': 'https://logo.clearbit.com/tango.me',
-            'Yalla': 'https://logo.clearbit.com/yalla.live',
-            'Lama Chat': 'https://logo.clearbit.com/lamachat.com',
-            'Hami Party': 'https://logo.clearbit.com/hamipartylive.com',
-            'Ligo Live': 'https://logo.clearbit.com/ligo.live',
-            'Oohla Chat': 'https://logo.clearbit.com/oohla.live',
-            'Yoho': 'https://logo.clearbit.com/yoho.com',
-            'Soul Chill': 'https://logo.clearbit.com/soulchill.com',
-            'Azal Live': 'https://logo.clearbit.com/azal.live'
-          };
-          appsMap[appName] = { name: appName, name_ar: appName, image_url: imgMap[appName] || null };
-        }
-      });
-      const apps = Object.values(appsMap);
-      if (apps.length > 0) {
-        return res.render('games', { games: apps });
-      }
-    } catch(e) { console.error('Apps fetch error:', e); }
+    filteredGames = allGames.filter(g => appNames.includes(g.name) || appNames.some(a => g.name.includes(a)));
+  } else {
+    filteredGames = allGames.filter(g => !appNames.includes(g.name) && !appNames.some(a => g.name.includes(a)));
   }
-  const games = db.prepare(`SELECT g.*, (SELECT COUNT(*) FROM game_packages p WHERE p.game_name = g.name AND p.is_active = 1) as packages_count FROM games g WHERE g.is_active = 1 ORDER BY g.sort_order ASC, g.id ASC`).all();
-  res.render('games', { games });
+  
+  res.render('games', { games: filteredGames });
 });
-
-// Redirect Free Fire to the new Samacard page
-
 
 app.get('/games/:gameName', async (req, res) => {
   const gameName = req.params.gameName;

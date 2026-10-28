@@ -47,7 +47,7 @@
         <p class="font-bold text-cyan-300 mb-1"><i class="fa-solid fa-info-circle"></i> تعليمات التحويل:</p>
         <ul class="list-disc list-inside text-slate-300 space-y-0.5">
           <li>يتم التحويل عبر <strong>سيريتل كاش</strong> إلى الرقم: <strong class="text-white" dir="ltr">0980259127</strong></li>
-          <li>سعر الصرف: <strong>1 دولار = 170 ليرة سورية جديدة</strong></li>
+          <li>سعر الصرف: <strong>1 دولار = 142 ليرة سورية جديدة</strong></li>
           <li>بعد التحويل، أدخل تفاصيل العملية أدناه.</li>
         </ul>
       </div>
@@ -80,7 +80,7 @@
   <script>
     function calcSyp() {
       const usd = parseFloat(document.getElementById('amountUsd').value) || 0;
-      const newSyp = usd * 170;
+      const newSyp = usd * 142;
       const oldSyp = newSyp * 100;
       const el = document.getElementById('sypEquivalent');
       if (usd > 0) {

@@ -590,7 +590,6 @@ app.get('/games/list', async (req, res) => {
   const games = db.prepare(`SELECT g.*, (SELECT COUNT(*) FROM game_packages p WHERE p.game_name = g.name AND p.is_active = 1) as packages_count FROM games g WHERE g.is_active = 1 ORDER BY g.sort_order ASC, g.id ASC`).all();
   res.render('games', { games });
 });
-});
 
 // Redirect Free Fire to the new Samacard page
 

@@ -606,7 +606,7 @@ app.get('/games/:gameName', async (req, res) => {
   let samacardPackages = null;
   
   // التحقق مما إذا كانت اللعبة هي Free Fire
-  if (game.name.toLowerCase().includes('free fire') || game.name.toLowerCase().includes('freefire')) {
+  if (true) { // تم التعديل لجلب باقات كل الأقسام
     try {
       const token = '4914b781cb7b9760f105ff2fba3b27d3ff71a2b0a622c6f4';
       const productsRes = await fetch('https://api.samacard.com/client/api/products?base=1', {
@@ -620,6 +620,9 @@ app.get('/games/:gameName', async (req, res) => {
     } else {
       filteredProducts = products.filter(p => p.name && (p.name.toLowerCase().includes(gameName.toLowerCase().split(' ')[0])));
     }
+    
+    // جلب أول 25 باقة فقط لتجنب خطأ طول الرابط
+    filteredProducts = filteredProducts.slice(0, 25);
     
     if (filteredProducts.length > 0) {
       const ids = filteredProducts.map(p => p.id).join(',');

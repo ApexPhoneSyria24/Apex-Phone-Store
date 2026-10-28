@@ -555,9 +555,41 @@ app.get('/games', (req, res) => {
   res.render('gaming-hub');
 });
 
-app.get('/games/list', (req, res) => {
+app.get('/games/list', async (req, res) => {
+  const type = req.query.type || 'games';
+  if (type === 'apps') {
+    try {
+      const productsRes = await fetch('https://api.samacard.com/client/api/products?base=1', { headers: { 'api-token': process.env.SAMACARD_TOKEN || '4914b781cb7b9760f105ff2fba3b27d3ff71a2b0a622c6f4' } });
+      const products = await productsRes.json();
+      let appsMap = {};
+      products.forEach(p => {
+        if (!p.name) return;
+        let appName = null;
+        const name = p.name;
+        if (name.includes('Bigo') || name.includes('BIGO')) appName = 'Bigo Live';
+        else if (name.includes('Tango')) appName = 'Tango';
+        else if (name.includes('Yalla') || name.includes('YALLA')) appName = 'Yalla';
+        else if (name.includes('Lama') || name.includes('LAMA')) appName = 'Lama Chat';
+        else if (name.includes('HAMI')) appName = 'Hami Party';
+        else if (name.includes('Ligo') || name.includes('LIGO')) appName = 'Ligo Live';
+        else if (name.includes('Oohla') || name.includes('OOHLA')) appName = 'Oohla Chat';
+        else if (name.includes('Yoho') || name.includes('YOHO')) appName = 'Yoho';
+        else if (name.includes('Soulchil') || name.includes('SOUL CHILL') || name.includes('SOULCHIL')) appName = 'Soul Chill';
+        else if (name.includes('AZAL')) appName = 'Azal Live';
+
+        if (appName) {
+          appsMap[appName] = { name: appName, name_ar: appName, image_url: null };
+        }
+      });
+      const apps = Object.values(appsMap);
+      if (apps.length > 0) {
+        return res.render('games', { games: apps });
+      }
+    } catch(e) { console.error('Apps fetch error:', e); }
+  }
   const games = db.prepare(`SELECT g.*, (SELECT COUNT(*) FROM game_packages p WHERE p.game_name = g.name AND p.is_active = 1) as packages_count FROM games g WHERE g.is_active = 1 ORDER BY g.sort_order ASC, g.id ASC`).all();
   res.render('games', { games });
+});
 });
 
 // Redirect Free Fire to the new Samacard page
@@ -565,9 +597,12 @@ app.get('/games/list', (req, res) => {
 
 app.get('/games/:gameName', async (req, res) => {
   const gameName = req.params.gameName;
-  const game = db.prepare("SELECT * FROM games WHERE name = ? OR slug = ?").get(gameName, gameName);
-  if (!game) return res.redirect('/games');
+  let game = db.prepare("SELECT * FROM games WHERE name = ? OR slug = ?").get(gameName, gameName);
   
+  if (!game) {
+    game = { name: gameName, name_ar: gameName, instructions: 'أدخل الـ ID الخاص بك', delivery_time: 'فوري', description: 'شحن فوري وآمن عبر Samacard' };
+  }
+
   let packages = [];
   let samacardPackages = null;
   
@@ -580,34 +615,40 @@ app.get('/games/:gameName', async (req, res) => {
       });
       const products = await productsRes.json();
       
-      const ffProducts = products.filter(p => p.name && p.name.includes('FreeFire By ID'));
-      
-      if (ffProducts.length > 0) {
-        const ids = ffProducts.map(p => p.id).join(',');
-        const detailsRes = await fetch('https://api.samacard.com/client/api/products?products_id=' + ids, {
-          headers: { 'api-token': token }
-        });
-        const details = await detailsRes.json();
-        
-        const exchangeRate = 170;
-        
-        
-        samacardPackages = details.map(p => {
-          const priceSYP = parseFloat(p.price);
-          const basePriceUSD = priceSYP / exchangeRate; // سعر التكلفة بالدولار
-          const finalPriceUSD = basePriceUSD + 0.10; // إضافة ربح ثابت 0.10$
-          
-          let cleanName = p.name.replace('FreeFire By ID', '').trim();
-          
-          return {
-            id: p.id,
-            name: cleanName,
-            price: finalPriceUSD.toFixed(2)
-          };
-        });
-        
-        // ترتيب الباقات من الأصغر للأكبر سعراً
-        samacardPackages.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+      let filteredProducts = [];
+    if (gameName === 'Free Fire' || gameName === 'فري فاير' || gameName.toLowerCase().includes('freefire')) {
+      filteredProducts = products.filter(p => p.name && p.name.includes('FreeFire By ID'));
+    } else {
+      filteredProducts = products.filter(p => p.name && (p.name.toLowerCase().includes(gameName.toLowerCase().split(' ')[0])));
+    }
+    
+    if (filteredProducts.length > 0) {
+      const ids = filteredProducts.map(p => p.id).join(',');
+      const detailsRes = await fetch('https://api.samacard.com/client/api/products?products_id=' + ids, {
+        headers: { 'api-token': token }
+      });
+      const details = await detailsRes.json();
+
+      const exchangeRate = 170;
+
+      samacardPackages = details.map(p => {
+        const priceSYP = parseFloat(p.price);
+        const basePriceUSD = priceSYP / exchangeRate;
+        const finalPriceUSD = basePriceUSD + 0.10;
+
+        let cleanName = p.name;
+        if (gameName === 'Free Fire' || gameName === 'فري فاير' || gameName.toLowerCase().includes('freefire')) {
+          cleanName = p.name.replace('FreeFire By ID', '').trim();
+        }
+
+        return {
+          id: p.id,
+          name: cleanName,
+          price: finalPriceUSD.toFixed(2)
+        };
+      });
+
+      samacardPackages.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
       }
     } catch(e) { console.error('Samacard Fetch Error:', e.message); }
   } else {

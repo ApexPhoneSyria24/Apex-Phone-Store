@@ -578,7 +578,19 @@ app.get('/games/list', async (req, res) => {
         else if (name.includes('AZAL')) appName = 'Azal Live';
 
         if (appName) {
-          appsMap[appName] = { name: appName, name_ar: appName, image_url: null };
+          const imgMap = {
+            'Bigo Live': 'https://logo.clearbit.com/bigo.tv',
+            'Tango': 'https://logo.clearbit.com/tango.me',
+            'Yalla': 'https://logo.clearbit.com/yalla.live',
+            'Lama Chat': 'https://logo.clearbit.com/lamachat.com',
+            'Hami Party': 'https://logo.clearbit.com/hamipartylive.com',
+            'Ligo Live': 'https://logo.clearbit.com/ligo.live',
+            'Oohla Chat': 'https://logo.clearbit.com/oohla.live',
+            'Yoho': 'https://logo.clearbit.com/yoho.com',
+            'Soul Chill': 'https://logo.clearbit.com/soulchill.com',
+            'Azal Live': 'https://logo.clearbit.com/azal.live'
+          };
+          appsMap[appName] = { name: appName, name_ar: appName, image_url: imgMap[appName] || null };
         }
       });
       const apps = Object.values(appsMap);

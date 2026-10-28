@@ -11,28 +11,28 @@
   <style>
     body { background-color: #050505; color: white; background-image: radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.1), transparent 50%); }
     .neon-text { text-shadow: 0 0 8px rgba(0, 243, 255, 0.8), 0 0 15px rgba(0, 243, 255, 0.4); }
-    .package-card {
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid rgba(51, 65, 85, 1);
-      transition: all 0.2s ease;
-      cursor: pointer;
-      border-radius: 8px;
+    
+    /* تنسيق مخصص للقائمة المنسدلة الملكية */
+    .royal-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fbbf24' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: left 0.75rem center;
+      background-size: 1em;
     }
-    .package-card:hover { border-color: #00f3ff; transform: translateY(-2px); }
-    .package-card.active {
-      background: rgba(0, 243, 255, 0.1);
-      border-color: #00f3ff;
-      box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+    .royal-select option {
+      background-color: #0f172a;
+      color: #fbbf24;
+      font-weight: bold;
     }
-    .package-card.active .price { color: #39ff14; }
   </style>
 </head>
 <body class="font-sans antialiased min-h-screen flex flex-col">
   <!-- تصغير النافبار -->
   <nav class="bg-black/50 backdrop-blur-md border-b border-cyan-500/20 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-3 h-10 flex justify-between items-center">
-      <a href="/games" class="flex items-center gap-1.5 text-xs font-bold text-cyan-300 hover:text-white transition">
-        <i class="fa-solid fa-arrow-right"></i> العودة للألعاب
+      <a href="/games/list?type=games" class="flex items-center gap-1.5 text-xs font-bold text-cyan-300 hover:text-white transition">
+        <i class="fa-solid fa-arrow-right"></i> العودة
       </a>
       <div class="flex items-center gap-2">
         <span id="balanceBadge" class="hidden text-[10px] font-black bg-green-500/20 border border-green-500/50 text-green-400 px-2 py-1 rounded" dir="ltr">$0.00</span>
@@ -98,39 +98,34 @@
             <input type="text" name="player_id" required class="w-full bg-black border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:border-cyan-400 outline-none transition" placeholder="أدخل الـ ID الخاص بك">
           </div>
 
+          <!-- القائمة المنسدلة الملكية للباقات -->
           <div class="mb-3">
-            <label class="block text-[11px] font-bold text-slate-300 mb-2">اختر الباقة</label>
+            <label class="block text-[11px] font-bold text-amber-400 mb-1.5 flex items-center gap-1">
+              <i class="fa-solid fa-crown"></i> اختر الباقة
+            </label>
             <% if (samacardPackages && samacardPackages.length > 0) { %>
-              <!-- باقات Samacard (Free Fire) -->
-              <div class="grid grid-cols-3 md:grid-cols-4 gap-2">
-                <% samacardPackages.forEach((pkg, index) => { %>
-                  <div class="package-card p-2 flex flex-col items-center justify-center text-center <%= index === 0 ? 'active' : '' %>"
-                       data-id="<%= pkg.id %>"
-                       data-name="<%= pkg.name %>"
-                       data-price="<%= pkg.price %>">
-                    <div class="text-lg mb-0.5 text-orange-500"><i class="fa-solid fa-gem"></i></div>
-                    <h3 class="text-[10px] font-black text-white mb-0.5 truncate w-full"><%= pkg.name %></h3>
-                    <div class="price text-sm font-black text-slate-300 font-mono">$<%= pkg.price %></div>
-                  </div>
-                <% }) %>
+              <div class="relative">
+                <select id="packageSelect" onchange="updateSelectedPackage(this)" class="royal-select w-full bg-gradient-to-r from-slate-900 to-black border border-amber-500/50 text-amber-100 rounded-lg px-3 py-2 pr-10 text-xs font-bold outline-none cursor-pointer hover:border-amber-400 focus:border-amber-400 focus:shadow-[0_0_15px_rgba(251,191,36,0.3)] transition-all">
+                  <% samacardPackages.forEach((pkg, index) => { %>
+                    <option value="<%= pkg.id %>" data-name="<%= pkg.name %>" data-price="<%= pkg.price %>" <%= index === 0 ? 'selected' : '' %>>
+                      <%= pkg.name %> - $<%= pkg.price %>
+                    </option>
+                  <% }) %>
+                </select>
               </div>
               <input type="hidden" id="selectedProductId" value="<%= samacardPackages[0].id %>">
               <input type="hidden" id="selectedPackageName" value="<%= samacardPackages[0].name %>">
               <input type="hidden" id="selectedPrice" value="<%= samacardPackages[0].price %>">
               <input type="hidden" id="isSamacard" value="true">
             <% } else if (packages.length > 0) { %>
-              <!-- باقات عادية -->
-              <div class="grid grid-cols-3 md:grid-cols-4 gap-2">
-                <% packages.forEach((pkg, index) => { %>
-                  <div class="package-card p-2 flex flex-col items-center justify-center text-center <%= index === 0 ? 'active' : '' %>"
-                       data-id="<%= pkg.id %>"
-                       data-name="<%= pkg.package_name %>"
-                       data-price="<%= pkg.price %>">
-                    <div class="text-lg mb-0.5 text-cyan-400"><i class="fa-solid fa-coins"></i></div>
-                    <h3 class="text-[10px] font-black text-white mb-0.5 truncate w-full"><%= pkg.package_name %></h3>
-                    <div class="price text-sm font-black text-slate-300 font-mono">$<%= pkg.price %></div>
-                  </div>
-                <% }) %>
+              <div class="relative">
+                <select id="packageSelect" onchange="updateSelectedPackage(this)" class="royal-select w-full bg-gradient-to-r from-slate-900 to-black border border-amber-500/50 text-amber-100 rounded-lg px-3 py-2 pr-10 text-xs font-bold outline-none cursor-pointer hover:border-amber-400 focus:border-amber-400 focus:shadow-[0_0_15px_rgba(251,191,36,0.3)] transition-all">
+                  <% packages.forEach((pkg, index) => { %>
+                    <option value="<%= pkg.id %>" data-name="<%= pkg.package_name %>" data-price="<%= pkg.price %>" <%= index === 0 ? 'selected' : '' %>>
+                      <%= pkg.package_name %> - $<%= pkg.price %>
+                    </option>
+                  <% }) %>
+                </select>
               </div>
               <input type="hidden" id="selectedProductId" value="<%= packages[0].id %>">
               <input type="hidden" id="selectedPackageName" value="<%= packages[0].package_name %>">
@@ -146,27 +141,27 @@
             <input type="tel" name="user_phone" id="userPhone" required class="w-full bg-black border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:border-cyan-400 outline-none transition" placeholder="09xxxxxxxx" dir="ltr">
           </div>
 
-          <div class="mb-3 bg-slate-800/50 p-2 rounded-lg border border-slate-700">
-            <label class="block text-[11px] font-bold text-slate-300 mb-1.5">طريقة الدفع</label>
-            <div class="flex flex-col gap-1">
-              <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-slate-700/50">
-                <input type="radio" name="payment_method" value="wallet" class="w-3 h-3 text-cyan-500">
-                <span class="text-white font-bold text-[11px]">الدفع من رصيد المحفظة</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-slate-700/50">
-                <input type="radio" name="payment_method" value="manual" class="w-3 h-3 text-cyan-500" checked>
-                <span class="text-white font-bold text-[11px]">تحويل يدوي / واتساب</span>
-              </label>
-            </div>
+          <!-- طريقة الدفع الملكية (محفظة فقط) -->
+          <div class="mb-3 bg-gradient-to-r from-amber-900/20 to-slate-900/50 p-3 rounded-lg border border-amber-500/30">
+            <label class="block text-[11px] font-bold text-amber-400 mb-2 flex items-center gap-1">
+              <i class="fa-solid fa-crown"></i> طريقة الدفع
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <div class="w-4 h-4 rounded-full border-2 border-amber-500 flex items-center justify-center">
+                <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+              </div>
+              <span class="text-amber-100 font-bold text-[11px]">الدفع من رصيد المحفظة</span>
+            </label>
+            <input type="hidden" name="payment_method" value="wallet">
           </div>
 
-          <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black py-2 rounded-lg hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] transition text-xs" <%= packages.length === 0 && (!samacardPackages || samacardPackages.length === 0) ? 'disabled' : '' %>>
+          <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-black py-2 rounded-lg hover:shadow-[0_0_20px_rgba(251,191,36,0.4)] transition text-xs" <%= packages.length === 0 && (!samacardPackages || samacardPackages.length === 0) ? 'disabled' : '' %>>
             <%= packages.length === 0 && (!samacardPackages || samacardPackages.length === 0) ? 'غير متاح حالياً' : 'تأكيد الطلب' %>
           </button>
         </form>
       </div>
 
-      <!-- Order History (Collapsible) -->
+      <!-- Order History -->
       <div>
         <details class="bg-slate-900/80 rounded-xl border border-slate-800 overflow-hidden group">
           <summary class="p-3 text-sm font-black text-white cursor-pointer flex items-center justify-between select-none hover:bg-slate-800/50 transition">
@@ -186,6 +181,15 @@
   </div>
 
   <script>
+  // دالة تحديث الباقة المختارة عند التغيير من القائمة المنسدلة
+  function updateSelectedPackage(selectEl) {
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+    document.getElementById('selectedProductId').value = selectedOption.value;
+    document.getElementById('selectedPackageName').value = selectedOption.getAttribute('data-name');
+    document.getElementById('selectedPrice').value = selectedOption.getAttribute('data-price');
+    if (window.GamingSound) window.GamingSound.play();
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     const userPhone = localStorage.getItem('apex_user_phone');
     if (userPhone) {
@@ -200,29 +204,13 @@
       }).catch(() => {});
     }
 
-    const packageCards = document.querySelectorAll('.package-card');
-    const inputName = document.getElementById('selectedPackageName');
-    const inputPrice = document.getElementById('selectedPrice');
-    const inputProductId = document.getElementById('selectedProductId');
-
-    packageCards.forEach(card => {
-      card.addEventListener('click', function() {
-        packageCards.forEach(c => c.classList.remove('active'));
-        this.classList.add('active');
-        if (inputName) inputName.value = this.getAttribute('data-name');
-        if (inputPrice) inputPrice.value = this.getAttribute('data-price');
-        if (inputProductId) inputProductId.value = this.getAttribute('data-id');
-        if (window.GamingSound) window.GamingSound.play();
-      });
-    });
-
     const form = document.getElementById('orderForm');
     if (form) {
       form.addEventListener('submit', async function(e) {
         e.preventDefault();
         const formData = new FormData(this);
         const phone = formData.get('user_phone');
-        const method = formData.get('payment_method');
+        const method = 'wallet'; // مثبتة الآن
         localStorage.setItem('apex_user_phone', phone);
 
         const isSamacard = document.getElementById('isSamacard')?.value === 'true';
@@ -249,8 +237,8 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 player_id: formData.get('player_id'),
-                package_name: formData.get('package_name'),
-                price: formData.get('price'),
+                package_name: document.getElementById('selectedPackageName').value,
+                price: document.getElementById('selectedPrice').value,
                 user_phone: phone,
                 payment_method: method
               })

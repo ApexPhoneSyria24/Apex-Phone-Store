@@ -603,8 +603,8 @@ app.get('/games/:gameName', async (req, res) => {
   }
 
   // --- التحقق من خدمة iCloud المخصصة ---
-  const lowerName = gameName.toLowerCase();
-  if (lowerName.includes('icloud') || lowerName.includes('ايكلود') || lowerName.includes('حساب ايكلود')) {
+  const checkIcloud = (str) => str && (str.toLowerCase().includes('icloud') || str.includes('ايكلود') || str.includes('أيكلود'));
+  if (checkIcloud(gameName) || checkIcloud(game.name) || checkIcloud(game.name_ar) || checkIcloud(game.slug)) {
     return res.render('game-details', { 
       game, 
       packages: [{ id: 'icloud-custom', package_name: 'حساب iCloud مضمون', price: '2.00' }], 
@@ -613,7 +613,7 @@ app.get('/games/:gameName', async (req, res) => {
     });
   }
 
-  // --- التحقق من الأقسام التي تحت الصيانة ---
+    // --- التحقق من الأقسام التي تحت الصيانة ---
   const maintenanceGames = ['google play', 'جوجل بلاي', 'itunes', 'ايتونز', 'أي تيونز'];
   const isMaintenance = maintenanceGames.some(m => lowerName.includes(m.toLowerCase()));
   if (isMaintenance) {

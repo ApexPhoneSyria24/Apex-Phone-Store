@@ -24,7 +24,7 @@
     #chat-toggle { display: none !important; }
     body > button { display: none !important; }
 
-    /* إخفاء شريط التمرير تماماً (لكن يسمح بالتمرير إذا لزم الأمر) */
+    /* إخفاء شريط التمرير */
     ::-webkit-scrollbar { display: none; }
     body { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
@@ -38,19 +38,21 @@
   </div>
   
   <nav class="bg-black/50 backdrop-blur-md border-b border-neon-blue/20 sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-3 h-10 flex justify-between items-center">
+    <div class="max-w-7xl mx-auto px-2 h-11 flex justify-between items-center">
       <a href="/" class="flex items-center gap-1.5 group">
         <div class="w-6 h-6 bg-gradient-to-br from-neon-blue to-blue-700 rounded flex items-center justify-center shadow-[0_0_10px_rgba(0,243,255,0.5)] group-hover:scale-110 transition">
           <i class="fa-solid fa-gamepad text-black text-[10px]"></i>
         </div>
-        <span class="text-xs font-black text-white tracking-wider">APEX <span class="text-neon-blue">GAMING</span></span>
+        <span class="text-[11px] font-black text-white tracking-wider">APEX <span class="text-neon-blue">GAMING</span></span>
       </a>
-      <div class="flex items-center">
-        <a href="/topup-balance" class="text-[9px] font-bold text-green-400 hover:text-green-300 transition flex items-center gap-1 mr-2">
-          <i class="fa-solid fa-wallet"></i> شحن رصيد
-          <span id="balanceBadge" class="hidden bg-green-900/50 border border-green-500 rounded px-1 py-0.5 text-[8px] font-black text-green-400"></span>
+      
+      <!-- تحسين المسافات والأزرار -->
+      <div class="flex items-center gap-2">
+        <a href="/topup-balance" class="text-[10px] font-bold text-green-400 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 px-2 py-1 rounded transition flex items-center gap-1">
+          <i class="fa-solid fa-wallet"></i> شحن
         </a>
-        <a href="/games" class="text-[9px] font-bold text-slate-300 hover:text-neon-blue transition flex items-center gap-1">
+        <span id="balanceBadge" class="hidden bg-slate-900 border border-slate-700 rounded px-2 py-1 text-[10px] font-black text-green-400" dir="ltr">$0.00</span>
+        <a href="/games" class="text-[10px] font-bold text-slate-300 hover:text-neon-blue hover:bg-slate-800 transition flex items-center gap-1 px-1.5 py-1">
           <i class="fa-solid fa-arrow-right"></i> رجوع
         </a>
       </div>
@@ -71,7 +73,6 @@
         <p class="text-slate-500 text-[10px] font-bold">نحن نجهز أقوى باقات الشحن.</p>
       </div>
     <% } else { %>
-      <!-- شبكة الألعاب 3 أعمدة كالمعتاد -->
       <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3">
         <% games.forEach(game => { %>
           <a href="/games/<%= encodeURIComponent(game.name) %>" class="game-card p-2 flex flex-col items-center justify-center text-center group h-full">
@@ -122,7 +123,6 @@
   });
 </script>
 
-<!-- استدعاء ميمو موجود لكنه مخفي عبر CSS -->
 <script src="/chatbot.js?v=14"></script>
 </body>
 </html>

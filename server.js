@@ -585,23 +585,22 @@ app.get('/games/:gameName', async (req, res) => {
     game = { name: gameName, name_ar: gameName, instructions: 'أدخل الـ ID الخاص بك', delivery_time: 'فوري', description: 'شحن فوري، آمن، وبأسعار منافسة لا تقبل المنافسة' };
   }
 
-  // --- التحقق من خدمة iCloud المخصصة ---
-  const checkIcloud = (str) => str && (str.toLowerCase().includes('icloud') || str.includes('ايكلود') || str.includes('أيكلود'));
-  if (checkIcloud(gameName) || checkIcloud(game.name) || checkIcloud(game.name_ar) || checkIcloud(game.slug)) {
-    return res.render('game-details', { 
-      game, 
-      packages: [{ id: 'icloud-custom', package_name: 'حساب iCloud مضمون', price: '2.00' }], 
-      samacardPackages: null, 
-      isMaintenance: false 
-    });
-  }
-
-    // --- التحقق من الأقسام التي تحت الصيانة ---
+  // --- التحقق من الخدمات اليدوية (iCloud, Google Play, iTunes) ---
   const lowerName = gameName.toLowerCase();
-  const maintenanceGames = ['google play', 'جوجل بلاي', 'itunes', 'ايتونز', 'أي تيونز'];
-  const isMaintenance = maintenanceGames.some(m => lowerName.includes(m.toLowerCase()));
-  if (isMaintenance) {
-    return res.render('game-details', { game, packages: [], samacardPackages: null, isMaintenance: true });
+  const isManualService = lowerName.includes('icloud') || lowerName.includes('ايكلود') || lowerName.includes('google play') || lowerName.includes('جوجل بلاي') || lowerName.includes('itunes') || lowerName.includes('ايتونز');
+  
+  if (isManualService) {
+    let manualName = 'طلب يدوي - ' + (game.name_ar || game.name);
+    if (lowerName.includes('google play') || lowerName.includes('جوجل بلاي')) manualName = 'بطاقة Google Play (طلب يدوي)';
+    else if (lowerName.includes('itunes') || lowerName.includes('ايتونز')) manualName = 'بطاقة iTunes (طلب يدوي)';
+    else manualName = 'حساب iCloud مضمون (طلب يدوي)';
+
+    return res.render('game-details', {
+      game,
+      packages: [{ id: 'manual-card', package_name: manualName, price: '2.00' }],
+      samacardPackages: null,
+      isMaintenance: false
+    });
   }
   // -------------------------------------------
 

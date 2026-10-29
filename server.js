@@ -587,13 +587,18 @@ app.get('/games/:gameName', async (req, res) => {
 
   // --- التحقق من الخدمات اليدوية (iCloud, Google Play, iTunes) ---
   const lowerName = gameName.toLowerCase();
-  const isManualService = lowerName.includes('icloud') || lowerName.includes('ايكلود') || lowerName.includes('google play') || lowerName.includes('جوجل بلاي') || lowerName.includes('itunes') || lowerName.includes('ايتونز') || lowerName.includes('app store') || lowerName.includes('بطاقة');
-  
+
+  // --- التحقق من الأقسام التي تحت الصيانة (جوجل بلاي وآيتونز) ---
+  const isMaintenance = lowerName.includes('google play') || lowerName.includes('جوجل بلاي') || lowerName.includes('itunes') || lowerName.includes('ايتونز');
+  if (isMaintenance) {
+    return res.render('game-details', { game, packages: [], samacardPackages: null, isMaintenance: true });
+  }
+
+  // --- التحقق من الخدمات اليدوية (iCloud, App Store) ---
+  const isManualService = lowerName.includes('icloud') || lowerName.includes('ايكلود') || lowerName.includes('app store') || lowerName.includes('بطاقة');
   if (isManualService) {
     let manualName = 'طلب يدوي - ' + (game.name_ar || game.name);
-    if (lowerName.includes('google play') || lowerName.includes('جوجل بلاي')) manualName = 'بطاقة Google Play (طلب يدوي)';
-    else if (lowerName.includes('itunes') || lowerName.includes('ايتونز')) manualName = 'بطاقة iTunes (طلب يدوي)';
-    else if (lowerName.includes('app store') || lowerName.includes('بطاقة')) manualName = 'بطاقة App Store (طلب يدوي)';
+    if (lowerName.includes('app store') || lowerName.includes('بطاقة')) manualName = 'بطاقة App Store (طلب يدوي)';
     else manualName = 'حساب iCloud مضمون (طلب يدوي)';
 
     return res.render('game-details', {
@@ -603,7 +608,6 @@ app.get('/games/:gameName', async (req, res) => {
       isMaintenance: false
     });
   }
-  // -------------------------------------------
 
   let packages = [];
   let samacardPackages = null;

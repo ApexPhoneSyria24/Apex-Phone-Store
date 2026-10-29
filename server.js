@@ -690,20 +690,6 @@ app.post('/games/:gameName/order', (req, res) => {
       if (!user) return res.status(400).json({ success: false, message: 'رقم الهاتف غير مسجل. يرجى شحن رصيدك أولاً.' });
       if (user.balance < priceNum) return res.status(400).json({ success: false, message: 'عذراً، رصيدك غير كافٍ لإتمام الطلب.' });
       db.prepare('UPDATE users SET balance = balance - ? WHERE phone = ?').run(priceNum, user_phone);
-
-    // معالجة خاصة لطلب iCloud
-    if (product_id === 'icloud-custom') {
-      db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone, payment_method, status) VALUES ('iCloud', ?, ?, ?, ?, 'wallet', 'pending')`).run(package_name, player_id, priceNum, user_phone);
-      
-      db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(user_phone, `✅ تم استلام طلب ${package_name}، جاري تجهيزه.`);
-      
-      if (typeof sendTelegram === 'function') {
-        sendTelegram(`☁️ <b>طلب iCloud جديد!</b>\n\n👤 الزبون: ${user_phone}\n🆔 الآي دي: ${player_id}\n💰 السعر: $${priceNum}\n\nيرجى تجهيز الحساب وإرساله له عبر واتساب.`);
-      }
-      
-      return res.json({ success: true, message: 'تم الطلب بنجاح! سيتم التواصل معك عبر واتساب.' });
-    }
-
       db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone, payment_method, status) VALUES (?, ?, ?, ?, ?, 'wallet', 'pending')`).run(gameName, package_name, player_id, priceNum, user_phone);
       db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(user_phone, `💳 تم خصم $${priceNum} من محفظتك لطلب ${package_name} في ${gameName}`);
       sendTelegram(`🎮 <b>طلب شحن (محفظة)!</b>\nاللعبة: ${gameName}\nالباقة: ${package_name}\nالهاتف: ${user_phone}\nالسعر: $${priceNum}`);
@@ -1175,6 +1161,20 @@ app.post('/api/samacard/buy', async (req, res) => {
     // 2. خصم الرصيد مبدئياً
     db.prepare('UPDATE users SET balance = balance - ? WHERE phone = ?').run(priceNum, user_phone);
 
+    // 3. التحقق من الطلبات اليدوية (iCloud, Google Play, iTunes)
+    if (product_id === 'manual-card' || product_id === 'icloud-custom') {
+      db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone, payment_method, status) VALUES (?, ?, ?, ?, ?, 'wallet', 'pending')`).run('خدمات يدوية', package_name, player_id, priceNum, user_phone);
+      
+      db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(user_phone, `✅ تم استلام طلب ${package_name}، جاري تجهيزه.`);
+      
+      if (typeof sendTelegram === 'function') {
+        sendTelegram(`☁️ <b>طلب خدمة يدوية جديد!</b>\n\n👤 الزبون: ${user_phone}\n🆔 الآي دي: ${player_id}\n📦 الخدمة: ${package_name}\n💰 السعر: ${priceNum}\n\nيرجى تجهيز الطلب وإرساله له عبر واتساب.`);
+      }
+      
+      return res.json({ success: true, message: 'تم الطلب بنجاح! سيتم التواصل معك عبر واتساب.' });
+    }
+    // -------------------------------------------
+
     // 3. إرسال الطلب إلى Samacard
     const order_uuid = require('crypto').randomUUID();
     const orderUrl = `${SAMACARD_API}/newOrder/${product_id}?playerId=${player_id}&order_uuid=${order_uuid}`;
@@ -1209,4 +1209,15 @@ app.post('/api/samacard/buy', async (req, res) => {
 app.get('/freefire', (req, res) => { res.render('freefire'); });
 
 // مسار مؤقت لمزامنة التطبيقات (سيتم حذفه لاحقاً)
+app.get('/api/sync-apps', (req, res) => {
+  const apps = ['Bigo Live', 'Tango', 'Yalla', 'Lama Chat', 'Hami Party', 'Ligo Live', 'Oohla Chat', 'Yoho', 'Soul Chill', 'Azal Live'];
+  const stmt = db.prepare(`INSERT OR IGNORE INTO games (name, name_ar, slug, is_active, sort_order) VALUES (?, ?, ?, 1, 0)`);
+  let count = 0;
+  apps.forEach(app => {
+    const result = stmt.run(app, app, app.toLowerCase().replace(/ /g, '-'));
+    if (result.changes > 0) count++;
+  });
+  res.send('✅ تمت إضافة ' + count + ' تطبيق إلى قاعدة بيانات الموقع الفعلي! يمكنك الآن العودة للوحة الإدارة.');
+});
+
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

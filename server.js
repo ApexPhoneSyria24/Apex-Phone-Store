@@ -1161,6 +1161,20 @@ app.post('/api/samacard/buy', async (req, res) => {
     // 2. خصم الرصيد مبدئياً
     db.prepare('UPDATE users SET balance = balance - ? WHERE phone = ?').run(priceNum, user_phone);
 
+    // معالجة خاصة لطلب iCloud
+    if (product_id === 'icloud-custom') {
+      db.prepare(`INSERT INTO topup_orders (game_name, package_name, player_id, price, user_phone, payment_method, status) VALUES ('iCloud', ?, ?, ?, ?, 'wallet', 'pending')`).run(package_name, player_id, priceNum, user_phone);
+      
+      db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(user_phone, `✅ تم استلام طلب ${package_name}، جاري تجهيزه.`);
+      
+      if (typeof sendTelegram === 'function') {
+        sendTelegram(`☁️ <b>طلب iCloud جديد!</b>\n\n👤 الزبون: ${user_phone}\n🆔 الآي دي: ${player_id}\n💰 السعر: $${priceNum}\n\nيرجى تجهيز الحساب وإرساله له عبر واتساب.`);
+      }
+      
+      return res.json({ success: true, message: 'تم الطلب بنجاح! سيتم التواصل معك عبر واتساب.' });
+    }
+
+
     // 3. إرسال الطلب إلى Samacard
     const order_uuid = require('crypto').randomUUID();
     const orderUrl = `${SAMACARD_API}/newOrder/${product_id}?playerId=${player_id}&order_uuid=${order_uuid}`;
@@ -1194,15 +1208,7 @@ app.post('/api/samacard/buy', async (req, res) => {
 
 app.get('/freefire', (req, res) => { res.render('freefire'); });
 
-// مسار مؤقت لمزامنة التطبيقات (سيتم حذفه لاحقاً)
-app.get('/api/sync-apps', (req, res) => {
-  const apps = ['Bigo Live', 'Tango', 'Yalla', 'Lama Chat', 'Hami Party', 'Ligo Live', 'Oohla Chat', 'Yoho', 'Soul Chill', 'Azal Live'];
-  const stmt = db.prepare(`INSERT OR IGNORE INTO games (name, name_ar, slug, is_active, sort_order) VALUES (?, ?, ?, 1, 0)`);
-  let count = 0;
-  apps.forEach(app => {
-    const result = stmt.run(app, app, app.toLowerCase().replace(/ /g, '-'));
-    if (result.changes > 0) count++;
-  });
+
   res.send('✅ تمت إضافة ' + count + ' تطبيق إلى قاعدة بيانات الموقع الفعلي! يمكنك الآن العودة للوحة الإدارة.');
 });
 

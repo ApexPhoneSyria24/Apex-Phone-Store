@@ -1167,39 +1167,30 @@ app.post('/api/samacard/buy', async (req, res) => {
       db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(user_phone, `✅ تم استلام طلب ${package_name}، جاري تجهيزه.`);
       
       if (typeof sendTelegram === 'function') {
-        sendTelegram(`☁️ <b>طلب خدمة يدوية جديد!</b>\n\n👤 الزبون: ${user_phone}\n🆔 الآي دي: ${player_id}\n📦 الخدمة: ${package_name}\n💰 السعر: ${priceNum}\n\nيرجى تجهيز الطلب وإرساله له عبر واتساب.`);
+        sendTelegram(`☁️ <b>طلب خدمة يدوية جديد!</b>\n\n👤 الزبون: ${user_phone}\n🆔 الآي دي: ${player_id}\n📦 الخدمة: ${package_name}\n💰 السعر: $${priceNum}\n\nيرجى تجهيز الطلب وإرساله له عبر واتساب.`);
       }
-      
       return res.json({ success: true, message: 'تم الطلب بنجاح! سيتم التواصل معك عبر واتساب.' });
     }
-    // -------------------------------------------
 
-    // 3. إرسال الطلب إلى Samacard
+    // 4. إرسال الطلب إلى Samacard
     const order_uuid = require('crypto').randomUUID();
     const orderUrl = `${SAMACARD_API}/newOrder/${product_id}?playerId=${player_id}&order_uuid=${order_uuid}`;
-    
     const orderRes = await fetch(orderUrl, {
       method: 'GET',
       headers: { 'api-token': SAMACARD_TOKEN }
     });
     const orderData = await orderRes.json();
 
-    // 4. معالجة النتيجة
     if (orderData.status === 'success' || orderData.status === 'accept' || orderData.code === 200) {
-      // نجاح
-      db.prepare(`INSERT INTO samacard_orders (user_phone, player_id, product_id, package_name, price_usd, status, samacard_order_id) VALUES (?, ?, ?, ?, ?, 'approved', ?)`)
-        .run(user_phone, player_id, product_id, package_name, priceNum, orderData.order_id || order_uuid);
-      
+      db.prepare(`INSERT INTO samacard_orders (user_phone, player_id, product_id, package_name, price_usd, status, samacard_order_id) VALUES (?, ?, ?, ?, ?, 'approved', ?)`).run(user_phone, player_id, product_id, package_name, priceNum, orderData.order_id || order_uuid);
       db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(user_phone, `✅ تم شحن ${package_name} لحسابك بنجاح!`);
-      
       res.json({ success: true, message: 'تم الشحن بنجاح!' });
     } else {
-      // فشل -> إعادة الرصيد
       db.prepare('UPDATE users SET balance = balance + ? WHERE phone = ?').run(priceNum, user_phone);
       res.json({ success: false, message: 'فشل الشحن: ' + (orderData.msg || 'خطأ غير معروف') });
     }
   } catch (e) {
-    // إعادة الرصيد في حال حدوث خطأ تقني
+    console.error('Buy Error:', e); // هذا السطر سيطبع الخطأ الحقيقي في السجلات
     db.prepare('UPDATE users SET balance = balance + ? WHERE phone = ?').run(priceNum, user_phone);
     res.json({ success: false, message: 'حدث خطأ في الاتصال، تم إعادة المبلغ لمحفظتك' });
   }

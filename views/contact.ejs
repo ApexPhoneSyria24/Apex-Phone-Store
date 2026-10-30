@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>اتصل بنا | Apex Phone Syria</title>
+  <meta name="description" content="تواصل مع فريق دعم Apex Phone Syria عبر الواتساب أو البريد الإلكتروني. نحن هنا للإجابة على استفساراتك.">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] }, colors: { neon: { blue: '#00f3ff' } } } } }</script>
+  <style>
+    body { background-color: #050505; background-image: radial-gradient(circle at 50% 0%, rgba(0,243,255,0.1) 0%, transparent 50%); color: #fff; }
+    .cyber-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(0,243,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,243,255,0.05) 1px, transparent 1px); background-size: 20px 20px; z-index: -1; pointer-events: none; }
+    .contact-card { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(51, 65, 85, 1); border-radius: 12px; transition: all 0.3s; }
+    .contact-card:hover { border-color: #00f3ff; transform: translateY(-2px); box-shadow: 0 10px 20px -10px rgba(0,243,255,0.4); }
+  </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col">
+  <div class="cyber-grid"></div>
+  
+  <nav class="bg-black/50 backdrop-blur-md border-b border-cyan-500/20 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 h-14 flex justify-between items-center">
+      <a href="/" class="flex items-center gap-2 group">
+        <div class="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-700 rounded-lg flex items-center justify-center shadow-[0_0_10px_rgba(0,243,255,0.5)] group-hover:scale-110 transition">
+          <i class="fa-solid fa-gamepad text-black text-xs"></i>
+        </div>
+        <span class="text-sm font-black text-white tracking-wider">APEX <span class="text-cyan-400">PHONE</span></span>
+      </a>
+      <a href="/" class="text-xs font-bold text-slate-300 hover:text-cyan-400 transition flex items-center gap-1">
+        <i class="fa-solid fa-arrow-right"></i> العودة للمتجر
+      </a>
+    </div>
+  </nav>
+
+  <div class="max-w-2xl mx-auto px-4 py-8 flex-1 w-full">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-black text-white mb-2 tracking-tighter" style="text-shadow: 0 0 10px rgba(0,243,255,0.8);">اتصل <span class="text-cyan-400">بنا</span></h1>
+      <p class="text-slate-400 text-sm font-bold">فريقنا جاهز للإجابة على استفساراتك</p>
+    </div>
+
+    <div class="space-y-4">
+      <!-- واتساب -->
+      <a href="https://wa.me/963980259127" target="_blank" class="contact-card p-4 flex items-center justify-between group">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center group-hover:scale-110 transition">
+            <i class="fa-brands fa-whatsapp text-2xl text-green-500"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-white group-hover:text-green-400 transition">واتساب (الدعم الفني)</h3>
+            <p class="text-[11px] text-slate-400 font-bold" dir="ltr">+963 980 259 127</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-left text-slate-600 group-hover:text-green-400 transition text-xs"></i>
+      </a>
+
+      <!-- البريد الإلكتروني -->
+      <a href="mailto:support@apexphonesyria.online" class="contact-card p-4 flex items-center justify-between group">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center group-hover:scale-110 transition">
+            <i class="fa-solid fa-envelope text-xl text-cyan-400"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-white group-hover:text-cyan-400 transition">البريد الإلكتروني</h3>
+            <p class="text-[11px] text-slate-400 font-bold" dir="ltr">support@apexphonesyria.online</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-left text-slate-600 group-hover:text-cyan-400 transition text-xs"></i>
+      </a>
+
+      <!-- العنوان -->
+      <div class="contact-card p-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-slate-500/10 border border-slate-500/30 flex items-center justify-center">
+          <i class="fa-solid fa-location-dot text-xl text-slate-400"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-black text-white">العنوان</h3>
+          <p class="text-[11px] text-slate-400 font-bold">سوريا - دمشق (خدمة التوصيل متاحة)</p>
+        </div>
+      </div>
+
+      <!-- أوقات العمل -->
+      <div class="contact-card p-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+          <i class="fa-solid fa-clock text-xl text-amber-400"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-black text-white">أوقات العمل</h3>
+          <p class="text-[11px] text-slate-400 font-bold">السبت - الخميس: 10 ص - 9 م | الجمعة: 2 م - 9 م</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 text-center">
+      <p class="text-slate-500 text-xs font-bold"><i class="fa-solid fa-circle-info"></i> للاستفسارات السريعة، يمكنك أيضاً استخدام مساعدنا الذكي "ميمو" في أسفل الشاشة.</p>
+    </div>
+  </div>
+
+  <footer class="border-t border-slate-800 py-4 text-center bg-black/80 mt-auto">
+    <p class="text-slate-500 font-bold text-[10px]">© 2026 APEX PHONE SYRIA. جميع الحقوق محفوظة.</p>
+  </footer>
+</body>
+</html>

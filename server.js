@@ -1250,4 +1250,6 @@ app.post('/api/track-visit', (req, res) => {
 app.get('/about', (req, res) => { res.render('about'); });
 
 app.get('/faq', (req, res) => { res.render('faq'); });
+
+app.get('/contact', (req, res) => { res.render('contact'); });
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

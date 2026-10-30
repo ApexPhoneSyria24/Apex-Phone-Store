@@ -203,7 +203,7 @@
           <!-- الشعاع النيوني الدوار -->
           <div class="absolute inset-[-100%] bg-[conic-gradient(from_90deg_at_50%_50%,#00f3ff_0%,#0055ff_50%,#00f3ff_100%)] animate-[spin_4s_linear_infinite]"></div>
           
-          <a href="/shield" class="relative z-10 flex items-center justify-between bg-gradient-to-r from-cyan-600 to-blue-700 text-white p-3 rounded-xl transition-all group w-full">
+          <a href="/shield" onclick="playShieldClick(event)" class="relative z-10 flex items-center justify-between bg-gradient-to-r from-cyan-600 to-blue-700 text-white p-3 rounded-xl transition-all group w-full">
       <div class="flex items-center gap-3">
         <span class="text-2xl group-hover:scale-110 transition-transform">🛡️</span>
         <div>
@@ -927,6 +927,41 @@
         btn.addEventListener('click', closeModal);
       });
     });
+  </script>
+
+  <script>
+    function playShieldClick(e) {
+      e.preventDefault(); // منع الانتقال الفوري
+      
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          const ctx = new AudioContext();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.1);
+          
+          gain.gain.setValueAtTime(1, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+          
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          
+          osc.start();
+          osc.stop(ctx.currentTime + 0.1);
+        }
+      } catch(err) {
+        console.log('Audio error:', err);
+      }
+      
+      // الانتقال بعد انتهاء الصوت تقريباً
+      setTimeout(() => {
+        window.location.href = '/shield';
+      }, 150);
+    }
   </script>
 </body>
     

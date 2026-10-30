@@ -1252,4 +1252,7 @@ app.get('/about', (req, res) => { res.render('about'); });
 app.get('/faq', (req, res) => { res.render('faq'); });
 
 app.get('/contact', (req, res) => { res.render('contact'); });
+
+app.get('/privacy', (req, res) => { res.render('privacy'); });
+app.get('/terms', (req, res) => { res.render('terms'); });
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

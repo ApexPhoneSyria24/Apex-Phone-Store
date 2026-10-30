@@ -904,6 +904,8 @@
         setTimeout(() => {
           modal.classList.add('hidden');
           modal.classList.remove('flex');
+          // تشغيل ميمو بعد إغلاق السوشيال ميديا
+          if (window.showMimoTeaser) window.showMimoTeaser();
         }, 500);
         // (تم إلغاء الحفظ ليظهر في كل زيارة)
       };

@@ -164,14 +164,14 @@
         sessionStorage.removeItem('mimo_teaser_shown_once');
     }
 
-    setTimeout(() => {
+    window.showMimoTeaser = function() {
       // نتحقق من عدم ظهورها مسبقاً في هذه الجلسة
       if (chatWindow.style.display === 'none' && !sessionStorage.getItem('mimo_teaser_shown_once')) {
         teaser.style.display = 'block';
         sessionStorage.setItem('mimo_teaser_shown_once', 'true');
         playSound('pop');
       }
-    }, 2000);
+    };
     // -----------------------------------------------------
 
     closeTeaser.onclick = () => { teaser.style.display = 'none'; };

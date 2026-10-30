@@ -805,6 +805,105 @@
   
   
   
+
+  <!-- النافذة الفخمة للانضمام للسوشيال ميديا -->
+  <div id="socialJoinModal" class="fixed inset-0 z-[999999] bg-black/90 backdrop-blur-md hidden items-center justify-center px-4 transition-opacity duration-500 opacity-0">
+    <div class="bg-slate-900 border border-cyan-500/50 rounded-2xl p-6 max-w-sm w-full text-center shadow-[0_0_50px_rgba(0,243,255,0.2)] relative transform scale-95 transition-transform duration-500">
+      
+      <button id="closeSocialModal" class="absolute top-3 left-3 text-slate-500 hover:text-white transition bg-black/50 rounded-full w-8 h-8 flex items-center justify-center">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="w-16 h-16 mx-auto bg-gradient-to-br from-cyan-400 to-blue-700 rounded-full flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(0,243,255,0.6)]">
+        <i class="fa-solid fa-bolt text-3xl text-black"></i>
+      </div>
+      
+      <h2 class="text-2xl font-black text-white mb-1">مرحباً بك في Apex!</h2>
+      <p class="text-[11px] text-slate-400 font-bold mb-6">انضم إلينا الآن لتكون أول من يعرف العروض، الخصومات، والخدمات الجديدة.</p>
+      
+      <div class="space-y-3">
+        <!-- WhatsApp -->
+        <a href="https://chat.whatsapp.com/L5x6PlBYBDV6faJaCWg5g1?s=cl&p=a&iam=2" target="_blank" class="social-btn flex items-center justify-between bg-green-500/10 border border-green-500/30 hover:bg-green-500/20 p-3 rounded-xl transition text-green-400 group">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+              <i class="fa-brands fa-whatsapp text-xl"></i>
+            </div>
+            <span class="font-bold text-sm">كروب الواتساب</span>
+          </div>
+          <i class="fa-solid fa-arrow-left text-xs group-hover:-translate-x-1 transition"></i>
+        </a>
+
+        <!-- Facebook -->
+        <a href="https://www.facebook.com/share/p/1JZmqDrXpg/" target="_blank" class="social-btn flex items-center justify-between bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 p-3 rounded-xl transition text-blue-400 group">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+              <i class="fa-brands fa-facebook-f text-xl"></i>
+            </div>
+            <span class="font-bold text-sm">صفحة الفيسبوك</span>
+          </div>
+          <i class="fa-solid fa-arrow-left text-xs group-hover:-translate-x-1 transition"></i>
+        </a>
+
+        <!-- Instagram -->
+        <a href="https://www.instagram.com/apexphonesyria.online?xtok=d3BsN2pnMm1sbWE0" target="_blank" class="social-btn flex items-center justify-between bg-pink-500/10 border border-pink-500/30 hover:bg-pink-500/20 p-3 rounded-xl transition text-pink-400 group">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center">
+              <i class="fa-brands fa-instagram text-xl"></i>
+            </div>
+            <span class="font-bold text-sm">حساب إنستغرام</span>
+          </div>
+          <i class="fa-solid fa-arrow-left text-xs group-hover:-translate-x-1 transition"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById('socialJoinModal');
+      if (!modal) return;
+
+      // التحقق مما إذا كان الزائر قد رأى النافذة مسبقاً
+      const hasSeenModal = localStorage.getItem('apex_social_modal_seen');
+      
+      if (!hasSeenModal) {
+        // إظهار النافذة بعد 3 ثوانٍ من دخول الموقع
+        setTimeout(() => {
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modal.querySelector('div').classList.remove('scale-95');
+            modal.querySelector('div').classList.add('scale-100');
+          }, 50);
+        }, 3000);
+      }
+
+      const closeModal = () => {
+        modal.classList.add('opacity-0');
+        modal.querySelector('div').classList.remove('scale-100');
+        modal.querySelector('div').classList.add('scale-95');
+        setTimeout(() => {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        }, 500);
+        // حفظ في ذاكرة المتصفح لمنع الظهور مرة أخرى
+        localStorage.setItem('apex_social_modal_seen', 'true');
+      };
+
+      document.getElementById('closeSocialModal').addEventListener('click', closeModal);
+      
+      // إغلاق عند الضغط خارج النافذة
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeModal();
+      });
+
+      // إغلاق النافذة وتسجيلها عند الضغط على أي رابط
+      document.querySelectorAll('.social-btn').forEach(btn => {
+        btn.addEventListener('click', closeModal);
+      });
+    });
+  </script>
 </body>
     
 </html>

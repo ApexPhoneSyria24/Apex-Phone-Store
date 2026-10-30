@@ -1,8 +1,8 @@
 (function() {
-  // 1. إدارة معرف الزائر الفريد (visitor_id)
+  // 1. إدارة معرف الزائر الفريد (نفس المنطق الموجود في الهيدر)
   let visitorId = localStorage.getItem('apex_visitor_id');
   if (!visitorId) {
-    visitorId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'v-' + Math.random().toString(36).substring(2, 15);
+    visitorId = '#APX-' + Math.random().toString(36).substring(2, 6).toUpperCase();
     localStorage.setItem('apex_visitor_id', visitorId);
   }
 

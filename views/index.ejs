@@ -594,6 +594,9 @@
         // بعد إغلاق التحذير، نفتح نافذة التوثيق
         if (!sessionStorage.getItem('apex_verification_seen') && !localStorage.getItem('apex_hide_verif')) {
           setTimeout(() => { showVerificationModal(); }, 400);
+        } else {
+          // إذا كان التوثيق مخفياً، نظهر السوشيال ميديا مباشرة بعد الرعبون
+          if (window.showSocialModal) setTimeout(window.showSocialModal, 800);
         }
       }, 300);
     }
@@ -620,6 +623,8 @@
         if (document.getElementById('hideVerifCheckbox') && document.getElementById('hideVerifCheckbox').checked) {
           localStorage.setItem('apex_hide_verif', 'true');
         }
+        // إظهار نافذة السوشيال ميديا بعد إغلاق التوثيق
+        if (window.showSocialModal) setTimeout(window.showSocialModal, 800);
       }, 300);
     }
   </script>
@@ -880,20 +885,16 @@
       if (!modal) return;
 
       // التحقق مما إذا كان الزائر قد رأى النافذة مسبقاً
-      const hasSeenModal = localStorage.getItem('apex_social_modal_seen');
-      
-      if (!hasSeenModal) {
-        // إظهار النافذة بعد 3 ثوانٍ من دخول الموقع
+      window.showSocialModal = function() {
+        if (localStorage.getItem('apex_social_modal_seen')) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
         setTimeout(() => {
-          modal.classList.remove('hidden');
-          modal.classList.add('flex');
-          setTimeout(() => {
-            modal.classList.remove('opacity-0');
-            modal.querySelector('div').classList.remove('scale-95');
-            modal.querySelector('div').classList.add('scale-100');
-          }, 50);
-        }, 3000);
-      }
+          modal.classList.remove('opacity-0');
+          modal.querySelector('div').classList.remove('scale-95');
+          modal.querySelector('div').classList.add('scale-100');
+        }, 50);
+      };
 
       const closeModal = () => {
         modal.classList.add('opacity-0');

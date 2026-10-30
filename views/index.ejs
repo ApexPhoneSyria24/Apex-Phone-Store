@@ -827,53 +827,55 @@
   
   
 
-  <!-- النافذة الفخمة للانضمام للسوشيال ميديا -->
-  <div id="socialJoinModal" class="fixed inset-0 z-[999999] bg-black/90 backdrop-blur-md hidden items-center justify-center px-4 transition-opacity duration-500 opacity-0">
-    <div class="bg-slate-900 border border-cyan-500/50 rounded-2xl p-6 max-w-sm w-full text-center shadow-[0_0_50px_rgba(0,243,255,0.2)] relative transform scale-95 transition-transform duration-500">
+  <!-- النافذة الملكية للانضمام للسوشيال ميديا -->
+  <div id="socialJoinModal" class="fixed inset-0 z-[999999] bg-black/95 backdrop-blur-md hidden items-center justify-center px-4 transition-opacity duration-500 opacity-0">
+    <div class="bg-gradient-to-b from-[#111] to-[#050505] border-2 border-[#d4af37]/60 rounded-3xl p-6 max-w-sm w-full text-center shadow-[0_0_60px_rgba(212,175,55,0.2)] relative transform scale-95 transition-transform duration-500">
       
-      <button id="closeSocialModal" class="absolute top-3 left-3 text-slate-500 hover:text-white transition bg-black/50 rounded-full w-8 h-8 flex items-center justify-center">
+      <!-- زر الإغلاق -->
+      <button id="closeSocialModal" class="absolute top-3 left-3 text-[#d4af37]/50 hover:text-[#d4af37] transition bg-black/50 rounded-full w-8 h-8 flex items-center justify-center border border-[#d4af37]/20">
         <i class="fa-solid fa-xmark text-lg"></i>
       </button>
 
-      <div class="w-16 h-16 mx-auto bg-gradient-to-br from-cyan-400 to-blue-700 rounded-full flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(0,243,255,0.6)]">
-        <i class="fa-solid fa-bolt text-3xl text-black"></i>
+      <!-- التاج الملكي -->
+      <div class="w-20 h-20 mx-auto bg-gradient-to-br from-[#d4af37] to-[#b8860b] rounded-full flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(212,175,55,0.5)] border border-[#fcf6b5]">
+        <i class="fa-solid fa-crown text-4xl text-black drop-shadow-md"></i>
       </div>
       
-      <h2 class="text-2xl font-black text-white mb-1">مرحباً بك في Apex!</h2>
-      <p class="text-[11px] text-slate-400 font-bold mb-6">انضم إلينا الآن لتكون أول من يعرف العروض، الخصومات، والخدمات الجديدة.</p>
+      <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#d4af37] to-[#fcf6b5] mb-1">انضم إلى العائلة</h2>
+      <p class="text-[11px] text-slate-400 font-bold mb-6">كن أول من يحصل على العروض الملكية والخصومات الحصرية</p>
       
       <div class="space-y-3">
         <!-- WhatsApp -->
-        <a href="https://chat.whatsapp.com/L5x6PlBYBDV6faJaCWg5g1?s=cl&p=a&iam=2" target="_blank" class="social-btn flex items-center justify-between bg-green-500/10 border border-green-500/30 hover:bg-green-500/20 p-3 rounded-xl transition text-green-400 group">
+        <a href="https://chat.whatsapp.com/L5x6PlBYBDV6faJaCWg5g1?s=cl&p=a&iam=2" target="_blank" class="social-btn flex items-center justify-between bg-black/50 border border-[#d4af37]/30 hover:border-[#25D366] hover:bg-[#25D366]/10 p-3 rounded-xl transition group">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-              <i class="fa-brands fa-whatsapp text-xl"></i>
+            <div class="w-8 h-8 rounded-full bg-[#25D366]/10 flex items-center justify-center border border-[#25D366]/30">
+              <i class="fa-brands fa-whatsapp text-lg text-[#25D366]"></i>
             </div>
-            <span class="font-bold text-sm">كروب الواتساب</span>
+            <span class="font-bold text-sm text-slate-200 group-hover:text-white transition">كروب الواتساب</span>
           </div>
-          <i class="fa-solid fa-arrow-left text-xs group-hover:-translate-x-1 transition"></i>
+          <i class="fa-solid fa-arrow-left text-xs text-[#d4af37] group-hover:-translate-x-1 transition"></i>
         </a>
 
         <!-- Facebook -->
-        <a href="https://www.facebook.com/share/p/1JZmqDrXpg/" target="_blank" class="social-btn flex items-center justify-between bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 p-3 rounded-xl transition text-blue-400 group">
+        <a href="https://www.facebook.com/share/p/1JZmqDrXpg/" target="_blank" class="social-btn flex items-center justify-between bg-black/50 border border-[#d4af37]/30 hover:border-[#1877F2] hover:bg-[#1877F2]/10 p-3 rounded-xl transition group">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-              <i class="fa-brands fa-facebook-f text-xl"></i>
+            <div class="w-8 h-8 rounded-full bg-[#1877F2]/10 flex items-center justify-center border border-[#1877F2]/30">
+              <i class="fa-brands fa-facebook-f text-lg text-[#1877F2]"></i>
             </div>
-            <span class="font-bold text-sm">صفحة الفيسبوك</span>
+            <span class="font-bold text-sm text-slate-200 group-hover:text-white transition">صفحة الفيسبوك</span>
           </div>
-          <i class="fa-solid fa-arrow-left text-xs group-hover:-translate-x-1 transition"></i>
+          <i class="fa-solid fa-arrow-left text-xs text-[#d4af37] group-hover:-translate-x-1 transition"></i>
         </a>
 
         <!-- Instagram -->
-        <a href="https://www.instagram.com/apexphonesyria.online?xtok=d3BsN2pnMm1sbWE0" target="_blank" class="social-btn flex items-center justify-between bg-pink-500/10 border border-pink-500/30 hover:bg-pink-500/20 p-3 rounded-xl transition text-pink-400 group">
+        <a href="https://www.instagram.com/apexphonesyria.online?xtok=d3BsN2pnMm1sbWE0" target="_blank" class="social-btn flex items-center justify-between bg-black/50 border border-[#d4af37]/30 hover:border-[#E1306C] hover:bg-[#E1306C]/10 p-3 rounded-xl transition group">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center">
-              <i class="fa-brands fa-instagram text-xl"></i>
+            <div class="w-8 h-8 rounded-full bg-[#E1306C]/10 flex items-center justify-center border border-[#E1306C]/30">
+              <i class="fa-brands fa-instagram text-lg text-[#E1306C]"></i>
             </div>
-            <span class="font-bold text-sm">حساب إنستغرام</span>
+            <span class="font-bold text-sm text-slate-200 group-hover:text-white transition">حساب إنستغرام</span>
           </div>
-          <i class="fa-solid fa-arrow-left text-xs group-hover:-translate-x-1 transition"></i>
+          <i class="fa-solid fa-arrow-left text-xs text-[#d4af37] group-hover:-translate-x-1 transition"></i>
         </a>
       </div>
     </div>

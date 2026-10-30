@@ -1220,7 +1220,8 @@ app.post('/api/track-visit', (req, res) => {
   const { visitor_id, path, device_type } = req.body;
   if (!visitor_id) return res.status(400).send('No visitor id');
   
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+  if (ip.includes(',')) ip = ip.split(',')[0].trim(); // استخراج أول IP حقيقي من قائمة البروكسي
   const ua = req.headers['user-agent'] || '';
   
   const existing = db.prepare('SELECT id, created_at FROM visits WHERE visitor_id = ?').get(visitor_id);

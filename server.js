@@ -1229,7 +1229,7 @@ app.post('/api/track-visit', (req, res) => {
     // زائر جديد
     db.prepare('INSERT INTO visits (ip, user_agent, path, device_type, visitor_id) VALUES (?, ?, ?, ?, ?)').run(ip, ua, path, device_type, visitor_id);
     if (typeof sendTelegram === 'function') {
-      sendTelegram(`🟢 <b>زائر جديد دخل الموقع!</b>\n\n📍 المسار: ${path}\n📱 الجهاز: ${device_type}\n🌐 IP: ${ip}`);
+      sendTelegram(`🟢 <b>زائر جديد دخل الموقع!</b>\n\n🆔 ID: ${visitor_id || 'غير محدد'}\n📍 المسار: ${path}\n📱 الجهاز: ${device_type}\n🌐 IP: ${ip}`);
     }
   } else {
     // زائر عائد
@@ -1239,7 +1239,7 @@ app.post('/api/track-visit', (req, res) => {
     // إرسال إشعار للزائر العائد فقط إذا مرت أكثر من 12 ساعة على آخر زيارة (لتجنب الإزعاج)
     if (now - lastVisit > 12 * 60 * 60 * 1000) {
       if (typeof sendTelegram === 'function') {
-        sendTelegram(`🔵 <b>زائر عائد دخل الموقع!</b>\n\n📍 المسار: ${path}\n📱 الجهاز: ${device_type}\n🌐 IP: ${ip}`);
+        sendTelegram(`🔵 <b>زائر عائد دخل الموقع!</b>\n\n🆔 ID: ${visitor_id || 'غير محدد'}\n📍 المسار: ${path}\n📱 الجهاز: ${device_type}\n🌐 IP: ${ip}`);
       }
     }
   }

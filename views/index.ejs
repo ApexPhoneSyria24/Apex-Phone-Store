@@ -115,7 +115,13 @@
       <!-- الأزرار (يسار) -->
       <div class="flex items-center gap-2">
         <!-- معرف الزائر الفريد (مخفي بأناقة) -->
-        <span id="visitor-id-display" class="text-[8px] text-slate-400/50 font-mono tracking-widest select-none cursor-default" dir="ltr"></span>
+        <div class="flex items-center gap-1.5 text-[9px] text-slate-400/60 font-mono mr-1 select-none" dir="ltr">
+          <span>Your id:</span>
+          <span id="visitor-id-display" class="tracking-widest text-slate-300"></span>
+          <button onclick="copyVisitorId()" class="hover:text-cyan-400 transition cursor-pointer flex items-center justify-center bg-slate-800/50 p-1 rounded border border-slate-700">
+            <i class="fa-regular fa-copy text-[10px]"></i>
+          </button>
+        </div>
         <a href="https://wa.me/963980259127" target="_blank" class="flex items-center gap-1 bg-[#25D366] hover:bg-[#20b858] text-white px-2.5 py-1 rounded-full font-bold text-xs shadow-sm transition-colors">
           <i class="fa-brands fa-whatsapp text-sm"></i> <span class="hidden sm:inline">تواصل</span>
         </a>

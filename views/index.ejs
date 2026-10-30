@@ -199,7 +199,11 @@
   <section class="bg-slate-50 border-b border-slate-200 py-2 px-2 w-full">
     
   <div class="max-w-7xl mx-auto px-4 mt-3 mb-3">
-    <a href="/shield" class="flex items-center justify-between bg-gradient-to-r from-cyan-600 to-blue-700 text-white p-3 rounded-xl shadow-md hover:shadow-lg transition-all group">
+    <div class="relative p-[2px] rounded-xl overflow-hidden shadow-[0_0_15px_rgba(0,243,255,0.4)] mb-1">
+          <!-- الشعاع النيوني الدوار -->
+          <div class="absolute inset-[-100%] bg-[conic-gradient(from_90deg_at_50%_50%,#00f3ff_0%,#0055ff_50%,#00f3ff_100%)] animate-[spin_4s_linear_infinite]"></div>
+          
+          <a href="/shield" class="relative z-10 flex items-center justify-between bg-gradient-to-r from-cyan-600 to-blue-700 text-white p-3 rounded-xl transition-all group w-full">
       <div class="flex items-center gap-3">
         <span class="text-2xl group-hover:scale-110 transition-transform">🛡️</span>
         <div>
@@ -209,6 +213,7 @@
       </div>
       <div class="bg-white text-cyan-700 px-3 py-1 rounded-lg text-[10px] md:text-xs font-bold shadow-sm">تحقق الآن ←</div>
     </a>
+        </div>
   </div>
   <div class="max-w-4xl mx-auto text-center">
       <h1 class="text-base md:text-lg font-black text-slate-900 mb-1 tracking-tight">أفخم الهواتف بين يديك</h1>

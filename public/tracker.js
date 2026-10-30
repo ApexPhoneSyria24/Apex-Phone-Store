@@ -1,12 +1,12 @@
 (function() {
-  // 1. إدارة معرف الزائر الفريد (نفس المنطق الموجود في الهيدر)
+  // إدارة معرف الزائر الفريد
   let visitorId = localStorage.getItem('apex_visitor_id');
   if (!visitorId) {
     visitorId = '#APX-' + Math.random().toString(36).substring(2, 6).toUpperCase();
     localStorage.setItem('apex_visitor_id', visitorId);
   }
 
-  // 2. إرسال بيانات الزيارة للسيرفر
+  // إرسال بيانات الزيارة للسيرفر
   const isMobile = /Mobi|Android/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop';
   fetch('/api/track-visit', {
     method: 'POST',
@@ -18,7 +18,7 @@
     })
   }).catch(() => {});
 
-  // 3. البحث عن رقم الهاتف في ذاكرة المتصفح (لربطه بالزيارة)
+  // ربط الزيارة برقم الهاتف إذا وجد
   const phone = localStorage.getItem('apex_user_phone');
   if (phone) {
     fetch('/api/track-phone', {

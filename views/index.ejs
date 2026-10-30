@@ -965,6 +965,18 @@
       }, 150);
     }
   </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      let vid = localStorage.getItem('apex_visitor_id');
+      if (!vid) {
+        vid = '#APX-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+        localStorage.setItem('apex_visitor_id', vid);
+      }
+      const displayEl = document.getElementById('visitor-id-display');
+      if (displayEl) displayEl.innerText = vid;
+    });
+  </script>
 </body>
     
 </html>

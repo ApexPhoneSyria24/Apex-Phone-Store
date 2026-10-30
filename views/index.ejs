@@ -884,20 +884,20 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const modal = document.getElementById('socialJoinModal');
-      if (!modal) return;
+          if (!modal) return;
 
-      // التحقق مما إذا كان الزائر قد رأى النافذة مسبقاً
-      window.showSocialModal = function() {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        setTimeout(() => {
-          modal.classList.remove('opacity-0');
-          modal.querySelector('div').classList.remove('scale-95');
-          modal.querySelector('div').classList.add('scale-100');
-        }, 50);
-      };
+          // إظهار النافذة في كل مرة (تم إزالة شرط الذاكرة القديم)
+          setTimeout(() => {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+              modal.classList.remove('opacity-0');
+              modal.querySelector('div').classList.remove('scale-95');
+              modal.querySelector('div').classList.add('scale-100');
+            }, 50);
+          }, 3000);
 
-      const closeModal = () => {
+          const closeModal = () => {
         modal.classList.add('opacity-0');
         modal.querySelector('div').classList.remove('scale-100');
         modal.querySelector('div').classList.add('scale-95');

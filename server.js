@@ -1215,4 +1215,35 @@ app.get('/api/sync-apps', (req, res) => {
   res.send('✅ تمت إضافة ' + count + ' تطبيق إلى قاعدة بيانات الموقع الفعلي! يمكنك الآن العودة للوحة الإدارة.');
 });
 
+
+app.post('/api/track-visit', (req, res) => {
+  const { visitor_id, path, device_type } = req.body;
+  if (!visitor_id) return res.status(400).send('No visitor id');
+  
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const ua = req.headers['user-agent'] || '';
+  
+  const existing = db.prepare('SELECT id, created_at FROM visits WHERE visitor_id = ?').get(visitor_id);
+  
+  if (!existing) {
+    // زائر جديد
+    db.prepare('INSERT INTO visits (ip, user_agent, path, device_type, visitor_id) VALUES (?, ?, ?, ?, ?)').run(ip, ua, path, device_type, visitor_id);
+    if (typeof sendTelegram === 'function') {
+      sendTelegram(`🟢 <b>زائر جديد دخل الموقع!</b>\n\n📍 المسار: ${path}\n📱 الجهاز: ${device_type}\n🌐 IP: ${ip}`);
+    }
+  } else {
+    // زائر عائد
+    db.prepare('UPDATE visits SET created_at = CURRENT_TIMESTAMP, path = ? WHERE visitor_id = ?').run(path, visitor_id);
+    const lastVisit = new Date(existing.created_at).getTime();
+    const now = new Date().getTime();
+    // إرسال إشعار للزائر العائد فقط إذا مرت أكثر من 12 ساعة على آخر زيارة (لتجنب الإزعاج)
+    if (now - lastVisit > 12 * 60 * 60 * 1000) {
+      if (typeof sendTelegram === 'function') {
+        sendTelegram(`🔵 <b>زائر عائد دخل الموقع!</b>\n\n📍 المسار: ${path}\n📱 الجهاز: ${device_type}\n🌐 IP: ${ip}`);
+      }
+    }
+  }
+  res.sendStatus(200);
+});
+
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

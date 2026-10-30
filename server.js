@@ -1246,4 +1246,6 @@ app.post('/api/track-visit', (req, res) => {
   res.sendStatus(200);
 });
 
+
+app.get('/about', (req, res) => { res.render('about'); });
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

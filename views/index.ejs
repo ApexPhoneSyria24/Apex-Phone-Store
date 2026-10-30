@@ -888,7 +888,6 @@
 
       // التحقق مما إذا كان الزائر قد رأى النافذة مسبقاً
       window.showSocialModal = function() {
-        if (localStorage.getItem('apex_social_modal_seen')) return;
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         setTimeout(() => {
@@ -906,8 +905,7 @@
           modal.classList.add('hidden');
           modal.classList.remove('flex');
         }, 500);
-        // حفظ في ذاكرة المتصفح لمنع الظهور مرة أخرى
-        localStorage.setItem('apex_social_modal_seen', 'true');
+        // (تم إلغاء الحفظ ليظهر في كل زيارة)
       };
 
       document.getElementById('closeSocialModal').addEventListener('click', closeModal);

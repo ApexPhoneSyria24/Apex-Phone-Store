@@ -511,7 +511,12 @@
       </div>
       
       <!-- الأزرار -->
-      <div class="flex flex-col gap-3">
+      
+        <label class="flex items-center justify-center gap-2 mb-3 cursor-pointer">
+          <input type="checkbox" id="hideScamCheckbox" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-yellow-500 focus:ring-yellow-500">
+          <span class="text-xs text-slate-300 font-bold">لا تظهر هذا التحذير مرة أخرى</span>
+        </label>
+  <div class="flex flex-col gap-3">
         <button onclick="acceptScamWarning()" class="w-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-slate-900 font-black py-3 rounded-xl shadow-[0_4px_15px_rgba(250,204,21,0.3)] hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
           <i class="fa-solid fa-check-double"></i> أوافق وأتفهم
         </button>
@@ -539,7 +544,12 @@
         الحساب الموثق يمنحك <span class="text-blue-400 font-bold">شارة "بائع موثوق"</span> بجانب إعلاناتك، مما يزيد من ثقة الزبائن ويرفع نسبة مبيعاتك بشكل هائل!
       </p>
       
-      <div class="flex flex-col gap-3">
+      
+        <label class="flex items-center justify-center gap-2 mb-3 cursor-pointer">
+          <input type="checkbox" id="hideVerifCheckbox" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-blue-500">
+          <span class="text-xs text-slate-300 font-bold">لا تظهر هذا مجدداً</span>
+        </label>
+  <div class="flex flex-col gap-3">
         <a href="/verify-account" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-black py-3 rounded-xl shadow-[0_4px_15px_rgba(59,130,246,0.4)] hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
           <i class="fa-solid fa-circle-check"></i> وثق حسابك الآن
         </a>
@@ -554,7 +564,7 @@
   <script>
     // إظهار النافذة التحذيرية (الرعبون) بعد 1.5 ثانية
     document.addEventListener('DOMContentLoaded', function() {
-      if (!sessionStorage.getItem('apex_scam_warning_seen')) {
+      if (!sessionStorage.getItem('apex_scam_warning_seen') && !localStorage.getItem('apex_hide_scam_warning')) {
         setTimeout(() => {
           const modal = document.getElementById('scamWarningModal');
           const box = document.getElementById('scamModalBox');
@@ -577,9 +587,12 @@
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         sessionStorage.setItem('apex_scam_warning_seen', 'true');
+        if (document.getElementById('hideScamCheckbox') && document.getElementById('hideScamCheckbox').checked) {
+          localStorage.setItem('apex_hide_scam_warning', 'true');
+        }
         
         // بعد إغلاق التحذير، نفتح نافذة التوثيق
-        if (!sessionStorage.getItem('apex_verification_seen')) {
+        if (!sessionStorage.getItem('apex_verification_seen') && !localStorage.getItem('apex_hide_verif')) {
           setTimeout(() => { showVerificationModal(); }, 400);
         }
       }, 300);
@@ -604,6 +617,9 @@
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         sessionStorage.setItem('apex_verification_seen', 'true');
+        if (document.getElementById('hideVerifCheckbox') && document.getElementById('hideVerifCheckbox').checked) {
+          localStorage.setItem('apex_hide_verif', 'true');
+        }
       }, 300);
     }
   </script>

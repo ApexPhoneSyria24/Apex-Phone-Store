@@ -1263,14 +1263,19 @@ app.post('/api/update-profile', (req, res) => {
   if (!fullName || !phone) return res.status(400).json({ success: false, message: 'البيانات ناقصة' });
 
   try {
-    // التأكد من وجود العمود (للأمان)
+    // 1. التأكد من وجود الأعمدة على السيرفر (لأول مرة)
     try {
-      const info = db.prepare("PRAGMA table_info(users)").all();
-      if (!info.some(c => c.name === 'visitor_id')) {
+      const uInfo = db.prepare("PRAGMA table_info(users)").all();
+      if (!uInfo.some(c => c.name === 'visitor_id')) {
         db.prepare("ALTER TABLE users ADD COLUMN visitor_id TEXT").run();
       }
-    } catch(e) {}
+      const vInfo = db.prepare("PRAGMA table_info(visits)").all();
+      if (!vInfo.some(c => c.name === 'visitor_id')) {
+        db.prepare("ALTER TABLE visits ADD COLUMN visitor_id TEXT").run();
+      }
+    } catch(err) { console.log("Column check warning:", err.message); }
 
+    // 2. حفظ البيانات
     let user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
     if (!user) {
       db.prepare('INSERT INTO users (name, phone, visitor_id) VALUES (?, ?, ?)').run(fullName, phone, visitor_id);
@@ -1278,15 +1283,22 @@ app.post('/api/update-profile', (req, res) => {
       db.prepare('UPDATE users SET name = ?, visitor_id = ? WHERE phone = ?').run(fullName, visitor_id, phone);
     }
 
+    // 3. تحديث جدول الزيارات (لتظهر في لوحة الزوار أيضاً)
     if (visitor_id) {
       db.prepare('UPDATE visits SET user_phone = ? WHERE visitor_id = ?').run(phone, visitor_id);
     }
 
+    // 4. إشعار التلجرام
     if (typeof sendTelegram === 'function') {
       sendTelegram(`👤 <b>زبون أكمل بياناته!</b>\n\n🆔 ID: ${visitor_id || 'غير متوفر'}\n📝 الاسم: ${fullName}\n📞 الهاتف: ${phone}`);
     }
 
     res.json({ success: true, message: 'تم الحفظ بنجاح' });
+  } catch (err) {
+    console.error('Profile Save Error:', err.message);
+    res.status(500).json({ success: false, message: 'حدث خطأ في السيرفر' });
+  }
+});
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'حدث خطأ في السيرفر' });

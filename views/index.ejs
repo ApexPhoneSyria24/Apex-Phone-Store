@@ -1038,19 +1038,34 @@
         </button>
       </form>
 
-      <div id="profileSuccess" class="hidden flex-col items-center justify-center py-4">
-        <div class="w-16 h-16 bg-green-500/20 border-2 border-green-500 rounded-full flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(34,197,94,0.5)] animate-pulse">
-          <i class="fa-solid fa-check text-3xl text-green-500"></i>
-        </div>
-        <h3 class="text-green-400 font-black text-sm">تم حفظ البيانات الخاصة بك بنجاح!</h3>
-      </div>
+
     </div>
   </div>
 
   <script>
+    let isEditing = false;
+
     function openProfileModal() {
       const modal = document.getElementById('profileModal');
       const box = document.getElementById('profileModalBox');
+      const btn = document.getElementById('saveProfileBtn');
+
+      const savedName = localStorage.getItem('apex_user_name');
+      const savedPhone = localStorage.getItem('apex_user_phone');
+
+      // تعبئة البيانات إذا كان محفوظاً مسبقاً
+      if (savedName && savedPhone) {
+        document.querySelector('input[name="fullName"]').value = savedName;
+        document.querySelector('input[name="phone"]').value = savedPhone;
+        btn.innerHTML = '<i class="fa-solid fa-pen"></i> تعديل البيانات';
+        isEditing = false;
+      } else {
+        document.querySelector('input[name="fullName"]').value = '';
+        document.querySelector('input[name="phone"]').value = '';
+        btn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ البيانات';
+        isEditing = false;
+      }
+
       modal.classList.remove('hidden');
       modal.classList.add('flex');
       setTimeout(() => {
@@ -1067,20 +1082,28 @@
       setTimeout(() => {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
-        document.getElementById('profileForm').classList.remove('hidden');
-        document.getElementById('profileSuccess').classList.add('hidden');
-        document.getElementById('profileSuccess').classList.remove('flex');
       }, 300);
     }
 
     document.getElementById('profileForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      const formData = new FormData(this);
-      const fullName = formData.get('fullName');
-      const phone = formData.get('phone');
+      const btn = document.getElementById('saveProfileBtn');
+      const fullName = document.querySelector('input[name="fullName"]').value;
+      const phone = document.querySelector('input[name="phone"]').value;
       const visitor_id = localStorage.getItem('apex_visitor_id');
 
-      const btn = document.getElementById('saveProfileBtn');
+      const savedName = localStorage.getItem('apex_user_name');
+      const savedPhone = localStorage.getItem('apex_user_phone');
+
+      // إذا كان لديه بيانات مسبقاً ولم يضغط على "تعديل البيانات" بعد
+      if (savedName && savedPhone && !isEditing) {
+        isEditing = true;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> حفظ التعديل';
+        document.querySelector('input[name="fullName"]').focus();
+        return;
+      }
+
+      // إرسال البيانات للسيرفر
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
 
       try {
@@ -1090,16 +1113,24 @@
           body: JSON.stringify({ fullName, phone, visitor_id })
         });
         const data = await res.json();
-        
-        if (res.ok && data.success) {
-          document.getElementById('profileForm').classList.add('hidden');
-          const successDiv = document.getElementById('profileSuccess');
-          successDiv.classList.remove('hidden');
-          successDiv.classList.add('flex');
-          
-          localStorage.setItem('apex_user_phone', phone);
 
-          setTimeout(() => { closeProfileModal(); }, 2500);
+        if (res.ok && data.success) {
+          // حفظ في المتصفح
+          localStorage.setItem('apex_user_name', fullName);
+          localStorage.setItem('apex_user_phone', phone);
+          
+          // تغيير الزر وإظهار النجاح
+          btn.innerHTML = '<i class="fa-solid fa-pen"></i> تعديل البيانات';
+          isEditing = false;
+
+          const toast = document.getElementById('copyToast');
+          toast.innerHTML = '<i class="fa-solid fa-check-circle"></i> تم حفظ البيانات بنجاح';
+          toast.classList.remove('opacity-0');
+          setTimeout(() => toast.classList.add('opacity-0'), 2000);
+
+          // إغلاق النافذة بعد ثانية ونصف
+          setTimeout(() => { closeProfileModal(); }, 1500);
+
         } else {
           alert(data.message || 'حدث خطأ');
           btn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ البيانات';

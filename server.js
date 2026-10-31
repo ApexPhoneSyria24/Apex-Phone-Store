@@ -1256,4 +1256,33 @@ app.get('/contact', (req, res) => { res.render('contact'); });
 
 app.get('/privacy', (req, res) => { res.render('privacy'); });
 app.get('/terms', (req, res) => { res.render('terms'); });
+
+// مسار حفظ بيانات الزبون
+app.post('/api/update-profile', (req, res) => {
+  const { fullName, phone, visitor_id } = req.body;
+  if (!fullName || !phone) return res.status(400).json({ success: false, message: 'البيانات ناقصة' });
+
+  try {
+    let user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    if (!user) {
+      db.prepare('INSERT INTO users (name, phone) VALUES (?, ?)').run(fullName, phone);
+    } else {
+      db.prepare('UPDATE users SET name = ? WHERE phone = ?').run(fullName, phone);
+    }
+
+    if (visitor_id) {
+      db.prepare('UPDATE visits SET user_phone = ? WHERE visitor_id = ?').run(phone, visitor_id);
+    }
+
+    if (typeof sendTelegram === 'function') {
+      sendTelegram(`👤 <b>زبون أكمل بياناته!</b>\n\n🆔 ID: ${visitor_id || 'غير متوفر'}\n📝 الاسم: ${fullName}\n📞 الهاتف: ${phone}`);
+    }
+
+    res.json({ success: true, message: 'تم الحفظ بنجاح' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'حدث خطأ في السيرفر' });
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

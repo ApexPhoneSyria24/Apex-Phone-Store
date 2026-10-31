@@ -125,6 +125,12 @@
         <a href="https://wa.me/963980259127" target="_blank" class="flex items-center gap-1 bg-[#25D366] hover:bg-[#20b858] text-white px-2.5 py-1 rounded-full font-bold text-xs shadow-sm transition-colors">
           <i class="fa-brands fa-whatsapp text-sm"></i> <span class="hidden sm:inline">تواصل</span>
         </a>
+        <!-- زر القائمة (الشرطات الثلاث) -->
+        <button onclick="openProfileModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:text-cyan-400 flex flex-col items-center justify-center gap-[3px] transition-colors border border-slate-700">
+          <span class="w-3 h-[1.5px] bg-current rounded-full"></span>
+          <span class="w-3 h-[1.5px] bg-current rounded-full"></span>
+          <span class="w-3 h-[1.5px] bg-current rounded-full"></span>
+        </button>
         <button onclick="openNotifModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-colors relative">
           <i class="fa-regular fa-bell text-sm"></i>
           <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
@@ -999,6 +1005,107 @@
   <div id="copyToast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs font-bold py-2 px-6 rounded-full shadow-[0_0_20px_rgba(34,197,94,0.5)] z-[99999] transition-opacity duration-300 opacity-0 pointer-events-none flex items-center gap-2">
     <i class="fa-solid fa-check-circle"></i> تم النسخ بنجاح
   </div>
+
+  <!-- نافذة إكمال البيانات -->
+  <div id="profileModal" class="fixed inset-0 bg-black/90 z-[99999] hidden items-center justify-center p-4 backdrop-blur-md transition-opacity" style="opacity: 0;">
+    <div class="bg-[#0f172a] border border-cyan-500/40 w-full max-w-sm rounded-2xl p-5 shadow-[0_0_40px_rgba(0,243,255,0.2)] relative text-center transform scale-95 transition-transform duration-300" id="profileModalBox">
+      
+      <button onclick="closeProfileModal()" class="absolute top-3 left-3 text-slate-500 hover:text-white transition bg-slate-800 w-7 h-7 rounded-full flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="w-14 h-14 bg-cyan-500/10 border border-cyan-500/30 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fa-solid fa-user-astronaut text-2xl text-cyan-400"></i>
+      </div>
+      <h2 class="text-lg font-black text-white mb-1">أهلاً بك في Apex!</h2>
+      <p class="text-[10px] text-slate-400 font-bold mb-4">يرجى إكمال بياناتك لتجربة أفضل</p>
+
+      <form id="profileForm" class="space-y-3 text-right">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-300 mb-1">الاسم الثلاثي</label>
+          <input type="text" name="fullName" required class="w-full bg-black/50 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-400 outline-none transition" placeholder="مثال: أحمد محمد علي">
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-300 mb-1">رقم الهاتف</label>
+          <input type="tel" name="phone" required class="w-full bg-black/50 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-400 outline-none transition" placeholder="09xxxxxxxx" dir="ltr">
+        </div>
+        <button type="submit" id="saveProfileBtn" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black py-2.5 rounded-lg shadow-[0_4px_15px_rgba(0,243,255,0.3)] hover:shadow-[0_4px_25px_rgba(0,243,255,0.5)] transition text-sm mt-2">
+          <i class="fa-solid fa-save"></i> حفظ البيانات
+        </button>
+      </form>
+
+      <div id="profileSuccess" class="hidden flex-col items-center justify-center py-4">
+        <div class="w-16 h-16 bg-green-500/20 border-2 border-green-500 rounded-full flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(34,197,94,0.5)] animate-pulse">
+          <i class="fa-solid fa-check text-3xl text-green-500"></i>
+        </div>
+        <h3 class="text-green-400 font-black text-sm">تم حفظ البيانات الخاصة بك بنجاح!</h3>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openProfileModal() {
+      const modal = document.getElementById('profileModal');
+      const box = document.getElementById('profileModalBox');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => {
+        modal.style.opacity = '1';
+        box.classList.replace('scale-95', 'scale-100');
+      }, 50);
+    }
+
+    function closeProfileModal() {
+      const modal = document.getElementById('profileModal');
+      const box = document.getElementById('profileModalBox');
+      modal.style.opacity = '0';
+      box.classList.replace('scale-100', 'scale-95');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.getElementById('profileForm').classList.remove('hidden');
+        document.getElementById('profileSuccess').classList.add('hidden');
+        document.getElementById('profileSuccess').classList.remove('flex');
+      }, 300);
+    }
+
+    document.getElementById('profileForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const fullName = formData.get('fullName');
+      const phone = formData.get('phone');
+      const visitor_id = localStorage.getItem('apex_visitor_id');
+
+      const btn = document.getElementById('saveProfileBtn');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
+
+      try {
+        const res = await fetch('/api/update-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fullName, phone, visitor_id })
+        });
+        const data = await res.json();
+        
+        if (res.ok && data.success) {
+          document.getElementById('profileForm').classList.add('hidden');
+          const successDiv = document.getElementById('profileSuccess');
+          successDiv.classList.remove('hidden');
+          successDiv.classList.add('flex');
+          
+          localStorage.setItem('apex_user_phone', phone);
+
+          setTimeout(() => { closeProfileModal(); }, 2500);
+        } else {
+          alert(data.message || 'حدث خطأ');
+          btn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ البيانات';
+        }
+      } catch (err) {
+        alert('حدث خطأ في الاتصال');
+        btn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ البيانات';
+      }
+    });
+  </script>
 </body>
     
 </html>

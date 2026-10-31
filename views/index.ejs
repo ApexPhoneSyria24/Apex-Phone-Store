@@ -1141,6 +1141,45 @@
       }
     });
   </script>
+
+  <script>
+    // 1. اعتراض زر الرجوع في الهاتف لإغلاق النوافذ بدلاً من الخروج من الموقع
+    window.addEventListener('popstate', function(event) {
+      const modals = ['profileModal', 'scamWarningModal', 'verificationModal', 'socialJoinModal', 'notifModal'];
+      let closedAny = false;
+      
+      modals.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.classList.contains('hidden') && el.style.display !== 'none') {
+          el.classList.add('hidden');
+          el.classList.remove('flex');
+          el.style.opacity = '0';
+          el.style.display = 'none'; // إجبار الإغلاق
+          closedAny = true;
+        }
+      });
+    });
+
+    // 2. دالة لتغليف النوافذ وإضافة خطوة وهمية للسجل عند فتحها
+    function trapModalHistory(modalId, openFnName) {
+      if (typeof window[openFnName] === 'function') {
+        const originalFn = window[openFnName];
+        window[openFnName] = function() {
+          history.pushState({ modal: modalId }, '');
+          originalFn.apply(this, arguments);
+        };
+      }
+    }
+
+    // تطبيق الفخ على جميع دوال فتح النوافذ
+    document.addEventListener('DOMContentLoaded', function() {
+      trapModalHistory('profileModal', 'openProfileModal');
+      trapModalHistory('notifModal', 'openNotifModal');
+      trapModalHistory('socialJoinModal', 'showSocialModal');
+      trapModalHistory('verificationModal', 'showVerificationModal');
+      trapModalHistory('scamWarningModal', 'showScamWarningModal'); // إن وجدت
+    });
+  </script>
 </body>
     
 </html>

@@ -1219,96 +1219,58 @@ app.get('/api/sync-apps', (req, res) => {
 
 
 app.post('/api/track-visit', (req, res) => {
-  const { visitor_id, path, device_type } = req.body;
+  const { visitor_id, path, device_type, client_ip } = req.body;
   if (!visitor_id) return res.status(400).send('No visitor id');
-  
-  let ip = req.body.client_ip || '';
-  if (!ip || ip === 'undefined') {
-    ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || '';
-    if (ip.includes(',')) ip = ip.split(',')[0].trim();
-    if (ip.startsWith('::ffff:')) ip = ip.substring(7);
-  }
-  const ua = req.headers['user-agent'] || '';
-  const deviceArabic = device_type === 'Desktop' ? 'كمبيوتر' : (device_type === 'Mobile' ? 'موبايل' : device_type);
-  
-  const finalVisitorId = (visitor_id && visitor_id.startsWith('Apex-')) ? visitor_id : 'Apex-' + Math.random().toString(36).substring(2, 9).toUpperCase();
-  const existing = db.prepare('SELECT id, created_at FROM visits WHERE visitor_id = ?').get(finalVisitorId);
-  
-  if (!existing) {
-    // زائر جديد
-    db.prepare('INSERT INTO visits (ip, user_agent, path, device_type, visitor_id) VALUES (?, ?, ?, ?, ?)').run(ip, ua, path, device_type, finalVisitorId);
-    if (typeof sendTelegram === 'function') {
-      sendTelegram(`🟢 <b>زائر جديد دخل الموقع!</b>\n\n🆔 ID: ${visitor_id || 'غير محدد'}\n📍 المسار: ${path}\n📱 الجهاز: ${deviceArabic}\n🌐 IP: ${ip}`);
-    }
-  } else {
-    // زائر عائد
-    db.prepare('UPDATE visits SET created_at = CURRENT_TIMESTAMP, path = ? WHERE visitor_id = ?').run(path, finalVisitorId);
-    const lastVisit = new Date(existing.created_at).getTime();
-    const now = new Date().getTime();
-    // إرسال إشعار للزائر العائد فقط إذا مرت أكثر من 12 ساعة على آخر زيارة (لتجنب الإزعاج)
-    if (now - lastVisit > 12 * 60 * 60 * 1000) {
-      if (typeof sendTelegram === 'function') {
-        sendTelegram(`🔵 <b>زائر عائد دخل الموقع!</b>\n\n🆔 ID: ${visitor_id || 'غير محدد'}\n📍 المسار: ${path}\n📱 الجهاز: ${deviceArabic}\n🌐 IP: ${ip}`);
-      }
-    }
-  }
-  res.sendStatus(200);
-});
-
-
-app.get('/about', (req, res) => { res.render('about'); });
-
-app.get('/faq', (req, res) => { res.render('faq'); });
-
-app.get('/contact', (req, res) => { res.render('contact'); });
-
-app.get('/privacy', (req, res) => { res.render('privacy'); });
-app.get('/terms', (req, res) => { res.render('terms'); });
-
-// مسار حفظ بيانات الزبون
-app.post('/api/update-profile', (req, res) => {
-  const { fullName, phone, visitor_id } = req.body;
-  if (!fullName || !phone) return res.status(400).json({ success: false, message: 'البيانات ناقصة' });
 
   try {
-    // التأكد من وجود الأعمدة
+    // التأكد من وجود العمود
     try {
-      const uInfo = db.prepare("PRAGMA table_info(users)").all();
-      if (!uInfo.some(c => c.name === 'visitor_id')) {
-        db.prepare("ALTER TABLE users ADD COLUMN visitor_id TEXT").run();
-      }
       const vInfo = db.prepare("PRAGMA table_info(visits)").all();
       if (!vInfo.some(c => c.name === 'visitor_id')) {
         db.prepare("ALTER TABLE visits ADD COLUMN visitor_id TEXT").run();
       }
-    } catch(e) { console.log("Column check warning:", e.message); }
+    } catch(e) { console.log("Visits column check warning:", e.message); }
 
-    // الحفظ
-    let user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
-    if (!user) {
-      const uCode = 'APX-' + Math.random().toString(36).substring(2, 7).toUpperCase();
-      db.prepare('INSERT INTO users (name, phone, visitor_id, user_code) VALUES (?, ?, ?, ?)').run(fullName, phone, visitor_id, uCode);
+    // استخراج الـ IP (من المتصفح أولاً، ثم الهيدرز)
+    let ip = client_ip || '';
+    if (!ip || ip === 'undefined') {
+      ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || '';
+      if (ip.includes(',')) ip = ip.split(',')[0].trim();
+      if (ip.startsWith('::ffff:')) ip = ip.substring(7);
+    }
+
+    const ua = req.headers['user-agent'] || '';
+    const deviceArabic = device_type === 'Desktop' ? 'كمبيوتر' : (device_type === 'Mobile' ? 'موبايل' : device_type);
+
+    const finalVisitorId = (visitor_id && visitor_id.startsWith('Apex-')) ? visitor_id : 'Apex-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+    
+    let existing;
+    try {
+      existing = db.prepare('SELECT id, created_at FROM visits WHERE visitor_id = ?').get(finalVisitorId);
+    } catch(e) { 
+      existing = null; 
+    }
+
+    if (!existing) {
+      db.prepare('INSERT INTO visits (ip, user_agent, path, device_type, visitor_id) VALUES (?, ?, ?, ?, ?)').run(ip, ua, path, device_type, finalVisitorId);
+      if (typeof sendTelegram === 'function') {
+        sendTelegram(`🟢 <b>زائر جديد دخل الموقع!</b>\n\n🆔 ID: ${finalVisitorId}\n📍 المسار: ${path}\n📱 الجهاز: ${deviceArabic}\n🌐 IP: ${ip}`);
+      }
     } else {
-      db.prepare('UPDATE users SET name = ?, visitor_id = ? WHERE phone = ?').run(fullName, visitor_id, phone);
+      db.prepare('UPDATE visits SET created_at = CURRENT_TIMESTAMP, path = ? WHERE visitor_id = ?').run(path, finalVisitorId);
+      const lastVisit = new Date(existing.created_at).getTime();
+      const now = new Date().getTime();
+      if (now - lastVisit > 12 * 60 * 60 * 1000) {
+        if (typeof sendTelegram === 'function') {
+          sendTelegram(`🔵 <b>زائر عائد دخل الموقع!</b>\n\n🆔 ID: ${finalVisitorId}\n📍 المسار: ${path}\n📱 الجهاز: ${deviceArabic}\n🌐 IP: ${ip}`);
+        }
+      }
     }
-
-    if (visitor_id) {
-      db.prepare('UPDATE visits SET user_phone = ? WHERE visitor_id = ?').run(phone, visitor_id);
-    }
-
-    if (typeof sendTelegram === 'function') {
-      sendTelegram(`👤 <b>زبون أكمل بياناته!</b>\n\n🆔 ID: ${visitor_id || 'غير متوفر'}\n📝 الاسم: ${fullName}\n📞 الهاتف: ${phone}`);
-    }
-
-    res.json({ success: true, message: 'تم الحفظ بنجاح' });
-  } catch (err) {
-    console.error('Profile Save Error:', err.message);
-    res.status(500).json({ success: false, message: 'حدث خطأ في السيرفر' });
+    res.sendStatus(200);
+  } catch(e) {
+    console.error('Track Visit Error:', e.message);
+    res.status(500).send('Error');
   }
-});
-
-
-
 });
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

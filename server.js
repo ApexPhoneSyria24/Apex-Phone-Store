@@ -1224,23 +1224,24 @@ app.post('/api/track-visit', (req, res) => {
   if (ip.includes(',')) ip = ip.split(',')[0].trim(); // استخراج أول IP حقيقي من قائمة البروكسي
   const ua = req.headers['user-agent'] || '';
   
-  const existing = db.prepare('SELECT id, created_at FROM visits WHERE visitor_id = ?').get(visitor_id);
+  const finalVisitorId = (visitor_id && visitor_id.startsWith('Apex-')) ? visitor_id : 'Apex-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+  const existing = db.prepare('SELECT id, created_at FROM visits WHERE visitor_id = ?').get(finalVisitorId);
   
   if (!existing) {
     // زائر جديد
-    db.prepare('INSERT INTO visits (ip, user_agent, path, device_type, visitor_id) VALUES (?, ?, ?, ?, ?)').run(ip, ua, path, device_type, visitor_id);
+    db.prepare('INSERT INTO visits (ip, user_agent, path, device_type, visitor_id) VALUES (?, ?, ?, ?, ?)').run(ip, ua, path, device_type, finalVisitorId);
     if (typeof sendTelegram === 'function') {
-      sendTelegram(`🟢 <b>زائر جديد دخل الموقع!</b>\n\n🆔 ID: ${visitor_id || 'غير محدد'}\n📍 المسار: ${path}\n📱 الجهاز: ${device_type}\n🌐 IP: ${ip}`);
+      sendTelegram(`🟢 <b>زائر جديد دخل الموقع!</b>\n\n🆔 ID: ${visitor_id || 'غير محدد'}\n📍 المسار: ${path}\n📱 الجهاز: ${deviceArabic}\n🌐 IP: ${ip}`);
     }
   } else {
     // زائر عائد
-    db.prepare('UPDATE visits SET created_at = CURRENT_TIMESTAMP, path = ? WHERE visitor_id = ?').run(path, visitor_id);
+    db.prepare('UPDATE visits SET created_at = CURRENT_TIMESTAMP, path = ? WHERE visitor_id = ?').run(path, finalVisitorId);
     const lastVisit = new Date(existing.created_at).getTime();
     const now = new Date().getTime();
     // إرسال إشعار للزائر العائد فقط إذا مرت أكثر من 12 ساعة على آخر زيارة (لتجنب الإزعاج)
     if (now - lastVisit > 12 * 60 * 60 * 1000) {
       if (typeof sendTelegram === 'function') {
-        sendTelegram(`🔵 <b>زائر عائد دخل الموقع!</b>\n\n🆔 ID: ${visitor_id || 'غير محدد'}\n📍 المسار: ${path}\n📱 الجهاز: ${device_type}\n🌐 IP: ${ip}`);
+        sendTelegram(`🔵 <b>زائر عائد دخل الموقع!</b>\n\n🆔 ID: ${visitor_id || 'غير محدد'}\n📍 المسار: ${path}\n📱 الجهاز: ${deviceArabic}\n🌐 IP: ${ip}`);
       }
     }
   }

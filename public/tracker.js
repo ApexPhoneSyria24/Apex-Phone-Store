@@ -1,8 +1,8 @@
 (function() {
-  // إدارة معرف الزائر الفريد
+  // إدارة معرف الزائر الفريد (بالشكل الجديد)
   let visitorId = localStorage.getItem('apex_visitor_id');
-  if (!visitorId) {
-    visitorId = '#APX-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+  if (!visitorId || !visitorId.startsWith('Apex-')) {
+    visitorId = 'Apex-' + Math.random().toString(36).substring(2, 9).toUpperCase();
     localStorage.setItem('apex_visitor_id', visitorId);
   }
 

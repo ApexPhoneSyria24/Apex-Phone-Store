@@ -423,6 +423,43 @@
 
       // إذا كان مسجلاً، نفتح الإشعارات
       const modal = document.getElementById('notifModal');
+      if(!modal) return;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      const content = document.getElementById('notifContent');
+      content.innerHTML = '<div class="text-center text-slate-400 py-2 text-xs">جاري تحميل الإشعارات...</div>';
+
+      fetch('/api/notifications/' + phone, { headers: { 'x-user-phone': phone } })
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) throw new Error(data.error);
+          const notifs = data.notifications || [];
+          
+          if (notifs.length === 0) {
+            content.innerHTML = '<div class="text-center text-slate-400 py-1 text-xs">لا توجد إشعارات حالياً.</div>';
+            return;
+          }
+          
+          content.innerHTML = notifs.map(n => `<div class="p-2 border-b border-slate-700 text-xs ${n.is_read ? 'text-slate-400' : 'text-white font-bold'}">${n.message}</div>`).join('');
+          
+          // تعليم الإشعارات كمقروءة
+          fetch('/api/notifications/read/' + phone, { method: 'POST' }).catch(()=>{});
+          
+          // إخفاء النقطة الحمراء
+          const redDot = document.querySelector('button[onclick="openNotifModal()"] span');
+          if (redDot) redDot.style.display = 'none';
+        })
+        .catch((e) => {
+          console.error(e);
+          content.innerHTML = '<div class="text-center text-red-400 py-1 text-xs">حدث خطأ في جلب الإشعارات. تحقق من اتصالك.</div>';
+        });
+    }
+        return;
+      }
+
+      // إذا كان مسجلاً، نفتح الإشعارات
+      const modal = document.getElementById('notifModal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
 
@@ -1025,45 +1062,61 @@
   </div>
 
   <!-- نافذة إكمال البيانات -->
+  <!-- نافذة الملف الشخصي الفاخرة -->
   <div id="profileModal" class="fixed inset-0 bg-black/90 z-[99999] hidden items-center justify-center p-4 backdrop-blur-md transition-opacity" style="opacity: 0;">
-    <div class="bg-[#0f172a] border border-cyan-500/40 w-full max-w-sm rounded-2xl p-5 shadow-[0_0_40px_rgba(0,243,255,0.2)] relative text-center transform scale-95 transition-transform duration-300" id="profileModalBox">
+    <div class="bg-[#0f172a]/90 border border-cyan-500/50 w-full max-w-sm rounded-2xl shadow-[0_0_50px_rgba(0,243,255,0.15)] relative text-center transform scale-95 transition-transform duration-300 overflow-hidden" id="profileModalBox">
       
-      <button onclick="closeProfileModal()" class="absolute top-3 left-3 text-slate-500 hover:text-white transition bg-slate-800 w-7 h-7 rounded-full flex items-center justify-center">
+      <!-- زر الإغلاق -->
+      <button onclick="closeProfileModal()" class="absolute top-3 left-3 text-slate-400 hover:text-white transition bg-slate-800/80 w-8 h-8 rounded-full flex items-center justify-center z-10">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
-      <div class="w-14 h-14 bg-cyan-500/10 border border-cyan-500/30 rounded-full flex items-center justify-center mx-auto mb-3">
-        <i class="fa-solid fa-user-astronaut text-2xl text-cyan-400"></i>
+      <!-- الخلفية العلوية -->
+      <div class="h-24 bg-gradient-to-b from-cyan-900/40 to-transparent absolute top-0 w-full z-0"></div>
+
+      <div class="relative z-10 pt-6 px-6 pb-6">
+        <!-- الأيقونة -->
+        <div class="w-16 h-16 bg-[#0f172a] border-2 border-cyan-400 rounded-full flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(0,243,255,0.4)] relative">
+          <i class="fa-solid fa-user-astronaut text-2xl text-cyan-400"></i>
+          <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-[#0f172a] rounded-full"></div>
+        </div>
+        
+        <h2 class="text-xl font-black text-white mb-1">الملف الشخصي</h2>
+        <p class="text-[11px] text-slate-400 font-bold mb-5">أهلاً بك في عائلة Apex</p>
+
+        <!-- صندوق الـ ID -->
+        <div class="bg-black/50 border border-slate-700/80 rounded-xl p-3 mb-5 flex items-center justify-between group hover:border-cyan-500/50 transition">
+          <div class="flex flex-col items-start gap-0.5">
+            <span class="text-[9px] text-slate-500 font-bold">معرف الحساب (ID)</span>
+            <span id="modal-visitor-id" class="text-sm font-mono font-black text-cyan-400 tracking-widest" dir="ltr"></span>
+          </div>
+          <button type="button" onclick="copyVisitorId()" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 group-hover:text-cyan-400 group-hover:bg-cyan-900/30 transition flex items-center justify-center">
+            <i class="fa-regular fa-copy"></i>
+          </button>
+        </div>
+
+        <!-- النموذج -->
+        <form id="profileForm" class="space-y-4 text-right">
+          <div class="relative">
+            <label class="block text-[11px] font-bold text-slate-300 mb-1.5 ml-1">الاسم الثلاثي</label>
+            <div class="relative">
+              <i class="fa-solid fa-signature absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+              <input type="text" name="fullName" required class="w-full bg-slate-900/50 border border-slate-700 rounded-xl pr-9 pl-3 py-2.5 text-sm text-white focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(0,243,255,0.1)] outline-none transition" placeholder="مثال: أحمد محمد علي">
+            </div>
+          </div>
+          <div class="relative">
+            <label class="block text-[11px] font-bold text-slate-300 mb-1.5 ml-1">رقم الهاتف</label>
+            <div class="relative">
+              <i class="fa-solid fa-phone absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+              <input type="tel" name="phone" required class="w-full bg-slate-900/50 border border-slate-700 rounded-xl pr-9 pl-3 py-2.5 text-sm text-white focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(0,243,255,0.1)] outline-none transition" placeholder="09xxxxxxxx" dir="ltr">
+            </div>
+          </div>
+          
+          <button type="submit" id="saveProfileBtn" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black py-3 rounded-xl shadow-[0_4px_15px_rgba(0,243,255,0.3)] hover:shadow-[0_4px_25px_rgba(0,243,255,0.5)] transition text-sm mt-2">
+            <i class="fa-solid fa-save"></i> حفظ البيانات
+          </button>
+        </form>
       </div>
-      <h2 class="text-lg font-black text-white mb-1">مرحباً بك في Apex ✨</h2>
-      <p class="text-[11px] text-slate-400 font-bold mb-4">سعداء بوجودك! يرجى تعريفنا بنفسك لنخدمك بشكل أسرع وأفضل.</p>
-
-      <!-- الـ ID داخل النافذة -->
-      <div class="bg-slate-800/80 border border-slate-700 rounded-lg p-2.5 mb-4 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] text-slate-400 font-bold">معرفك الخاص:</span>
-          <span id="modal-visitor-id" class="text-xs font-mono font-bold text-cyan-400 tracking-widest" dir="ltr"></span>
-        </div>
-        <button type="button" onclick="copyVisitorId()" class="text-slate-400 hover:text-cyan-400 transition bg-slate-700/50 p-1.5 rounded">
-          <i class="fa-regular fa-copy"></i>
-        </button>
-      </div>
-
-      <form id="profileForm" class="space-y-3 text-right">
-        <div>
-          <label class="block text-[11px] font-bold text-slate-300 mb-1">الاسم الثلاثي</label>
-          <input type="text" name="fullName" required class="w-full bg-black/50 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-400 outline-none transition" placeholder="مثال: أحمد محمد علي">
-        </div>
-        <div>
-          <label class="block text-[11px] font-bold text-slate-300 mb-1">رقم الهاتف</label>
-          <input type="tel" name="phone" required class="w-full bg-black/50 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-400 outline-none transition" placeholder="09xxxxxxxx" dir="ltr">
-        </div>
-        <button type="submit" id="saveProfileBtn" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black py-2.5 rounded-lg shadow-[0_4px_15px_rgba(0,243,255,0.3)] hover:shadow-[0_4px_25px_rgba(0,243,255,0.5)] transition text-sm mt-2">
-          <i class="fa-solid fa-save"></i> حفظ البيانات
-        </button>
-      </form>
-
-
     </div>
   </div>
 

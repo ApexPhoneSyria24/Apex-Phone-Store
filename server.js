@@ -1304,4 +1304,15 @@ app.post('/api/update-profile', (req, res) => {
   }
 });
 
+
+app.get('/api/debug-ip', (req, res) => {
+  res.json({
+    req_ip: req.ip,
+    x_forwarded_for: req.headers['x-forwarded-for'] || 'غير موجود',
+    x_real_ip: req.headers['x-real-ip'] || 'غير موجود',
+    remote_address: req.socket.remoteAddress || 'غير موجود',
+    cf_connecting_ip: req.headers['cf-connecting-ip'] || 'غير موجود'
+  });
+});
+
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

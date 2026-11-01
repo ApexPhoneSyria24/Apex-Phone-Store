@@ -1222,9 +1222,12 @@ app.post('/api/track-visit', (req, res) => {
   const { visitor_id, path, device_type } = req.body;
   if (!visitor_id) return res.status(400).send('No visitor id');
   
-  let ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || '';
-  if (ip.includes(',')) ip = ip.split(',')[0].trim();
-  if (ip.startsWith('::ffff:')) ip = ip.substring(7);
+  let ip = req.body.client_ip || '';
+  if (!ip || ip === 'undefined') {
+    ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || '';
+    if (ip.includes(',')) ip = ip.split(',')[0].trim();
+    if (ip.startsWith('::ffff:')) ip = ip.substring(7);
+  }
   const ua = req.headers['user-agent'] || '';
   const deviceArabic = device_type === 'Desktop' ? 'كمبيوتر' : (device_type === 'Mobile' ? 'موبايل' : device_type);
   
@@ -1305,14 +1308,7 @@ app.post('/api/update-profile', (req, res) => {
 });
 
 
-app.get('/api/debug-ip', (req, res) => {
-  res.json({
-    req_ip: req.ip,
-    x_forwarded_for: req.headers['x-forwarded-for'] || 'غير موجود',
-    x_real_ip: req.headers['x-real-ip'] || 'غير موجود',
-    remote_address: req.socket.remoteAddress || 'غير موجود',
-    cf_connecting_ip: req.headers['cf-connecting-ip'] || 'غير موجود'
-  });
+
 });
 
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

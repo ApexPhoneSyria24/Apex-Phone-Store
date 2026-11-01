@@ -168,7 +168,7 @@ const privateStorage = multer.diskStorage({
 });
 const uploadPrivate = multer({ storage: privateStorage });
 
-app.set('trust proxy', true);
+app.set('trust proxy', 1); // نثق بالبروكسي الأول فقط (Traefik)
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -1220,9 +1220,9 @@ app.post('/api/track-visit', (req, res) => {
   const { visitor_id, path, device_type } = req.body;
   if (!visitor_id) return res.status(400).send('No visitor id');
   
-  let ip = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || '';
+  let ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || '';
   if (ip.includes(',')) ip = ip.split(',')[0].trim();
-  if (ip.startsWith('::ffff:')) ip = ip.substring(7); // تنظيف صيغة IPv6
+  if (ip.startsWith('::ffff:')) ip = ip.substring(7);
   const ua = req.headers['user-agent'] || '';
   const deviceArabic = device_type === 'Desktop' ? 'كمبيوتر' : (device_type === 'Mobile' ? 'موبايل' : device_type);
   

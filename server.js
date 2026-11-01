@@ -1220,8 +1220,9 @@ app.post('/api/track-visit', (req, res) => {
   const { visitor_id, path, device_type } = req.body;
   if (!visitor_id) return res.status(400).send('No visitor id');
   
-  let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
-  if (ip.includes(',')) ip = ip.split(',')[0].trim(); // استخراج أول IP حقيقي من قائمة البروكسي
+  let ip = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || '';
+  if (ip.includes(',')) ip = ip.split(',')[0].trim();
+  if (ip.startsWith('::ffff:')) ip = ip.substring(7); // تنظيف صيغة IPv6
   const ua = req.headers['user-agent'] || '';
   const deviceArabic = device_type === 'Desktop' ? 'كمبيوتر' : (device_type === 'Mobile' ? 'موبايل' : device_type);
   

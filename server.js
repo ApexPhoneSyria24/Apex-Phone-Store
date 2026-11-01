@@ -1325,4 +1325,65 @@ app.post('/api/update-profile', (req, res) => {
 });
 
 
+
+// صفحة الزوار والمستخدمين الموحدة
+app.get('/admin/visitors', requireAuth, (req, res) => {
+  try {
+    const q = (req.query.q || '').trim();
+    const status = req.query.status || 'all';
+    const device = req.query.device || 'all';
+    const days = parseInt(req.query.days || '0');
+    
+    let sql = `
+      SELECT 
+        v.visitor_id,
+        v.ip,
+        v.device_type,
+        v.country,
+        v.city,
+        v.path AS last_page,
+        v.created_at AS last_visit,
+        v.user_phone,
+        u.name AS user_name,
+        u.is_verified,
+        u.is_banned
+      FROM visits v
+      LEFT JOIN users u ON u.visitor_id = v.visitor_id
+      WHERE v.visitor_id IS NOT NULL
+    `;
+    
+    const params = [];
+    
+    if (q) {
+      sql += ` AND (v.visitor_id LIKE ? OR v.ip LIKE ? OR v.user_phone LIKE ? OR u.name LIKE ?)`;
+      const s = `%${q}%`;
+      params.push(s, s, s, s);
+    }
+    
+    if (status === 'registered') sql += ` AND u.phone IS NOT NULL`;
+    else if (status === 'visitor') sql += ` AND u.phone IS NULL`;
+    else if (status === 'banned') sql += ` AND u.is_banned = 1`;
+    
+    if (device === 'mobile' || device === 'desktop') {
+      sql += ` AND LOWER(v.device_type) = ?`;
+      params.push(device);
+    }
+    
+    if (days > 0) sql += ` AND v.created_at >= datetime('now', '-${days} days')`;
+    
+    sql += ` ORDER BY v.created_at DESC LIMIT 500`;
+    
+    const visitors = db.prepare(sql).all(...params);
+    
+    const stats = {
+      totalVisitors: db.prepare('SELECT COUNT(DISTINCT visitor_id) c FROM visits WHERE visitor_id IS NOT NULL').get().c,
+      registered: db.prepare('SELECT COUNT(*) c FROM users').get().c,
+      todayVisits: db.prepare("SELECT COUNT(*) c FROM visits WHERE date(created_at) = date('now', 'localtime')").get().c,
+      banned: db.prepare('SELECT COUNT(*) c FROM users WHERE is_banned = 1').get().c
+    };
+    
+    res.render('admin-visitors', { visitors, stats, filters: { q, status, device, days } });
+  } catch(e) { res.send('Error: ' + e.message); }
+});
+
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

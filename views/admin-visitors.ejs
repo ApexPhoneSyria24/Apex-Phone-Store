@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الزوار والمستخدمون | Apex</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } } } }</script>
+</head>
+<body class="bg-gray-100 p-3 md:p-6 font-sans">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+      <h1 class="text-xl md:text-2xl font-black text-slate-800">👥 الزوار والمستخدمون</h1>
+      <a href="/admin" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg font-bold text-xs">عودة للإدارة</a>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div class="bg-white p-3 rounded-xl shadow-sm border-r-4 border-blue-500">
+        <div class="text-[10px] font-bold text-slate-500">الزوار الفريدون</div>
+        <div class="text-xl font-black text-blue-600"><%= stats.totalVisitors %></div>
+      </div>
+      <div class="bg-white p-3 rounded-xl shadow-sm border-r-4 border-green-500">
+        <div class="text-[10px] font-bold text-slate-500">المستخدمون المسجلون</div>
+        <div class="text-xl font-black text-green-600"><%= stats.registered %></div>
+      </div>
+      <div class="bg-white p-3 rounded-xl shadow-sm border-r-4 border-purple-500">
+        <div class="text-[10px] font-bold text-slate-500">زيارات اليوم</div>
+        <div class="text-xl font-black text-purple-600"><%= stats.todayVisits %></div>
+      </div>
+      <div class="bg-white p-3 rounded-xl shadow-sm border-r-4 border-red-500">
+        <div class="text-[10px] font-bold text-slate-500">المحظورون</div>
+        <div class="text-xl font-black text-red-600"><%= stats.banned %></div>
+      </div>
+    </div>
+
+    <form method="GET" action="/admin/visitors" class="bg-white rounded-xl shadow p-3 mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+        <input type="text" name="q" value="<%= filters.q %>" placeholder="بحث بـ ID / هاتف / IP / اسم" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
+        <select name="status" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          <option value="all" <%= filters.status === 'all' ? 'selected' : '' %>>كل الحالات</option>
+          <option value="registered" <%= filters.status === 'registered' ? 'selected' : '' %>>مسجل 🟢</option>
+          <option value="visitor" <%= filters.status === 'visitor' ? 'selected' : '' %>>زائر مجهول ⚪</option>
+          <option value="banned" <%= filters.status === 'banned' ? 'selected' : '' %>>محظور 🔴</option>
+        </select>
+        <select name="device" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          <option value="all" <%= filters.device === 'all' ? 'selected' : '' %>>كل الأجهزة</option>
+          <option value="mobile" <%= filters.device === 'mobile' ? 'selected' : '' %>>📱 موبايل</option>
+          <option value="desktop" <%= filters.device === 'desktop' ? 'selected' : '' %>>💻 كمبيوتر</option>
+        </select>
+        <select name="days" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          <option value="0" <%= filters.days === 0 ? 'selected' : '' %>>كل الأوقات</option>
+          <option value="1" <%= filters.days === 1 ? 'selected' : '' %>>اليوم</option>
+          <option value="7" <%= filters.days === 7 ? 'selected' : '' %>>آخر 7 أيام</option>
+          <option value="30" <%= filters.days === 30 ? 'selected' : '' %>>آخر 30 يوم</option>
+        </select>
+      </div>
+      <div class="flex gap-2 mt-2">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold">🔍 بحث</button>
+        <a href="/admin/visitors" class="bg-slate-300 hover:bg-slate-400 text-slate-800 px-4 py-2 rounded-lg text-sm font-bold">إعادة تعيين</a>
+      </div>
+    </form>
+
+    <div class="bg-white rounded-xl shadow overflow-x-auto">
+      <table class="w-full text-right text-xs md:text-sm min-w-[900px]">
+        <thead class="bg-gray-200 text-gray-700 text-[11px] md:text-xs">
+          <tr>
+            <th class="p-2 md:p-3">ID</th>
+            <th class="p-2 md:p-3">الحالة</th>
+            <th class="p-2 md:p-3">الاسم</th>
+            <th class="p-2 md:p-3">الهاتف</th>
+            <th class="p-2 md:p-3">IP</th>
+            <th class="p-2 md:p-3">الدولة</th>
+            <th class="p-2 md:p-3">الجهاز</th>
+            <th class="p-2 md:p-3">آخر زيارة</th>
+            <th class="p-2 md:p-3">آخر صفحة</th>
+            <th class="p-2 md:p-3">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <% if (visitors && visitors.length > 0) { visitors.forEach(v => { %>
+            <% 
+              const isRegistered = !!v.user_name || !!v.user_phone;
+              const isBanned = v.is_banned === 1;
+              const rowClass = isBanned ? 'bg-red-50' : (isRegistered ? 'bg-green-50/30' : '');
+              const statusBadge = isBanned 
+                ? '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[9px] font-bold">🔴 محظور</span>'
+                : (isRegistered 
+                  ? '<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[9px] font-bold">🟢 مسجل</span>'
+                  : '<span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[9px] font-bold">⚪ مجهول</span>');
+            %>
+            <tr class="hover:bg-blue-50 <%= rowClass %>">
+              <td class="p-2 md:p-3 font-mono font-bold text-indigo-600 text-[10px] md:text-xs" dir="ltr"><%= v.visitor_id %></td>
+              <td class="p-2 md:p-3"><%- statusBadge %></td>
+              <td class="p-2 md:p-3 font-bold text-slate-800"><%= v.user_name || '—' %></td>
+              <td class="p-2 md:p-3 font-mono text-green-600 font-bold text-[10px]" dir="ltr"><%= v.user_phone || '—' %></td>
+              <td class="p-2 md:p-3 font-mono text-slate-600 text-[10px]" dir="ltr"><%= v.ip || '—' %></td>
+              <td class="p-2 md:p-3 text-[11px]">
+                <% if (v.country) { %>🌍 <%= v.country %><%= v.city ? ' - ' + v.city : '' %><% } else { %><span class="text-gray-400">—</span><% } %>
+              </td>
+              <td class="p-2 md:p-3 text-[11px]">
+                <%= v.device_type === 'Mobile' ? '📱 موبايل' : (v.device_type === 'Desktop' ? '💻 كمبيوتر' : v.device_type || '—') %>
+              </td>
+              <td class="p-2 md:p-3 text-[10px] text-slate-500" dir="ltr"><%= v.last_visit %></td>
+              <td class="p-2 md:p-3 text-[10px] text-slate-500 font-mono" dir="ltr"><%= v.last_page || '—' %></td>
+              <td class="p-2 md:p-3">
+                <div class="flex gap-1">
+                  <button onclick="copyId('<%= v.visitor_id %>')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-1.5 py-1 rounded text-[10px]" title="نسخ ID">📋</button>
+                  <% if (v.user_phone) { %>
+                    <a href="https://wa.me/963<%= v.user_phone.replace(/^0/, '') %>" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-1.5 py-1 rounded text-[10px]" title="واتساب">💬</a>
+                  <% } %>
+                </div>
+              </td>
+            </tr>
+          <% }) } else { %>
+            <tr><td colspan="10" class="p-5 text-center text-gray-500">لا يوجد زوار مطابقون للبحث.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function copyId(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('تم نسخ الـ ID: ' + text);
+      });
+    }
+  </script>
+</body>
+</html>

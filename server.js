@@ -1271,4 +1271,48 @@ app.post('/api/track-visit', (req, res) => {
   }
 });
 
+
+// مسار حفظ بيانات الزبون (تمت إعادته بعد أن تم حذفه بالخطأ)
+app.post('/api/update-profile', (req, res) => {
+  const { fullName, phone, visitor_id } = req.body;
+  if (!fullName || !phone) return res.status(400).json({ success: false, message: 'البيانات ناقصة' });
+
+  try {
+    // التأكد من وجود الأعمدة
+    try {
+      const uInfo = db.prepare("PRAGMA table_info(users)").all();
+      if (!uInfo.some(c => c.name === 'visitor_id')) {
+        db.prepare("ALTER TABLE users ADD COLUMN visitor_id TEXT").run();
+      }
+      const vInfo = db.prepare("PRAGMA table_info(visits)").all();
+      if (!vInfo.some(c => c.name === 'visitor_id')) {
+        db.prepare("ALTER TABLE visits ADD COLUMN visitor_id TEXT").run();
+      }
+    } catch(e) { console.log("Column check warning:", e.message); }
+
+    // الحفظ
+    let user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    if (!user) {
+      const uCode = 'APX-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+      db.prepare('INSERT INTO users (name, phone, visitor_id, user_code) VALUES (?, ?, ?, ?)').run(fullName, phone, visitor_id, uCode);
+    } else {
+      db.prepare('UPDATE users SET name = ?, visitor_id = ? WHERE phone = ?').run(fullName, visitor_id, phone);
+    }
+
+    if (visitor_id) {
+      db.prepare('UPDATE visits SET user_phone = ? WHERE visitor_id = ?').run(phone, visitor_id);
+    }
+
+    if (typeof sendTelegram === 'function') {
+      sendTelegram(`👤 <b>زبون أكمل بياناته!</b>\n\n🆔 ID: ${visitor_id || 'غير متوفر'}\n📝 الاسم: ${fullName}\n📞 الهاتف: ${phone}`);
+    }
+
+    res.json({ success: true, message: 'تم الحفظ بنجاح' });
+  } catch (err) {
+    console.error('Profile Save Error:', err.message);
+    res.status(500).json({ success: false, message: 'حدث خطأ في السيرفر' });
+  }
+});
+
+
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

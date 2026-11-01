@@ -1295,6 +1295,9 @@ app.post('/api/update-profile', (req, res) => {
     if (!user) {
       const uCode = 'APX-' + Math.random().toString(36).substring(2, 7).toUpperCase();
       db.prepare('INSERT INTO users (name, phone, visitor_id, user_code) VALUES (?, ?, ?, ?)').run(fullName, phone, visitor_id, uCode);
+      
+      // رسالة ترحيبية تلقائية للزبون الجديد
+      db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(phone, 'مرحباً بك في عائلة Apex! 🎉 تم إنشاء حسابك بنجاح. يمكنك الآن شحن الألعاب، شحن المحفظة، واستخدام درع الأمان. نحن سعداء بوجودك!');
     } else {
       db.prepare('UPDATE users SET name = ?, visitor_id = ? WHERE phone = ?').run(fullName, visitor_id, phone);
     }

@@ -1238,11 +1238,13 @@ app.post('/api/track-visit', (req, res) => {
     } catch(e) { console.log("Visits column check warning:", e.message); }
 
     let ip = client_ip || '';
-    if (!ip || ip === 'undefined') {
+    // التحقق من صلاحية client_ip (يجب ألا يكون فارغاً أو IP داخلي)
+    if (!ip || ip === 'undefined' || ip === '' || ip.startsWith('10.') || ip.startsWith('192.168.') || ip.startsWith('172.')) {
       ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || '';
       if (ip.includes(',')) ip = ip.split(',')[0].trim();
       if (ip.startsWith('::ffff:')) ip = ip.substring(7);
     }
+    console.log('Saved IP:', ip, '| Client IP:', client_ip);
 
     const ua = req.headers['user-agent'] || '';
     const deviceArabic = device_type === 'Desktop' ? 'كمبيوتر' : (device_type === 'Mobile' ? 'موبايل' : device_type);

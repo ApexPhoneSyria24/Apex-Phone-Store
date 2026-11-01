@@ -1223,6 +1223,7 @@ app.post('/api/track-visit', (req, res) => {
   let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
   if (ip.includes(',')) ip = ip.split(',')[0].trim(); // استخراج أول IP حقيقي من قائمة البروكسي
   const ua = req.headers['user-agent'] || '';
+  const deviceArabic = device_type === 'Desktop' ? 'كمبيوتر' : (device_type === 'Mobile' ? 'موبايل' : device_type);
   
   const finalVisitorId = (visitor_id && visitor_id.startsWith('Apex-')) ? visitor_id : 'Apex-' + Math.random().toString(36).substring(2, 9).toUpperCase();
   const existing = db.prepare('SELECT id, created_at FROM visits WHERE visitor_id = ?').get(finalVisitorId);
@@ -1279,7 +1280,8 @@ app.post('/api/update-profile', (req, res) => {
     // الحفظ
     let user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
     if (!user) {
-      db.prepare('INSERT INTO users (name, phone, visitor_id) VALUES (?, ?, ?)').run(fullName, phone, visitor_id);
+      const uCode = 'APX-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+      db.prepare('INSERT INTO users (name, phone, visitor_id, user_code) VALUES (?, ?, ?, ?)').run(fullName, phone, visitor_id, uCode);
     } else {
       db.prepare('UPDATE users SET name = ?, visitor_id = ? WHERE phone = ?').run(fullName, visitor_id, phone);
     }

@@ -1064,8 +1064,8 @@
       }, 50);
     }
 
-    function closeProfileModal() {
-      clearTimeout(profileModalTimeout);
+    function closeProfileModal(e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
       const modal = document.getElementById('profileModal');
       const box = document.getElementById('profileModalBox');
       modal.style.opacity = '0';

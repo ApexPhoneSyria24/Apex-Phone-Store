@@ -184,6 +184,7 @@ const globalLimiter = rateLimit({
   max: 300, // 300 طلب لكل IP
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { trustProxy: false }, // إصلاح خطأ trust proxy
   message: '⚠️ عذراً، قمت بإرسال طلبات كثيرة جداً. يرجى المحاولة بعد 15 دقيقة.'
 });
 app.use(globalLimiter);
@@ -193,6 +194,7 @@ const strictLimiter = rateLimit({
   max: 10, // 10 طلبات فقط للأقسام الحساسة
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { trustProxy: false },
   message: '⚠️ محاولات كثيرة جداً على هذا القسم. يرجى المحاولة لاحقاً.'
 });
 app.use('/admin/login', strictLimiter);

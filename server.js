@@ -468,7 +468,14 @@ app.post('/api/notifications/welcome', (req, res) => {
   if (!existing) db.prepare('INSERT INTO notifications (phone, message) VALUES (?, ?)').run(phone, '👑 أهلاً بك في Apex فون!');
   res.json({ success: true });
 });
-app.get('/api/notifications/:phone', (req, res) => { res.json(db.prepare('SELECT * FROM notifications WHERE phone = ? ORDER BY id DESC').all(req.params.phone)); });
+app.get('/api/notifications/:phone', (req, res) => { 
+  try { 
+    const notifs = db.prepare('SELECT * FROM notifications WHERE phone = ? ORDER BY id DESC').all(req.params.phone); 
+    res.json({ success: true, notifications: notifs }); 
+  } catch(e) { 
+    res.status(500).json({ success: false, error: e.message }); 
+  } 
+});
 app.post('/api/notifications/read/:phone', (req, res) => { db.prepare('UPDATE notifications SET is_read = 1 WHERE phone = ?').run(req.params.phone); res.json({ success: true }); });
 
 app.get('/api/user-balance/:phone', (req, res) => {

@@ -1223,7 +1223,6 @@ app.post('/api/track-visit', (req, res) => {
   if (!visitor_id) return res.status(400).send('No visitor id');
 
   try {
-    // التأكد من وجود العمود
     try {
       const vInfo = db.prepare("PRAGMA table_info(visits)").all();
       if (!vInfo.some(c => c.name === 'visitor_id')) {
@@ -1231,7 +1230,6 @@ app.post('/api/track-visit', (req, res) => {
       }
     } catch(e) { console.log("Visits column check warning:", e.message); }
 
-    // استخراج الـ IP (من المتصفح أولاً، ثم الهيدرز)
     let ip = client_ip || '';
     if (!ip || ip === 'undefined') {
       ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || '';

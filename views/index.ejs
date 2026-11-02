@@ -218,6 +218,30 @@
       </div>
       <div class="bg-white text-cyan-700 px-3 py-1 rounded-lg text-[10px] md:text-xs font-bold shadow-sm">تحقق الآن ←</div>
     </a>
+
+    <!-- بطاقة استوديو Apex - تصميم المواقع -->
+    <a href="/request-website" onclick="playStudioClick(event)" class="block relative overflow-hidden rounded-xl mb-2 group" style="padding: 2px;">
+      <div style="position: absolute; inset: -50%; background: conic-gradient(from 0deg, #d4af37, #fcf6b5, #d4af37, #b8860b, #d4af37, #fcf6b5, #d4af37); animation: apexSpin 4s linear infinite;"></div>
+      <div class="relative bg-gradient-to-l from-black via-gray-900 to-black rounded-xl p-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl group-hover:scale-110 transition-transform">💻</span>
+          <div>
+            <h3 class="font-bold text-sm md:text-base" style="color: #fcf6b5;">أنشئ موقعك الإلكتروني</h3>
+            <p class="text-[10px] md:text-xs font-bold" style="color: #d4af37;">150 USD - تقسيط متاح ⭐</p>
+          </div>
+        </div>
+        <div class="text-black px-3 py-1 rounded-lg text-[10px] md:text-xs font-black" style="background: linear-gradient(to right, #d4af37, #fcf6b5); box-shadow: 0 0 15px rgba(212,175,55,0.6);">
+          اطلب الآن ←
+        </div>
+      </div>
+    </a>
+
+    <style>
+      @keyframes apexSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    </style>
         </div>
   </div>
   <div class="max-w-4xl mx-auto text-center">
@@ -1053,6 +1077,25 @@
       trapModalHistory('verificationModal', 'showVerificationModal');
       trapModalHistory('scamWarningModal', 'showScamWarningModal'); // إن وجدت
     });
+  </script>
+
+  <script>
+    function playStudioClick(e) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.1);
+      } catch(err) {}
+    }
   </script>
 </body>
     

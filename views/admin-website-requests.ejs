@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>طلبات المواقع | Apex Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } } } }</script>
+</head>
+<body class="bg-gray-100 p-3 md:p-6 font-sans">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+      <h1 class="text-xl md:text-2xl font-black text-slate-800">🌐 طلبات إنشاء المواقع</h1>
+      <a href="/admin" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg font-bold text-xs">عودة للإدارة</a>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div class="bg-white p-3 rounded-xl shadow-sm border-r-4 border-blue-500">
+        <div class="text-[10px] font-bold text-slate-500">إجمالي الطلبات</div>
+        <div class="text-xl font-black text-blue-600"><%= requests.length %></div>
+      </div>
+      <div class="bg-white p-3 rounded-xl shadow-sm border-r-4 border-yellow-500">
+        <div class="text-[10px] font-bold text-slate-500">قيد المراجعة</div>
+        <div class="text-xl font-black text-yellow-600"><%= requests.filter(r => r.status === 'pending').length %></div>
+      </div>
+      <div class="bg-white p-3 rounded-xl shadow-sm border-r-4 border-green-500">
+        <div class="text-[10px] font-bold text-slate-500">تقسيط</div>
+        <div class="text-xl font-black text-green-600"><%= requests.filter(r => r.wants_installment === 1).length %></div>
+      </div>
+      <div class="bg-white p-3 rounded-xl shadow-sm border-r-4 border-purple-500">
+        <div class="text-[10px] font-bold text-slate-500">اليوم</div>
+        <div class="text-xl font-black text-purple-600"><%= requests.filter(r => r.created_at && r.created_at.startsWith(new Date().toISOString().split('T')[0])).length %></div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow overflow-x-auto">
+      <table class="w-full text-right text-xs md:text-sm min-w-[900px]">
+        <thead class="bg-gray-200 text-gray-700">
+          <tr>
+            <th class="p-2 md:p-3">#</th>
+            <th class="p-2 md:p-3">الاسم</th>
+            <th class="p-2 md:p-3">الهاتف</th>
+            <th class="p-2 md:p-3">نوع الموقع</th>
+            <th class="p-2 md:p-3">الوصف</th>
+            <th class="p-2 md:p-3">التقسيط</th>
+            <th class="p-2 md:p-3">التاريخ</th>
+            <th class="p-2 md:p-3">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <% if (requests && requests.length > 0) { requests.forEach(r => { %>
+            <tr class="hover:bg-blue-50">
+              <td class="p-2 md:p-3 font-bold text-slate-600">#<%= r.id %></td>
+              <td class="p-2 md:p-3 font-bold text-slate-800"><%= r.name %></td>
+              <td class="p-2 md:p-3 font-mono font-bold text-green-600" dir="ltr"><%= r.phone %></td>
+              <td class="p-2 md:p-3 text-blue-600 font-bold"><%= r.site_type %></td>
+              <td class="p-2 md:p-3 text-[10px] text-slate-600 max-w-[200px] truncate"><%= r.description || '—' %></td>
+              <td class="p-2 md:p-3">
+                <% if (r.wants_installment === 1) { %>
+                  <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[10px] font-bold">✓ نعم</span>
+                <% } else { %>
+                  <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[10px] font-bold">✗ لا</span>
+                <% } %>
+              </td>
+              <td class="p-2 md:p-3 text-[10px] text-slate-500" dir="ltr"><%= r.created_at %></td>
+              <td class="p-2 md:p-3">
+                <a href="https://wa.me/963<%= r.phone.replace(/^0/, '') %>" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-[10px] font-bold inline-block">
+                  💬 واتساب
+                </a>
+              </td>
+            </tr>
+          <% }) } else { %>
+            <tr>
+              <td colspan="8" class="p-8 text-center text-gray-500">
+                <div class="text-4xl mb-2">📭</div>
+                <p class="font-bold">لا توجد طلبات حتى الآن.</p>
+                <p class="text-xs text-gray-400 mt-1">ستظهر هنا الطلبات فور إرسالها من الزبائن.</p>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

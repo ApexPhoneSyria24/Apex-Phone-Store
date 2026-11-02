@@ -1388,4 +1388,40 @@ app.get('/admin/visitors', requireAuth, (req, res) => {
   } catch(e) { res.send('Error: ' + e.message); }
 });
 
+
+// ===== Website Requests System =====
+app.get('/request-website', (req, res) => {
+  res.render('request-website');
+});
+
+app.post('/api/request-website', (req, res) => {
+  const { name, phone, site_type, description, wants_installment } = req.body;
+  if (!name || !phone) return res.status(400).json({ success: false, message: 'الاسم والهاتف مطلوبان' });
+  try {
+    db.exec('CREATE TABLE IF NOT EXISTS website_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, phone TEXT NOT NULL, site_type TEXT, description TEXT, wants_installment INTEGER DEFAULT 0, status TEXT DEFAULT pending, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)');
+    db.prepare('INSERT INTO website_requests (name, phone, site_type, description, wants_installment) VALUES (?, ?, ?, ?, ?)').run(name, phone, site_type || 'غير محدد', description || '', wants_installment ? 1 : 0);
+    if (typeof sendTelegram === 'function') {
+      let msg = '<b>🌐 طلب موقع إلكتروني جديد!</b>';
+      msg += String.fromCharCode(10,10) + '<b>👤 الاسم:</b> ' + name;
+      msg += String.fromCharCode(10) + '<b>📞 الهاتف:</b> ' + phone;
+      msg += String.fromCharCode(10) + '<b>🖥️ نوع الموقع:</b> ' + (site_type || 'غير محدد');
+      msg += String.fromCharCode(10) + '<b>📝 الوصف:</b> ' + (description || 'لا يوجد');
+      msg += String.fromCharCode(10) + '<b>💳 التقسيط:</b> ' + (wants_installment ? 'نعم' : 'لا');
+      msg += String.fromCharCode(10) + '<b>💰 السعر:</b> 150 USD';
+      sendTelegram(msg);
+    }
+    res.json({ success: true, message: 'تم استلام طلبك بنجاح! سنتواصل معك قريباً.' });
+  } catch(e) {
+    console.error('Website request error:', e.message);
+    res.status(500).json({ success: false, message: 'حدث خطأ في السيرفر' });
+  }
+});
+
+app.get('/admin/website-requests', requireAuth, (req, res) => {
+  try {
+    const requests = db.prepare('SELECT * FROM website_requests ORDER BY id DESC').all();
+    res.render('admin-website-requests', { requests });
+  } catch(e) { res.send('Error: ' + e.message); }
+});
+
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 يعمل الآن: http://localhost:${PORT}`); });

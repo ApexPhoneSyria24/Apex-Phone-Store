@@ -397,7 +397,9 @@
   <!-- نافذة الإشعارات -->
   <div id="notifModal" class="fixed inset-0 bg-black/80 z-[9999] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity">
     <div class="bg-[#0a1120] border border-blue-500/30 w-full max-w-md rounded-2xl p-5 shadow-[0_0_50px_rgba(59,130,246,0.2)] relative">
-      <button id="closeNotifBtn" type="button" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-300 hover:text-white hover:bg-red-500/80 transition-all cursor-pointer z-50"><i class="fa-solid fa-xmark text-lg"></i></button>
+      <button type="button" onclick="document.getElementById('profileModal').classList.add('hidden'); document.getElementById('profileModal').classList.remove('flex'); document.getElementById('profileModal').style.opacity = '0';" class="absolute top-4 left-4 text-slate-400 hover:text-white transition bg-slate-800/50 w-8 h-8 rounded-full flex items-center justify-center z-20">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
       <h2 class="text-2xl font-black text-white mb-5 text-center drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]"><i class="fa-solid fa-bell text-blue-500 ml-2"></i> الإشعارات</h2>
       <div id="notifContent" class="space-y-3 max-h-[60vh] overflow-y-auto text-right pr-1">
          <!-- المحتوى هنا -->
@@ -407,159 +409,47 @@
 
   <script>
     function openNotifModal() {
-      // ربط زر الإغلاق داخل الدالة (يمنع تكرار المستمعين ويضمن العمل)
-      const closeBtn = document.getElementById('closeNotifBtn');
-      if (closeBtn) {
-        closeBtn.onclick = function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          const modal = document.getElementById('notifModal');
-          if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-          }
-        };
-      }
-
       let phone = localStorage.getItem('apex_user_phone');
-
-      // إذا لم يسجل الزبون رقمه، نفتح نافذة الحساب بدلاً من الإزعاج
-      if (!phone) {
-        if (typeof openProfileModal === 'function') openProfileModal();
-        const toast = document.getElementById('copyToast');
-        if (toast) {
-          toast.innerHTML = '<i class="fa-solid fa-circle-info"></i> يرجى إكمال بياناتك أولاً لعرض الإشعارات';
-          toast.classList.remove('opacity-0');
-          setTimeout(() => toast.classList.add('opacity-0'), 3000);
-        }
-        return;
-      }
-
-      // إذا كان مسجلاً، نفتح الإشعارات
       const modal = document.getElementById('notifModal');
       if (!modal) return;
-      
-      modal.style.display = ''; // إزالة أي إخفاء قسري سابق
       modal.classList.remove('hidden');
       modal.classList.add('flex');
 
       const content = document.getElementById('notifContent');
+
+      // إذا لم يكن مسجلاً، نعرض رسالة داخل نافذة الإشعارات
+      if (!phone) {
+        content.innerHTML = `
+          <div class="text-center py-4">
+            <p class="text-slate-300 mb-4 text-sm">يرجى تسجيل بياناتك أولاً لعرض إشعاراتك</p>
+            <button onclick="document.getElementById('notifModal').classList.add('hidden'); if (typeof openProfileModal === 'function') openProfileModal();" class="bg-cyan-600 text-white px-6 py-2 rounded-lg font-bold text-sm">
+              سجل الآن
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      // إذا كان مسجلاً، نجلب الإشعارات
       content.innerHTML = '<div class="text-center text-slate-400 py-2 text-xs">جاري تحميل الإشعارات...</div>';
 
       fetch('/api/notifications/' + phone, { headers: { 'x-user-phone': phone } })
         .then(r => r.json())
         .then(data => {
-          if (data.error) throw new Error(data.error);
           const notifs = data.notifications || [];
-
           if (notifs.length === 0) {
             content.innerHTML = '<div class="text-center text-slate-400 py-1 text-xs">لا توجد إشعارات حالياً.</div>';
             return;
           }
-
           content.innerHTML = notifs.map(n => `<div class="p-2 border-b border-slate-700 text-xs ${n.is_read ? 'text-slate-400' : 'text-white font-bold'}">${n.message}</div>`).join('');
-
           fetch('/api/notifications/read/' + phone, { method: 'POST' }).catch(()=>{});
-
           const redDot = document.querySelector('button[onclick="openNotifModal()"] span');
           if (redDot) redDot.style.display = 'none';
         })
         .catch((e) => {
-          console.error(e);
-          content.innerHTML = '<div class="text-center text-red-400 py-1 text-xs">حدث خطأ في جلب الإشعارات. تحقق من اتصالك.</div>';
+          content.innerHTML = '<div class="text-center text-red-400 py-1 text-xs">حدث خطأ في جلب الإشعارات.</div>';
         });
     }
-    </script>
-  
-
-  <!-- النافذة التحذيرية للرعبون (التنبيه السيادي) -->
-  <div id="scamWarningModal" class="fixed inset-0 bg-black/85 z-[99999] hidden items-center justify-center p-4 backdrop-blur-md transition-opacity" style="opacity: 0; transition: opacity 0.3s ease;">
-    <div class="bg-[#0f172a] border border-slate-700 w-full max-w-sm rounded-3xl p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] relative text-center transform scale-95 transition-transform duration-300" id="scamModalBox">
-      
-      <!-- أيقونة التاج -->
-      <div class="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-[0_0_30px_rgba(250,204,21,0.4)]">
-        <i class="fa-solid fa-crown text-4xl text-white drop-shadow-md"></i>
-      </div>
-      
-      <h2 class="text-2xl font-black text-white mb-4" style="text-shadow: 0 0 10px rgba(255,255,255,0.5);">تنبيه سيادي هام</h2>
-      
-      <!-- صندوق التحذير الأحمر -->
-      <div class="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 mb-6 text-right">
-        <p class="text-white font-bold text-xs leading-relaxed">
-          <i class="fa-solid fa-triangle-exclamation ml-1"></i>
-          نظراً لانتشار عمليات الاحتيال (الرعبون):<br>
-          يمنع منعاً باتاً تحويل أي مبالغ (رعبون) عبر الهرم أو شام كاش إلا بعد موافقة صريحة من قسم الإدارة حصراً.
-          <br><br>
-          الإدارة تخلي مسؤوليتها عن أي تحويل يتم دون علمها.
-        </p>
-      </div>
-      
-      <!-- الأزرار -->
-      
-        <label class="flex items-center justify-center gap-2 mb-3 cursor-pointer">
-          <input type="checkbox" id="hideScamCheckbox" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-yellow-500 focus:ring-yellow-500">
-          <span class="text-xs text-slate-300 font-bold">لا تظهر هذا التحذير مرة أخرى</span>
-        </label>
-  <div class="flex flex-col gap-3">
-        <button onclick="acceptScamWarning()" class="w-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-slate-900 font-black py-3 rounded-xl shadow-[0_4px_15px_rgba(250,204,21,0.3)] hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
-          <i class="fa-solid fa-check-double"></i> أوافق وأتفهم
-        </button>
-        <a href="/policy" class="w-full bg-slate-800 border border-slate-700 text-slate-300 font-bold py-3 rounded-xl hover:bg-slate-700 transition-colors text-sm">
-          قراءة سياسة الضمان
-        </a>
-      </div>
-    </div>
-  </div>
-
-  
-  
-
-  <!-- نافذة تشجيع التوثيق -->
-  <div id="verificationModal" class="fixed inset-0 bg-black/85 z-[99998] hidden items-center justify-center p-4 backdrop-blur-md transition-opacity" style="opacity: 0; transition: opacity 0.3s ease;">
-    <div class="bg-[#0f172a] border border-blue-500/30 w-full max-w-sm rounded-3xl p-6 shadow-[0_0_50px_rgba(59,130,246,0.3)] text-center relative transform scale-95 transition-transform duration-300" id="verificationModalBox">
-      
-      <div class="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-[0_0_30px_rgba(59,130,246,0.4)]">
-        <i class="fa-solid fa-shield-halved text-4xl text-blue-400"></i>
-      </div>
-      
-      <h2 class="text-2xl font-black text-white mb-3">وثق حسابك الآن! 🛡️</h2>
-      
-      <p class="text-slate-300 text-sm mb-6 leading-relaxed">
-        الحساب الموثق يمنحك <span class="text-blue-400 font-bold">شارة "بائع موثوق"</span> بجانب إعلاناتك، مما يزيد من ثقة الزبائن ويرفع نسبة مبيعاتك بشكل هائل!
-      </p>
-      
-      
-        <label class="flex items-center justify-center gap-2 mb-3 cursor-pointer">
-          <input type="checkbox" id="hideVerifCheckbox" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-blue-500">
-          <span class="text-xs text-slate-300 font-bold">لا تظهر هذا مجدداً</span>
-        </label>
-  <div class="flex flex-col gap-3">
-        <a href="/verify-account" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-black py-3 rounded-xl shadow-[0_4px_15px_rgba(59,130,246,0.4)] hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
-          <i class="fa-solid fa-circle-check"></i> وثق حسابك الآن
-        </a>
-        <button onclick="closeVerificationModal()" class="w-full bg-slate-800 border border-slate-700 text-slate-300 font-bold py-3 rounded-xl hover:bg-slate-700 transition-colors text-sm">
-          تخطي الآن
-        </button>
-      </div>
-    </div>
-  </div>
-  
-
-  <script>
-    // إظهار النافذة التحذيرية (الرعبون) بعد 1.5 ثانية
-    document.addEventListener('DOMContentLoaded', function() {
-      if (!sessionStorage.getItem('apex_scam_warning_seen') && !localStorage.getItem('apex_hide_scam_warning')) {
-        setTimeout(() => {
-          const modal = document.getElementById('scamWarningModal');
-          const box = document.getElementById('scamModalBox');
-          if(modal && box) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => { modal.style.opacity = '1'; box.classList.replace('scale-95', 'scale-100'); }, 50);
-          }
-        }, 1500);
-      }
-    });
 
     function acceptScamWarning() {
       const modal = document.getElementById('scamWarningModal');
@@ -977,9 +867,9 @@
     <div class="bg-[#0f172a]/90 border border-cyan-500/50 w-full max-w-sm rounded-2xl shadow-[0_0_50px_rgba(0,243,255,0.15)] relative text-center transform scale-95 transition-transform duration-300 overflow-hidden" id="profileModalBox">
       
       <!-- زر الإغلاق -->
-      <a href="/" class="absolute top-4 left-4 text-slate-400 hover:text-white transition bg-slate-800/50 w-8 h-8 rounded-full flex items-center justify-center z-20">
+      <button type="button" onclick="closeProfileModal(event)" class="absolute top-4 left-4 text-slate-400 hover:text-white transition bg-slate-800/50 w-8 h-8 rounded-full flex items-center justify-center z-20">
         <i class="fa-solid fa-xmark text-lg"></i>
-      </a>
+      </button>
 
       <!-- الخلفية العلوية -->
       <div class="h-24 bg-gradient-to-b from-cyan-900/40 to-transparent absolute top-0 w-full z-0"></div>
